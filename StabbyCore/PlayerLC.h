@@ -5,6 +5,8 @@
 #include "Attack.h"
 #include "PhysicsAABB.h"
 #include "Stage.h"
+#include "PhysicsComponent.h"
+
 enum class State {
 	free,
 	attacking,
@@ -16,12 +18,11 @@ enum class State {
 class PlayerLC {
 public:
 	PlayerLC(EntityId id_ = 0);
-	void update(double timeDelta, const Controller& controller, const Stage& stage);
-	void setPos(Vec2f pos);
-	Vec2f getPos() const;
+	EntityId getId() const;
+	void update(double timeDelta, const Controller& controller);
+	PhysicsComponent * getPhysics();
 	Vec2f getVel() const;
 	Vec2f getRes() const;
-	EntityId getId() const;
 	Attack& getAttack();
 	State getState();
 	int getActiveId();
@@ -33,18 +34,16 @@ public:
 	void die();
 	void kill();
 	void respawn();
+
+	const static int PLAYER_WIDTH = 4;
+	const static int PLAYER_HEIGHT = 20;
 protected:
 	void free(const Controller & controller, bool attackToggledDown_);
-
-	Vec2f pos;
-	Vec2f vel;
-	PhysicsAABB collider;
 	//as a multiple of acceleration
+	EntityId id;
 	int maxXVel;
 	float xAccel;
-	float gravity;
 	float jumpSpeed;
-	bool canJump;
 	//for only getting hit once per slash
 	bool isBeingHit;
 
@@ -53,7 +52,6 @@ protected:
 	Attack attack;
 	bool attackBuffered;
 
-	EntityId id;
 	int facing;
 	bool prevButton2;
 	bool prevButton3;
@@ -70,7 +68,4 @@ protected:
 
 	int deathFrame;
 	int deathFrameMax;
-
-	const static int PLAYER_WIDTH = 4;
-	const static int PLAYER_HEIGHT = 20;
 };

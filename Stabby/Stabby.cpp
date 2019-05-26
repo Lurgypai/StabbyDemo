@@ -17,7 +17,6 @@
 #include "stb_image.h"
 
 #include "Shader.h"
-#include "ImageGC.h"
 #include "PlayerGC.h"
 #include "AABB.h"
 #include "Controller.h"
@@ -28,6 +27,9 @@
 #include "GLRenderer.h"
 #include "PlayerCam.h"
 
+#include "PhysicsSystem.h"
+#include "RenderSystem.h"
+#include "RenderComponent.h"
 #include "ClientPlayerLC.h"
 #include "ConnectCommand.h"
 #include "OnlinePlayerLC.h."
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	GLRenderer::Init(window, { windowWidth, windowHeight }, {viewWidth, viewHeight});
-
+	RenderSystem render;
 
 	//client time
 	Time_t currentTick{ 0 };
@@ -94,10 +96,15 @@ int main(int argc, char* argv[]) {
 	unsigned int playerId;
 	EntitySystem::GenEntities(1, &playerId);
 	EntitySystem::MakeComps<ClientPlayerLC>(1, &playerId);
-	EntitySystem::GetComp<ClientPlayerLC>(playerId)->setPos({ -2, -20 });
-	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
-	EntitySystem::GetComp<PlayerGC>(playerId)->load("images/stabbyman.png");
+	EntitySystem::MakeComps<PhysicsComponent>(1, &playerId);
+	EntitySystem::GetComp<PhysicsComponent>(playerId)->collider = AABB{ {-2, -20}, Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT)} };
+	EntitySystem::GetComp<PhysicsComponent>(playerId)->weight = 3;
 
+	EntitySystem::MakeComps<RenderComponent>(1, &playerId);
+	EntitySystem::GetComp<RenderComponent>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
+
+	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
+	EntitySystem::GetComp<PlayerGC>(playerId)->load();
 
 	Stage stage{};
 	stage.loadGraphics("images/stage.png");
@@ -108,6 +115,7 @@ int main(int argc, char* argv[]) {
 
 	Controller controller;
 
+	PhysicsSystem physics{stage};
 	/*---------------------------------- Camera Preparation -------------------------------------------------------*/
 	PlayerCam playerCam{ playerId, viewWidth, viewHeight };
 	int camId = GLRenderer::addCamera(playerCam);
@@ -203,7 +211,9 @@ int main(int argc, char* argv[]) {
 			}
 
 			ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-			player->update(currentTick, CLIENT_TIME_STEP, controller, stage);
+			player->update(currentTick, CLIENT_TIME_STEP, controller);
+
+			physics.runPhysics(CLIENT_TIME_STEP);
 
 			if (client.getConnected()) {
 				//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
@@ -230,11 +240,9 @@ int main(int argc, char* argv[]) {
 
 				client.service(currentTick);
 
-				if (EntitySystem::GetPool<OnlinePlayerLC>() != nullptr) {
-					for (auto& onlinePlayer : *EntitySystem::GetPool<OnlinePlayerLC>()) {
-						if (!onlinePlayer.isFree) {
-							onlinePlayer.val.update(client.getTime());
-						}
+				if (EntitySystem::Contains<OnlinePlayerLC>()) {
+					for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
+						onlinePlayer.update(client.getTime());
 					}
 				}
 
@@ -256,12 +264,10 @@ int main(int argc, char* argv[]) {
 				DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
 			}
 
-			Pool<HeadParticleLC> * heads = EntitySystem::GetPool<HeadParticleLC>();
-			if (heads != nullptr) {
-				for (auto& head : *heads) {
-					if (!head.isFree) {
-						head.val.update(CLIENT_TIME_STEP, stage);
-					}
+			if (EntitySystem::Contains<HeadParticleLC>()) {
+				Pool<HeadParticleLC> & heads = EntitySystem::GetPool<HeadParticleLC>();
+				for (auto& head : heads) {
+						head.update(CLIENT_TIME_STEP);
 				}
 			}
 		}
@@ -293,50 +299,30 @@ int main(int argc, char* argv[]) {
 			GLRenderer::setCamera(camId);
 			static_cast<PlayerCam &>(GLRenderer::getCamera(camId)).update(playerId);
 			EntitySystem::GetComp<PlayerGC>(playerId)->update<ClientPlayerLC>();
-			GLRenderer::SetBuffer(EntitySystem::GetComp<PlayerGC>(playerId)->getRenderBuffer());
-			GLRenderer::Buffer(EntitySystem::GetComp<PlayerGC>(playerId)->getImgData());
 			
 
 			bool setBuffer{ true };
-			Pool<OnlinePlayerLC> * onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
-			if (onlinePlayers != nullptr) {
-				for (auto& onlinePlayer : *onlinePlayers) {
-					if (!onlinePlayer.isFree) {
-						EntityId id = onlinePlayer.val.getId();
-						PlayerGC * image = EntitySystem::GetComp<PlayerGC>(id);
-						//buffering before creating images invalidates the render buffer. update may create sprites.
-						image->update<OnlinePlayerLC>();
-						if (setBuffer) {
-							GLRenderer::SetBuffer(image->getRenderBuffer());
-							setBuffer = false;
-						}
-						GLRenderer::Buffer(image->getImgData());
-					}
+			if (EntitySystem::Contains<OnlinePlayerLC>()) {
+				Pool<OnlinePlayerLC> & onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
+				for (auto& onlinePlayer : onlinePlayers) {
+					EntityId id = onlinePlayer.getId();
+					PlayerGC * image = EntitySystem::GetComp<PlayerGC>(id);
+					image->update<OnlinePlayerLC>();
 				}
 			}
 
 			
 			setBuffer = true;
-			Pool<HeadParticleLC> * heads = EntitySystem::GetPool<HeadParticleLC>();
-			if (heads != nullptr) {
-				for (auto& head : *heads) {
-					if (!head.isFree) {
-						EntityId id = head.val.getId();
-						ImageGC * image = EntitySystem::GetComp<ImageGC>(id);
-						if (setBuffer) {
-							GLRenderer::SetBuffer(image->getRenderBuffer());
-							setBuffer = false;
-						}
-						image->sprite.setPos(head.val.getPos());
-						GLRenderer::Buffer(image->getImgData());
-					}
+			if (EntitySystem::Contains<HeadParticleLC>()) {
+				Pool<HeadParticleLC> & heads = EntitySystem::GetPool<HeadParticleLC>();
+				for (auto& head : heads) {
+					EntityId id = head.getId();
+					RenderComponent * image = EntitySystem::GetComp<RenderComponent>(id);
+					image->getSprite().setPos(head.getPos());
 				}
 			}
 
-			
-			GLRenderer::SetBuffer(EntitySystem::GetComp<ImageGC>(stage.getId())->getRenderBuffer());
-			GLRenderer::Buffer(EntitySystem::GetComp<ImageGC>(stage.getId())->getImgData());
-			
+			render.drawAll();
 			
 			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
 

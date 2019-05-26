@@ -48,14 +48,16 @@ void ServerPlayerLC::bufferInput(ClientCommand c) {
 	}
 }
 
-void ServerPlayerLC::update(Time_t gameTime, const Stage& stage) {
+void ServerPlayerLC::update(Time_t gameTime) {
 	//we need to increment when as time passes, so that the client knows the times when things should happen. Update runs at client speed.
 	++when;
-	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState, stage);
+	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState);
 
 	if (prevStates.size() >= 32)
 		prevStates.pop_front();
-	prevStates.emplace_back(PlayerState{state, gameTime, pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame});
+
+	PhysicsComponent * physics = getPhysics();
+	prevStates.emplace_back(PlayerState{state, gameTime, physics->collider.pos, physics->vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame});
 }
 
 //check if we hit anyone else from ze past
@@ -64,14 +66,17 @@ void ServerPlayerLC::runHitDetect(Time_t gameTime) {
 	PlayerState stateWhenAction = getStateAt(timeToFind);
 
 	if (stateWhenAction.state != State::rolling) {
-		Vec2f restorePos = collider.getPos();
 
-		collider.setPos(stateWhenAction.pos);
+		PhysicsComponent * physics = getPhysics();
+		AABB & collider = physics->collider;
+		Vec2f restorePos = collider.pos;
+
+		collider.pos = stateWhenAction.pos;
 
 		bool wasHit = false;
-		for (auto& playerComp : *EntitySystem::GetPool<ServerPlayerLC>()) {
-			if (!playerComp.isFree && playerComp.val.id != id) {
-				auto& player = playerComp.val;
+		for (auto& playerComp : EntitySystem::GetPool<ServerPlayerLC>()) {
+			if (playerComp.id != id) {
+				auto& player = playerComp;
 				if (player.getAttack().getActive() != nullptr && collider.intersects(player.getAttack().getActive()->hit)) {
 					if (!isBeingHit) {
 						damage(1);
@@ -82,6 +87,6 @@ void ServerPlayerLC::runHitDetect(Time_t gameTime) {
 		}
 		isBeingHit = wasHit;
 
-		collider.setPos(restorePos);
+		collider.pos = restorePos;
 	}
 }

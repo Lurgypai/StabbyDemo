@@ -6,14 +6,10 @@
 #include <iostream>
 
 PlayerLC::PlayerLC(EntityId id_) :
-	id{ id_ },
-	pos{ 0, 0 },
-	vel{ 0, 0 },
+	id{id_},
 	maxXVel{ 50 },
 	xAccel{ 10 },
-	gravity{ 3 },
 	jumpSpeed{ 120 },
-	canJump{ false },
 	attack{},
 	facing{1},
 	prevButton2{false},
@@ -29,11 +25,14 @@ PlayerLC::PlayerLC(EntityId id_) :
 	stunSlideSpeed{10},
 	state{State::free},
 	deathFrame{0},
-	deathFrameMax{200},
-	collider{ pos, Vec2f{static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)} }
+	deathFrameMax{200}
 {}
 
-void PlayerLC::update(double timeDelta, const Controller & controller, const Stage& stage) {
+void PlayerLC::update(double timeDelta, const Controller & controller) {
+
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	AABB & collider = comp->collider;
+	Vec2f & vel = comp->vel;
 
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
@@ -45,7 +44,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller, const Sta
 	}
 
 	//always update the attack. Hitboxes should only be out when we are stuck in attack mode.
-	attack.update(pos, collider.getRes(), facing);
+	attack.update(collider.pos, collider.res, facing);
 
 	switch (state) {
 	case State::stunned:
@@ -92,42 +91,23 @@ void PlayerLC::update(double timeDelta, const Controller & controller, const Sta
 		break;
 	}
 
-	vel.y += gravity;
-
-	collider.setPos(pos);
-	collider.setVel(vel);
-
-
-
-	pos = collider.handleCollision(stage.getCollider(), timeDelta);
-
-	if (collider.getVel().y == 0 && vel.y > 0) {
-		canJump = true;
-	}
-	else {
-		canJump = false;
-	}
-
-	vel = collider.getVel();
-	if (pos.y > 1000) {
+	if (collider.pos.y > 1000) {
 		respawn();
 	}
 }
 
-void PlayerLC::setPos(Vec2f pos_) {
-	pos = pos_;
-}
-
-Vec2f PlayerLC::getPos() const {
-	return pos;
+PhysicsComponent * PlayerLC::getPhysics() {
+	return EntitySystem::GetComp<PhysicsComponent>(id);
 }
 
 Vec2f PlayerLC::getVel() const {
-	return vel;
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	return comp->vel;
 }
 
 Vec2f PlayerLC::getRes() const {
-	return collider.getRes();
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	return comp->collider.res;
 }
 
 EntityId PlayerLC::getId() const {
@@ -176,7 +156,8 @@ void PlayerLC::die() {
 	stunFrame = 0;
 	attack.setActive(0);
 	attack.setFrame(0);
-	vel = { 0, 0 };
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	comp->vel = { 0, 0 };
 }
 
 void PlayerLC::kill() {
@@ -187,13 +168,17 @@ void PlayerLC::kill() {
 void PlayerLC::respawn() {
 	state = State::free;
 	health = 3;
-	pos = {static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
-	vel = { 0, 0 };
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	comp->collider.pos = {static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
+	comp->vel = { 0, 0 };
 	attack.setActive(0);
 	attack.setFrame(0);
 }
 
 void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
+
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	Vec2f & vel = comp->vel;
 
 	if (attackToggledDown_) {
 		state = State::attacking;
@@ -224,9 +209,8 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 			++dir;
 		}
 		if (controller[ControllerBits::UP]) {
-			if (canJump) {
+			if (comp->grounded) {
 				vel.y = -jumpSpeed;
-				canJump = false;
 			}
 		}
 		//otherwise do

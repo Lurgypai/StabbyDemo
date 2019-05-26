@@ -9,8 +9,9 @@ User::User(NetworkId id_, ConnectionPtr && con_) :
 {
 	EntitySystem::GenEntities(1, &id);
 	EntitySystem::MakeComps<ServerPlayerLC>(1, &id);
-
-	EntitySystem::GetComp<ServerPlayerLC>(id)->setPos({ -2, -20 });
+	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+	EntitySystem::GetComp<PhysicsComponent>(id)->collider = AABB{ {-2, -20}, Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT)} };
+	EntitySystem::GetComp<PhysicsComponent>(id)->weight = 3;
 }
 
 EntityId User::getId() const {
@@ -27,4 +28,8 @@ Connection * User::getConnection() {
 
 ServerPlayerLC & User::getPlayer() {
 	return *EntitySystem::GetComp<ServerPlayerLC>(id);
+}
+
+PhysicsComponent & User::getPhysics() {
+	return *EntitySystem::GetComp<PhysicsComponent>(id);
 }

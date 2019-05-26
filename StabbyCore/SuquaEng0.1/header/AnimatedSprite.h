@@ -16,6 +16,8 @@ public:
 	void setAnimation(int id);
 	void resetDelay();
 	Vec2i getAnimation(int id);
+
+	virtual Sprite * clone() const override;
 private:
 	std::unordered_map<int, Vec2i> animations;
 	Vec2i currentAnimation;

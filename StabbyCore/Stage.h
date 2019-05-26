@@ -11,11 +11,11 @@ class Stage {
 public:
 	Stage();
 	void loadGraphics(std::string filePath);
-	const AABB& getCollider() const;
+	const std::vector<AABB>& getColliders() const;
 	EntityId getId();
 
 private:
-	AABB collider;
+	std::vector<AABB> colliders;
 	Vec2f pos;
 	EntityId id;
 };

@@ -21,6 +21,7 @@
 
 #include "ServerClientData.h"
 #include "Settings.h"
+#include "PhysicsSystem.h"
 
 #define MAX_PACKET_COUNT 500
 #define CLIENT_SIDE_DELTA 1.0 / 120
@@ -115,6 +116,7 @@ int main(int argv, char* argc[])
 	std::list<UserPtr> users;
 
 	Stage stage{};
+	PhysicsSystem physics{ stage };
 
 	//switch game to tick at client speed, but only send updates out at server speed
 	//test this, it looks like its done.
@@ -219,7 +221,8 @@ int main(int argv, char* argc[])
 			
 			//move
 			for (auto& user : users) {
-				user->getPlayer().update(gameTime, stage);
+				user->getPlayer().update(gameTime);
+				physics.runPhysics(CLIENT_TIME_STEP);
 			}
 
 			//after movement, run collisisons
@@ -237,8 +240,9 @@ int main(int argv, char* argc[])
 				states.reserve(users.size());
 				for (auto& user : users) {
 					ServerPlayerLC & player = user->getPlayer();
+					PhysicsComponent & physics = user->getPhysics();
 					StatePacket pos{};
-					pos.state.pos = player.getPos();
+					pos.state.pos = physics.collider.pos;
 					pos.state.vel = player.getVel();
 					pos.state.when = player.getWhen();
 					pos.state.activeAttack = player.getAttack().getActiveId();

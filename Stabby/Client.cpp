@@ -169,13 +169,13 @@ void Client::receive(ENetEvent & e) {
 
 		PacketUtil::readInto<StatePacket>(&states[0], e.packet, size);
 
-		Pool<OnlinePlayerLC> * onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
 
 		for (auto & p : states) {
-			if (onlinePlayers != nullptr) {
-				for (auto& onlinePlayer : *onlinePlayers) {
-					if ((!onlinePlayer.isFree) && onlinePlayer.val.getNetId() == p.id) {
-						onlinePlayer.val.interp(p.state, p.when);
+			if (EntitySystem::Contains<OnlinePlayerLC>()) {
+				Pool<OnlinePlayerLC> & onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
+				for (auto& onlinePlayer : onlinePlayers) {
+					if (onlinePlayer.getNetId() == p.id) {
+						onlinePlayer.interp(p.state, p.when);
 					}
 				}
 			}
@@ -209,7 +209,8 @@ void Client::receive(ENetEvent & e) {
 	else if (packetKey == QUIT_KEY) {
 		QuitPacket q;
 		PacketUtil::readInto<QuitPacket>(q, e.packet);
-		for (auto& onlinePlayer : *EntitySystem::GetPool<OnlinePlayerLC>()) {
+		for (auto iter = EntitySystem::GetPool<OnlinePlayerLC>().beginResource(); iter != EntitySystem::GetPool<OnlinePlayerLC>().endResource(); iter++) {
+			auto& onlinePlayer = *iter;
 			if (!onlinePlayer.isFree && onlinePlayer.val.getNetId() == q.id) {
 				//remove
 				onlinePlayer.isFree = true;
@@ -234,12 +235,14 @@ void Client::receive(ENetEvent & e) {
 		EntitySystem::GenEntities(ids.size(), &entities[0]);
 		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), &entities[0]);
 		EntitySystem::MakeComps<PlayerGC>(entities.size(), &entities[0]);
+		EntitySystem::MakeComps<RenderComponent>(entities.size(), &entities[0]);
 
 		for (int i = 0; i != ids.size(); ++i) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
-			EntitySystem::GetComp<PlayerGC>(entity)->load("images/evil_stabbyman.png");
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
+			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/evil_stabbyman.png", Vec2i{64, 64});
+			EntitySystem::GetComp<PlayerGC>(entity)->load();
 		}
 	}
 }

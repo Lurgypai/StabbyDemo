@@ -3,7 +3,7 @@
 
 PhysicsAABB::PhysicsAABB(Vec2f pos_, Vec2f res_) : AABB{pos_, res_}
 {}
-
+/*
 Vec2f PhysicsAABB::collides(const AABB & other, double timeDelta) {
 
 	Vec2f oldPos = pos;
@@ -89,8 +89,7 @@ float PhysicsAABB::collides(const AABB & other, double timeDelta, Direction dir)
 	pos = oldPos;
 	return overlap;
 }
-
-
+*/
 
 Vec2f PhysicsAABB::handleCollision(const AABB& other, double timeDelta) {		//place we are updating from
 	Vec2f currPos = pos;

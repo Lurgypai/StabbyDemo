@@ -13,6 +13,7 @@ public:
 	NetworkId getNetId() const;
 	Connection * getConnection();
 	ServerPlayerLC & getPlayer();
+	PhysicsComponent & getPhysics();
 private:
 	EntityId id;
 	NetworkId netId;

@@ -1,12 +1,14 @@
 #pragma once
 #include <exception>
-#include <string>
 
-class FileNotFoundException : public std::exception {
+#include <string>
+#include "TypeData.h"
+
+class PoolNotFoundException : public std::exception {
 public:
-	FileNotFoundException(const std::string & file);
+	PoolNotFoundException(type_id id_);
 	virtual const char* what() const noexcept;
 private:
 	std::string wt;
-	std::string filename;
+	type_id id;
 };

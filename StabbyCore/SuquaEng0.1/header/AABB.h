@@ -14,19 +14,14 @@ public:
 		right
 	};
 
-	AABB(Vec2f pos_, Vec2f res_);
-	Vec2f getPos() const;
-	Vec2f getRes() const;
+	AABB(Vec2f pos_ = { 0, 0 }, Vec2f res_ = {0, 0});
 	Vec2f center() const;
 
 	void center(const Vec2f & newCenter);
-	void setPos(const Vec2f& other);
-	void setRes(const Vec2f& res_);
 
 	bool contains(Vec2f point);
 	bool intersects(const AABB& other) const;
 
-protected:
 	Vec2f pos;
 	Vec2f res;
 };

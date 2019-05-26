@@ -66,3 +66,7 @@ void AnimatedSprite::resetDelay() {
 Vec2i AnimatedSprite::getAnimation(int id) {
 	return animations[id];
 }
+
+Sprite * AnimatedSprite::clone() const {
+	return new AnimatedSprite(*this);
+}

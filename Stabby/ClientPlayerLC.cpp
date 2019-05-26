@@ -9,14 +9,18 @@ ClientPlayerLC::ClientPlayerLC(EntityId id_) :
 	last{0}
 {}
 
-void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & controller, const Stage& stage) {
-	PlayerLC::update(timeDelta, controller, stage);
+void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & controller) {
+	PlayerLC::update(timeDelta, controller);
 
 	//maintain constant max size
 	if (states.size() >= BUFFER_SIZE)
 		states.pop_front();
 
-	states.emplace_back(TotalPlayerState{ PlayerState{state, now, pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame}, controller.getState() });
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	AABB & collider = physics->collider;
+	Vec2f & vel = physics->vel;
+
+	states.emplace_back(TotalPlayerState{ PlayerState{state, now, collider.pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame}, controller.getState() });
 }
 
 void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
@@ -29,8 +33,12 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 				if (tstate.plr != state) {
 					std::cout << "Prediction failed, re-predicting\n";
 
+					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+					AABB & collider = physics->collider;
+					Vec2f & vel = physics->vel;
+
 					this->state = state.state;
-					pos = state.pos;
+					collider.pos = state.pos;
 					vel = state.vel;
 					rollFrame = state.rollFrame;
 					attack.setActive(state.activeAttack);
@@ -44,7 +52,7 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 
 					//now reevaulate, this will refill states
 					for (auto& updateState : toUpdate) {
-						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in}, stage);
+						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in});
 					}
 				}
 
@@ -60,5 +68,11 @@ std::string ClientPlayerLC::getHeadPath() {
 }
 
 Vec2f ClientPlayerLC::getCenter() {
-	return pos + Vec2f{static_cast<float>(PLAYER_WIDTH / 2), static_cast<float>(PLAYER_HEIGHT / 2)};
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	return physics->collider.center();
+}
+
+Vec2f ClientPlayerLC::getPos() {
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	return physics->collider.pos;
 }

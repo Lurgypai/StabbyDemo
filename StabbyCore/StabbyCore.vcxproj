@@ -159,8 +159,13 @@
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsSystem.h" />
     <ClInclude Include="PlayerData.h" />
     <ClInclude Include="PlayerLC.h" />
+    <ClInclude Include="PoolNotFoundException.h" />
+    <ClInclude Include="RenderComponent.h" />
+    <ClInclude Include="RenderSystem.h" />
     <ClInclude Include="ServerClientData.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="stdafx.h" />
@@ -176,7 +181,6 @@
     <ClInclude Include="SuquaEng0.1\header\FileNotFoundException.h" />
     <ClInclude Include="SuquaEng0.1\header\Framebuffer.h" />
     <ClInclude Include="SuquaEng0.1\header\GLRenderer.h" />
-    <ClInclude Include="SuquaEng0.1\header\ImageGC.h" />
     <ClInclude Include="SuquaEng0.1\header\ImgData.h" />
     <ClInclude Include="SuquaEng0.1\header\NetworkTypes.h" />
     <ClInclude Include="SuquaEng0.1\header\Packet.h" />
@@ -196,8 +200,13 @@
     <ClCompile Include="Attack.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="PhysicsComponent.cpp" />
+    <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="PlayerLC.cpp" />
+    <ClCompile Include="PoolNotFoundException.cpp" />
     <ClCompile Include="RandomUtil.cpp" />
+    <ClCompile Include="RenderComponent.cpp" />
+    <ClCompile Include="RenderSystem.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -221,7 +230,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SuquaEng0.1\src\GLRenderer.cpp" />
-    <ClCompile Include="SuquaEng0.1\src\ImageGC.cpp" />
     <ClCompile Include="SuquaEng0.1\src\PhysicsAABB.cpp" />
     <ClCompile Include="SuquaEng0.1\src\Shader.cpp" />
     <ClCompile Include="SuquaEng0.1\src\Sprite.cpp" />

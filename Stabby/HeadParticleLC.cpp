@@ -1,49 +1,30 @@
 #include "pch.h"
 #include "HeadParticleLC.h"
-#include "ImageGC.h"
+#include "RenderComponent.h"
 
 HeadParticleLC::HeadParticleLC(EntityId id_) :
 	id{id_},
-	gravity{3},
-	life{0},
-	pos{0, 0},
-	vel{0, 0},
-	collider{ pos, Vec2f{4, 4} }
+	life{0}
 {}
-
-Vec2f HeadParticleLC::getPos() const {
-	return pos;
-}
 
 void HeadParticleLC::setLife(unsigned int life_) {
 	life = life_;
 }
 
-void HeadParticleLC::setPos(Vec2f pos_) {
-	pos = pos_;
+void HeadParticleLC::update(double delta) {
+	life--;
+	if (life == 0) {
+		EntitySystem::FreeComps<HeadParticleLC>(1, &id);
+		EntitySystem::FreeComps<PhysicsComponent>(1, &id);
+		EntitySystem::FreeComps<RenderComponent>(1, &id);
+	}
 }
 
-void HeadParticleLC::setVel(Vec2f vel_) {
-	vel = vel_;
+Vec2f HeadParticleLC::getPos() {
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	return physics->collider.pos;
 }
 
 EntityId HeadParticleLC::getId() const {
 	return id;
-}
-
-void HeadParticleLC::update(double delta, const Stage& stage) {
-
-	life--;
-	if (life == 0) {
-		EntitySystem::FreeComps<HeadParticleLC>(1, &id);
-		EntitySystem::FreeComps<ImageGC>(1, &id);
-	}
-	else {
-		vel.y += gravity;
-
-		collider.setPos(pos);
-		collider.setVel(vel);
-		pos = collider.handleCollision(stage.getCollider(), delta);
-		vel = collider.getVel();
-	}
 }

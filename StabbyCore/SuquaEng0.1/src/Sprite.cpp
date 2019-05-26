@@ -63,7 +63,7 @@ float Sprite::getAngle() const {
 	return data.angle;
 }
 
-ImgData Sprite::getImgData() const {
+const ImgData & Sprite::getImgData() const {
 	return data;
 }
 
@@ -101,4 +101,8 @@ unsigned int Sprite::getTexture() const {
 
 unsigned int Sprite::getRenderBufferId() const {
 	return renderBufferId;
+}
+
+Sprite * Sprite::clone() const {
+	return new Sprite(*this);
 }

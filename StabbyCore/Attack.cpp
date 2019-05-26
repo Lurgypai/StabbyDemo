@@ -71,9 +71,9 @@ void Attack::update(Vec2f pos, Vec2f res, int facing) {
 		Hitbox& hbox = hitboxes[active - 1];
 		Vec2f offset = hbox.offset;
 		if(facing == -1)
-			offset.x = (-(hbox.hit.getRes().x - res.x)) - offset.x;
+			offset.x = (-(hbox.hit.res.x - res.x)) - offset.x;
 
-		hbox.hit.setPos(pos + offset);
+		hbox.hit.pos = (pos + offset);
 	}
 
 	//if a hitbox is running, keep moving through the frames. 

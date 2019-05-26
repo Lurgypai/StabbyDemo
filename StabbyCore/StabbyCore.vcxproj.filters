@@ -70,6 +70,9 @@
     <Filter Include="Source Files\Engine\Render\Particles">
       <UniqueIdentifier>{de23ae7c-4bd0-443f-9945-ff4a0f08fa29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Engine\Render\GLRenderer">
+      <UniqueIdentifier>{7a7a8211-d22c-45e7-99d8-4a8f2f813173}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -105,15 +108,6 @@
     <ClInclude Include="SuquaEng0.1\header\EntitySystem.h">
       <Filter>Header Files\Engine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\GLRenderer.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\ImageGC.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\ImgData.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\NetworkTypes.h">
       <Filter>Header Files\Game\Network</Filter>
     </ClInclude>
@@ -131,9 +125,6 @@
     </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\RandomUtil.h">
       <Filter>Header Files\Engine\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\Shader.h">
-      <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\Sprite.h">
       <Filter>Header Files\Engine\Render</Filter>
@@ -159,15 +150,6 @@
     <ClInclude Include="SuquaEng0.1\header\FileNotFoundException.h">
       <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\Framebuffer.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\Texture.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="ComputeShader.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleSystem.h">
       <Filter>Header Files\Engine\Render\Particles</Filter>
     </ClInclude>
@@ -179,6 +161,39 @@
     </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\PhysicsAABB.h">
       <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="PoolNotFoundException.h">
+      <Filter>Header Files\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsSystem.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsComponent.h">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderComponent.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\GLRenderer.h">
+      <Filter>Header Files\Engine\Render\GLRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Framebuffer.h">
+      <Filter>Header Files\Engine\Render\GLRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Texture.h">
+      <Filter>Header Files\Engine\Render\GLRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Shader.h">
+      <Filter>Header Files\Engine\Render\GLRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShader.h">
+      <Filter>Header Files\Engine\Render\GLRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\ImgData.h">
+      <Filter>Header Files\Engine\Render\GLRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
+      <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -207,9 +222,6 @@
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
     <ClCompile Include="SuquaEng0.1\src\GLRenderer.cpp">
-      <Filter>Source Files\Engine\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="SuquaEng0.1\src\ImageGC.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
     <ClCompile Include="PlayerLC.cpp">
@@ -242,9 +254,6 @@
     <ClCompile Include="SuquaEng0.1\src\Texture.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
-    <ClCompile Include="ComputeShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RandomUtil.cpp">
       <Filter>Source Files\Engine\Util</Filter>
     </ClCompile>
@@ -256,6 +265,24 @@
     </ClCompile>
     <ClCompile Include="SuquaEng0.1\src\AABB.cpp">
       <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="PoolNotFoundException.cpp">
+      <Filter>Source Files\Engine\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShader.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsSystem.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsComponent.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderComponent.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

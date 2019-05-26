@@ -14,7 +14,7 @@ public:
 	Vec2f getOrigin() const;
 	Vec2f getScale() const;
 	float getAngle() const;
-	ImgData getImgData() const;
+	const ImgData & getImgData() const;
 
 	void setPos(Vec2f pos_);
 	void setImgOffset(Vec2f imgOffset_);
@@ -27,6 +27,8 @@ public:
 
 	unsigned int getTexture() const; 
 	unsigned int getRenderBufferId() const;
+
+	virtual Sprite * clone() const;
 protected:
 	ImgData data;
 	int channels;

@@ -3,7 +3,9 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+
 #include "TypeData.h"
+#include "PoolNotFoundException.h"
 
 using pool_ptr = std::unique_ptr<IPool>;
 
@@ -32,14 +34,28 @@ public:
 	}
 
 	template<typename T>
-	Pool<T>* get() {
+	Pool<T> & get() {
 		if (pools.find(TypeTag<T>::tag) != pools.end()) {
-			return static_cast<Pool<T>*>(pools[TypeTag<T>::tag].get());
+			return static_cast<Pool<T> &>(*(pools[TypeTag<T>::tag]));
 		}
 		else {
-			return nullptr;
+			throw PoolNotFoundException{ TypeTag<T>::tag };
 		}
 	}
+
+	template<typename T>
+	bool contains() {
+		return pools.find(TypeTag<T>::tag) != pools.end();
+	}
+
+	auto begin() {
+		return pools.begin();
+	}
+
+	auto end() {
+		return pools.end();
+	}
+
 private:
 	std::unordered_map<type_id, pool_ptr> pools;
 };

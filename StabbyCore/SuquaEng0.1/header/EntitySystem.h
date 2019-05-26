@@ -21,7 +21,10 @@ public:
 	static void GenEntities(unsigned int num, unsigned int* idStore);
 	
 	template<typename T>
-	static Pool<T> * GetPool();
+	static Pool<T> & GetPool();
+
+	template<typename T>
+	static bool Contains();
 
 	template<typename T>
 	static void FreeComps(unsigned int size, EntityId * first);
@@ -33,11 +36,9 @@ private:
 
 template<typename T>
 inline T * EntitySystem::GetComp(EntityId id) {
-	for (auto& comp : *(ComponentMaps.get<T>())) {
-		if (!comp.isFree) {
-			if (comp.val.getId() == id) {
-				return &comp.val;
-			}
+	for (auto& comp : ComponentMaps.get<T>()) {
+		if (comp.getId() == id) {
+			return &comp;
 		}
 	}
 	return nullptr;
@@ -53,14 +54,20 @@ inline void EntitySystem::MakeComps(unsigned int size, unsigned int * first) {
 }
 
 template<typename T>
-inline Pool<T>* EntitySystem::GetPool() {
+inline Pool<T> & EntitySystem::GetPool() {
 	return ComponentMaps.get<T>();
+}
+
+template<typename T>
+inline bool EntitySystem::Contains() {
+	return ComponentMaps.contains<T>();
 }
 
 template<typename T>
 inline void EntitySystem::FreeComps(unsigned int size, EntityId * first) {
 	for (int i = 0; i != size; ++i) {
-		for (auto& comp : *ComponentMaps.get<T>()) {
+		for (auto iter = ComponentMaps.get<T>().beginResource(); iter != ComponentMaps.get<T>().endResource(); ++iter) {
+			auto& comp = *iter;
 			if (comp.val.getId() == first[i])
 				comp.isFree = true;
 		}

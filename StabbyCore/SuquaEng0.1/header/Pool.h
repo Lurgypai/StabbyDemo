@@ -9,6 +9,12 @@ struct Resource {
 	Resource() : isFree{ true } {}
 	template<typename U>
 	Resource(U&& val_, bool isFree_) : val{ std::forward<U>(val_) }, isFree{ isFree_ } {}
+	Resource(const Resource & other) : val{ other.val }, isFree{ other.isFree } {}
+	Resource & operator=(const Resource & other) {
+		val = other.val;
+		isFree = other.isFree;
+		return *this;
+	}
 };
 
 class IPool {
@@ -20,6 +26,39 @@ template<typename T, int Size = 0>
 class Pool : public IPool {
 
 public:
+
+	template<typename T>
+	class PoolIterator : std::iterator<std::forward_iterator_tag, T> {
+	public:
+		PoolIterator() : size{ 0 }, pos{ 0 }, current{ nullptr } {}
+		explicit PoolIterator(size_t pos_, size_t size_, Resource<T> * start) : size{ size_ }, pos{ pos_ }, current{ start } {
+			while (pos < size && current->isFree) {
+				++current;
+				++pos;
+			}
+		}
+		PoolIterator(const PoolIterator& other) : size{ other.size }, pos{ other.pos }, current{ other.current } {}
+		//preincrement
+		PoolIterator& operator++() {
+			do {
+				++current;
+				++pos;
+			} while (pos < size && current->isFree);
+			return *this;
+		}
+		//postincrement
+		PoolIterator operator++(int) { PoolIterator retval = *this; ++(*this); return retval; }
+		bool operator==(const PoolIterator & other) const { return current == other.current && size == other.size && pos == other.pos; }
+		bool operator!=(const PoolIterator & other) const { return !(*this == other); }
+		T& operator*() { return current->val; }
+		T* operator->() { return &current->val; }
+	private:
+		size_t size;
+		size_t pos;
+		Resource<T> * current;
+	};
+
+	using iterator = PoolIterator<T>;
 
 	Pool() {
 		resources.resize(Size);
@@ -76,7 +115,7 @@ public:
 	}
 
 	void resize(std::size_t s) {
-		if(s > resources.size())
+		if (s > resources.size())
 			freeIndices_ += s - resources.size();
 		else {
 			//count the amount of free elemnts that are being removed
@@ -102,15 +141,23 @@ public:
 		return freeIndices_ == 0;
 	}
 
-	const std::vector<Resource<T>>& get() {
+	const std::vector<Resource<T>>& get() const {
 		return resources;
 	}
 
-	auto begin() {
+	iterator begin() {
+		return iterator{ 0, resources.size(), resources.data() };
+	}
+
+	iterator end() {
+		return iterator{ resources.size(), resources.size(), resources.data() + resources.size() };
+	}
+
+	auto beginResource() {
 		return resources.begin();
 	}
 
-	auto end() {
+	auto endResource() {
 		return resources.end();
 	}
 
