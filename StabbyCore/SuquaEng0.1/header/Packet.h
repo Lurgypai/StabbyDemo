@@ -1,7 +1,7 @@
 #pragma once
 #include "NetworkTypes.h"
 #include "Controller.h"
-#include "PlayerData.h"
+#include "PlayerStateComponent.h"
 #include "enet/enet.h"
 #include "Vec2.h"
 #include <string>

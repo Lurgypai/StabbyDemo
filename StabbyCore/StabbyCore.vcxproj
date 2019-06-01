@@ -161,9 +161,10 @@
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsSystem.h" />
-    <ClInclude Include="PlayerData.h" />
     <ClInclude Include="PlayerLC.h" />
+    <ClInclude Include="PlayerStateComponent.h" />
     <ClInclude Include="PoolNotFoundException.h" />
+    <ClInclude Include="PositionComponent.h" />
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="RenderSystem.h" />
     <ClInclude Include="ServerClientData.h" />
@@ -203,10 +204,11 @@
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="PlayerLC.cpp" />
+    <ClCompile Include="PlayerStateComponent.cpp" />
     <ClCompile Include="PoolNotFoundException.cpp" />
+    <ClCompile Include="PositionComponent.cpp" />
     <ClCompile Include="RandomUtil.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
-    <ClCompile Include="RenderSystem.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -135,9 +135,6 @@
     <ClInclude Include="SuquaEng0.1\header\Vec2.h">
       <Filter>Header Files\Engine\Util</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerData.h">
-      <Filter>Header Files\Game</Filter>
-    </ClInclude>
     <ClInclude Include="Stage.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
@@ -168,9 +165,6 @@
     <ClInclude Include="PhysicsSystem.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="PhysicsComponent.h">
-      <Filter>Source Files\Engine\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="RenderComponent.h">
       <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
@@ -194,6 +188,15 @@
     </ClInclude>
     <ClInclude Include="RenderSystem.h">
       <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsComponent.h">
+      <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionComponent.h">
+      <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerStateComponent.h">
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -275,14 +278,17 @@
     <ClCompile Include="PhysicsSystem.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="PhysicsComponent.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
     <ClCompile Include="RenderComponent.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
-    <ClCompile Include="RenderSystem.cpp">
-      <Filter>Source Files\Engine\Render</Filter>
+    <ClCompile Include="PhysicsComponent.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionComponent.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerStateComponent.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

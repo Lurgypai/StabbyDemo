@@ -1,7 +1,5 @@
 #pragma once
 #include "PlayerLC.h"
-#include "Controller.h"
-#include "PlayerData.h"
 #include "NetworkTypes.h"
 #include <deque>
 
@@ -21,7 +19,6 @@ public:
 	void repredict(const PlayerState & state, const Stage& stage);
 	std::string getHeadPath();
 	Vec2f getCenter();
-	Vec2f getPos();
 private:
 	//client sender tick of last acknowledged input
 	Time_t last;

@@ -2,29 +2,25 @@
 #include "ServerPlayerLC.h"
 #include <algorithm>
 #include "ServerClientData.h"
-#include "PhysicsAABB.h"
+#include "PlayerStateComponent.h"
 #include <iostream>
 
 #include "SDL.h"
 ServerPlayerLC::ServerPlayerLC(EntityId id_) :
 	PlayerLC{id_},
-	when{0},
 	latest{},
-	prevStates{}
+	prevStates{},
+	clientTime{0}
 {
 	prevStates.emplace_back(PlayerState{});
 }
 
 ServerPlayerLC::ServerPlayerLC(const ServerPlayerLC & other) :
 	PlayerLC{other},
-	when{other.when},
 	latest{other.latest},
-	prevStates{other.prevStates}
+	prevStates{other.prevStates},
+	clientTime{ other.clientTime }
 {}
-
-Time_t ServerPlayerLC::getWhen() const {
-	return when;
-}
 
 PlayerState ServerPlayerLC::getStateAt(Time_t gameTime) {
 	for (auto iter = prevStates.rbegin(); iter != prevStates.rend(); ++iter) {
@@ -37,27 +33,24 @@ PlayerState ServerPlayerLC::getStateAt(Time_t gameTime) {
 	return prevStates.front();
 }
 
-void ServerPlayerLC::setWhen(Time_t when_) {
-	when = when_;
-}
-
 void ServerPlayerLC::bufferInput(ClientCommand c) {
 	if (c.when > latest.when) {
 		latest = c;
-		when = latest.when - 1; // move back a single client tick. Update will increment client time while we wait for our next input.
+		clientTime = latest.when - 1; 
 	}
 }
 
 void ServerPlayerLC::update(Time_t gameTime) {
-	//we need to increment when as time passes, so that the client knows the times when things should happen. Update runs at client speed.
-	++when;
+	//update the client side time
+	++clientTime;
 	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState);
 
 	if (prevStates.size() >= 32)
 		prevStates.pop_front();
 
-	PhysicsComponent * physics = getPhysics();
-	prevStates.emplace_back(PlayerState{state, gameTime, physics->collider.pos, physics->vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame});
+	PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
+	stateComp->setWhen(gameTime);
+	prevStates.emplace_back(stateComp->getPlayerState());
 }
 
 //check if we hit anyone else from ze past
@@ -68,10 +61,8 @@ void ServerPlayerLC::runHitDetect(Time_t gameTime) {
 	if (stateWhenAction.state != State::rolling) {
 
 		PhysicsComponent * physics = getPhysics();
-		AABB & collider = physics->collider;
-		Vec2f restorePos = collider.pos;
 
-		collider.pos = stateWhenAction.pos;
+		AABB collider = { stateWhenAction.pos, physics->getRes() };
 
 		bool wasHit = false;
 		for (auto& playerComp : EntitySystem::GetPool<ServerPlayerLC>()) {
@@ -86,7 +77,5 @@ void ServerPlayerLC::runHitDetect(Time_t gameTime) {
 			}
 		}
 		isBeingHit = wasHit;
-
-		collider.pos = restorePos;
 	}
 }

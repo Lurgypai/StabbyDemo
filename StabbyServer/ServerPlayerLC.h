@@ -2,10 +2,10 @@
 #include "Vec2.h"
 #include "NetworkTypes.h"
 #include "PlayerLC.h"
-#include "PlayerData.h"
 #define INPUT_QUEUE_SIZE 500
 #include <vector>
 #include <deque>
+#include "PlayerStateComponent.h"
 
 struct ClientCommand {
 	Controller controllerState;
@@ -16,15 +16,13 @@ class ServerPlayerLC : public PlayerLC {
 public:
 	ServerPlayerLC( EntityId id_ = 0 );
 	ServerPlayerLC(const ServerPlayerLC & other);
-	Time_t getWhen() const;
 	PlayerState getStateAt(Time_t gameTime);
-	void setWhen(Time_t when_);
 	void bufferInput(ClientCommand c);
 	void update(Time_t gameTime);
 	void runHitDetect(Time_t gameTime);
+	//when the most recent server update happened client side (it already happened on the client)
+	Time_t clientTime;
 private:
-	//the client time of the owning client that the last packet processed by the server was sent from the client
-	Time_t when;
 	ClientCommand latest;
 	std::deque<PlayerState> prevStates;
 };

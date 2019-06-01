@@ -122,7 +122,6 @@ int main(int argv, char* argc[])
 	//test this, it looks like its done.
 
 	while (true) {
-
 		Time_t now = SDL_GetPerformanceCounter();
 		if (static_cast<double>(now - prev) / SDL_GetPerformanceFrequency() >= CLIENT_TIME_STEP) {
 			gameTime += CLIENT_TIME_STEP / GAME_TIME_STEP;
@@ -143,17 +142,18 @@ int main(int argv, char* argc[])
 
 					//notify all online players of a new players join
 					for (auto& user : users) {
+						//tell them about us
 						JoinPacket join{};
 						join.joinerId = incrementer;
 						enet_peer_send(user->getConnection()->getPeer(), 0, enet_packet_create(&join, sizeof(join), ENET_PACKET_FLAG_RELIABLE));
 
+						//tell us about them
 						JoinPacket us{};
 						us.joinerId = user->getNetId();
 						enet_peer_send(event.peer, 0, enet_packet_create(&us, sizeof(us), ENET_PACKET_FLAG_RELIABLE));
 					}
 
 					users.emplace_back(std::make_unique<User>(User{incrementer, std::make_unique<Connection>(*event.peer, incrementer, currentTick) }));
-					users.back()->getPlayer().setWhen(gameTime);
 					break;
 				case ENET_EVENT_TYPE_RECEIVE:
 					if (event.packet->dataLength == 0) {
@@ -222,7 +222,6 @@ int main(int argv, char* argc[])
 			//move
 			for (auto& user : users) {
 				user->getPlayer().update(gameTime);
-				physics.runPhysics(CLIENT_TIME_STEP);
 			}
 
 			//after movement, run collisisons
@@ -239,18 +238,10 @@ int main(int argv, char* argc[])
 				std::vector<StatePacket> states;
 				states.reserve(users.size());
 				for (auto& user : users) {
-					ServerPlayerLC & player = user->getPlayer();
-					PhysicsComponent & physics = user->getPhysics();
+
 					StatePacket pos{};
-					pos.state.pos = physics.collider.pos;
-					pos.state.vel = player.getVel();
-					pos.state.when = player.getWhen();
-					pos.state.activeAttack = player.getAttack().getActiveId();
-					pos.state.attackFrame = player.getAttack().getCurrFrame();
-					pos.state.rollFrame = player.getRollFrame();
-					pos.state.health = player.getHealth();
-					pos.state.stunFrames = player.getStunFrame();
-					pos.state.state = player.getState();
+					pos.state = user->getPlayerState().getPlayerState();
+					pos.state.when = user->getPlayer().clientTime;
 					pos.when = gameTime;
 					pos.id = user->getNetId();
 
@@ -262,6 +253,9 @@ int main(int argv, char* argc[])
 					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(states.data(), sizeof(StatePacket) * states.size(), 0));
 				}
 			}
+
+			//client side stores player state before physics is reapplied, so we have to send the state before physics is reapplied
+			physics.runPhysics(CLIENT_TIME_STEP);
 
 			
 			size_t size = ctrls.size();

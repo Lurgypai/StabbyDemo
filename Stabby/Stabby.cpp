@@ -33,16 +33,16 @@
 #include "ClientPlayerLC.h"
 #include "ConnectCommand.h"
 #include "OnlinePlayerLC.h."
-#include "PlayerData.h"
 #include "Stage.h"
 #include "HeadParticleLC.h"
+#include "PositionComponent.h"
 
 #include "ServerClientData.h"
 #include "RandomUtil.h"
 
 
-const int windowWidth = 1920;
-const int windowHeight = 1080;
+const int windowWidth = 1920 / 2;
+const int windowHeight = 1080 / 2;
 
 const int viewWidth = windowWidth / 3;
 const int viewHeight = windowHeight / 3;
@@ -96,15 +96,13 @@ int main(int argc, char* argv[]) {
 	unsigned int playerId;
 	EntitySystem::GenEntities(1, &playerId);
 	EntitySystem::MakeComps<ClientPlayerLC>(1, &playerId);
-	EntitySystem::MakeComps<PhysicsComponent>(1, &playerId);
-	EntitySystem::GetComp<PhysicsComponent>(playerId)->collider = AABB{ {-2, -20}, Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT)} };
-	EntitySystem::GetComp<PhysicsComponent>(playerId)->weight = 3;
-
-	EntitySystem::MakeComps<RenderComponent>(1, &playerId);
-	EntitySystem::GetComp<RenderComponent>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
 
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
-	EntitySystem::GetComp<PlayerGC>(playerId)->load();
+	EntitySystem::GetComp<PlayerGC>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
+	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
+
+	PositionComponent * pos = EntitySystem::GetComp<PositionComponent>(playerId);
+	pos->pos = Vec2f{ -2, -30 };
 
 	Stage stage{};
 	stage.loadGraphics("images/stage.png");
@@ -116,6 +114,10 @@ int main(int argc, char* argv[]) {
 	Controller controller;
 
 	PhysicsSystem physics{stage};
+
+	//EntityId testComp;
+	//EntitySystem::MakeComps<RenderComponent>(1, &testComp);
+	//EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/none.png");
 	/*---------------------------------- Camera Preparation -------------------------------------------------------*/
 	PlayerCam playerCam{ playerId, viewWidth, viewHeight };
 	int camId = GLRenderer::addCamera(playerCam);
@@ -231,7 +233,6 @@ int main(int argc, char* argv[]) {
 				lastSent.time = currentTick;
 
 				if (lastSent != state) {
-					//when you die you don't teleport. furthermore, there are failed predictions
 					lastSent = state;
 					ENetPacket * p = enet_packet_create(&state, sizeof(StatePacket), 0);
 					client.send(p);
@@ -243,6 +244,9 @@ int main(int argc, char* argv[]) {
 				if (EntitySystem::Contains<OnlinePlayerLC>()) {
 					for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
 						onlinePlayer.update(client.getTime());
+
+						//test code
+						//EntitySystem::GetComp<PositionComponent>(testComp)->pos = EntitySystem::GetComp<PositionComponent>(onlinePlayer.getId())->pos;
 					}
 				}
 
@@ -298,32 +302,10 @@ int main(int argc, char* argv[]) {
 			GLRenderer::SetDefShader(ImageShader);
 			GLRenderer::setCamera(camId);
 			static_cast<PlayerCam &>(GLRenderer::getCamera(camId)).update(playerId);
-			EntitySystem::GetComp<PlayerGC>(playerId)->update<ClientPlayerLC>();
-			
 
-			bool setBuffer{ true };
-			if (EntitySystem::Contains<OnlinePlayerLC>()) {
-				Pool<OnlinePlayerLC> & onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
-				for (auto& onlinePlayer : onlinePlayers) {
-					EntityId id = onlinePlayer.getId();
-					PlayerGC * image = EntitySystem::GetComp<PlayerGC>(id);
-					image->update<OnlinePlayerLC>();
-				}
-			}
+			render.draw<RenderComponent>();
+			render.draw<PlayerGC>();
 
-			
-			setBuffer = true;
-			if (EntitySystem::Contains<HeadParticleLC>()) {
-				Pool<HeadParticleLC> & heads = EntitySystem::GetPool<HeadParticleLC>();
-				for (auto& head : heads) {
-					EntityId id = head.getId();
-					RenderComponent * image = EntitySystem::GetComp<RenderComponent>(id);
-					image->getSprite().setPos(head.getPos());
-				}
-			}
-
-			render.drawAll();
-			
 			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
 
 			/*

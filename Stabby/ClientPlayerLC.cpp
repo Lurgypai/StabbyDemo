@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "ClientPlayerLC.h"
 #include "ServerClientData.h"
+#include "PlayerStateComponent.h"
+#include "PositionComponent.h"
+#include "PhysicsComponent.h"
 #include <algorithm>
 #include <iostream>
 
@@ -16,11 +19,9 @@ void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & con
 	if (states.size() >= BUFFER_SIZE)
 		states.pop_front();
 
-	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	AABB & collider = physics->collider;
-	Vec2f & vel = physics->vel;
-
-	states.emplace_back(TotalPlayerState{ PlayerState{state, now, collider.pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame}, controller.getState() });
+	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	playerState->setWhen(now);
+	states.emplace_back(TotalPlayerState{ playerState->getPlayerState(), controller.getState() });
 }
 
 void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
@@ -33,18 +34,14 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 				if (tstate.plr != state) {
 					std::cout << "Prediction failed, re-predicting\n";
 
-					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-					AABB & collider = physics->collider;
-					Vec2f & vel = physics->vel;
+					PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+					playerState->setPlayerState(state);
 
-					this->state = state.state;
-					collider.pos = state.pos;
-					vel = state.vel;
-					rollFrame = state.rollFrame;
-					attack.setActive(state.activeAttack);
-					attack.setFrame(state.attackFrame);
-					health = state.health;
-					stunFrame = state.stunFrames;
+					PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+					position->pos = state.pos;
+
+					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+					physics->vel = state.vel;
 
 					//move our remaining values out, and then clear
 					std::deque<TotalPlayerState> toUpdate{ std::move(states) };
@@ -60,6 +57,27 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 				break;
 			}
 		}
+		//if the for loop exits one of two things occured
+		//the state we received was so old it wasn't in states
+		//the state we received was after our latest update.
+		//in the latter case, give a warning, and update to where it says we should be
+
+		//we need to send the current time to the server when this happens, as it can happen because of window movements etc
+		if (!states.empty() && states.back().plr.when < state.when) {
+			std::cout << "We're somehow behind the server! Updating to match.\n";
+
+			PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+			playerState->setPlayerState(state);
+
+			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+			position->pos = state.pos;
+
+			PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+			physics->vel = state.vel;
+
+			states.clear();
+			last = state.when;
+		}
 	}
 }
 
@@ -69,10 +87,5 @@ std::string ClientPlayerLC::getHeadPath() {
 
 Vec2f ClientPlayerLC::getCenter() {
 	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	return physics->collider.center();
-}
-
-Vec2f ClientPlayerLC::getPos() {
-	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	return physics->collider.pos;
+	return physics->center();
 }

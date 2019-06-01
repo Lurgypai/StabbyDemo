@@ -21,13 +21,17 @@ public:
 	template<typename T, typename U>
 	void setSprite(U&& u);
 
-	Sprite &getSprite();
+	virtual void updatePosition();
+
+	Vec2f getImgRes() const;
+
+	void setScale(Vec2f scale);
 
 	unsigned int getRenderBufferId() const;
 	const ImgData & getImgData() const;
 
 	EntityId getId() const;
-private:
+protected:
 	SpritePtr sprite;
 	EntityId id;
 };

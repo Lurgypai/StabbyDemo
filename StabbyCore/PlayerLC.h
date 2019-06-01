@@ -6,14 +6,7 @@
 #include "PhysicsAABB.h"
 #include "Stage.h"
 #include "PhysicsComponent.h"
-
-enum class State {
-	free,
-	attacking,
-	rolling,
-	stunned,
-	dead
-};
+#include "PlayerStateComponent.h"
 
 class PlayerLC {
 public:
@@ -24,15 +17,10 @@ public:
 	Vec2f getVel() const;
 	Vec2f getRes() const;
 	Attack& getAttack();
-	State getState();
 	int getActiveId();
-	int getRollFrame();
-	int getStunFrame();
 	int getFacing();
-	int getHealth();
 	void damage(int amount);
 	void die();
-	void kill();
 	void respawn();
 
 	const static int PLAYER_WIDTH = 4;
@@ -47,23 +35,17 @@ protected:
 	//for only getting hit once per slash
 	bool isBeingHit;
 
-	State state;
-
 	Attack attack;
 	bool attackBuffered;
 
-	int facing;
 	bool prevButton2;
 	bool prevButton3;
-	int health;
 
 	float rollVel;
 	float storedVel;
-	int rollFrame;
 	int rollFrameMax;
 
 	float stunSlideSpeed;
-	int stunFrame;
 	int stunFrameMax;
 
 	int deathFrame;

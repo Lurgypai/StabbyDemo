@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "PhysicsComponent.h"
 #include "AngleUtil.h"
+#include "PositionComponent.h"
 
 PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, Vec2f vel_) :
 	id{ id_ },
@@ -8,14 +9,30 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 	weight{weight_},
 	vel{vel_},
 	grounded{false}
-{}
+{
+	if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
+		EntitySystem::MakeComps<PositionComponent>(1, &id);
+		PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
+		posComp->pos = collider.pos;
+	}
+	else {
+		PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
+		collider.pos = posComp->pos;
+	}
+}
 
 EntityId PhysicsComponent::getId() const {
 	return id;
 }
 
+void PhysicsComponent::reevaluatePosition() {
+	collider.pos = EntitySystem::GetComp<PositionComponent>(id)->pos;
+}
+
 void PhysicsComponent::move(Vec2f amount) {
-	collider.pos += amount;
+	PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
+	posComp->pos += amount;
+	collider.pos = posComp->pos;
 }
 
 void PhysicsComponent::move(float angle, float amount) {
@@ -35,4 +52,16 @@ void PhysicsComponent::accelerate(float angle, float amount) {
 	acceleration.x = std::cos(radians(angle)) * amount;
 	acceleration.y = std::sin(radians(angle)) * amount;
 	vel += acceleration;
+}
+
+Vec2f PhysicsComponent::center() {
+	return collider.center();
+}
+
+Vec2f PhysicsComponent::getRes() const {
+	return collider.res;
+}
+
+void PhysicsComponent::setRes(Vec2f res_) {
+	collider.res = res_;
 }

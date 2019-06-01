@@ -2,6 +2,7 @@
 #include "Stage.h"
 #include "AABB.h"
 #include "RenderComponent.h"
+#include "PositionComponent.h"
 
 Stage::Stage() :
 	pos{ -(STAGE_WIDTH / 2), 0 },
@@ -18,9 +19,12 @@ const std::vector<AABB> & Stage::getColliders() const {
 void Stage::loadGraphics(std::string filePath) {
 	EntitySystem::MakeComps<RenderComponent>(1, &id);
 	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
+	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+
+	position->pos = pos;
 
 	render->loadSprite<Sprite>(filePath, pos);
-	render->getSprite().setScale({STAGE_WIDTH / render->getSprite().getImgRes().x, STAGE_HEIGHT / render->getSprite().getImgRes().y });
+	render->setScale({STAGE_WIDTH / render->getImgRes().x, STAGE_HEIGHT / render->getImgRes().y });
 }
 
 EntityId Stage::getId() {

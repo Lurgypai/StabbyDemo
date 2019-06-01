@@ -3,6 +3,7 @@
 #include "NetworkTypes.h"
 #include "Connection.h"
 #include "ServerPlayerLC.h"
+#include "PositionComponent.h"
 
 //user stores their connection, id, as well as the logic component
 class User {
@@ -14,6 +15,9 @@ public:
 	Connection * getConnection();
 	ServerPlayerLC & getPlayer();
 	PhysicsComponent & getPhysics();
+	PositionComponent & getPosition();
+	PlayerStateComponent & getPlayerState();
+
 private:
 	EntityId id;
 	NetworkId netId;

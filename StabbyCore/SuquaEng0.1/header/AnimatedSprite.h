@@ -24,7 +24,6 @@ private:
 	int columns;
 	int sheetOffset;
 	int currentFrame;
-	int totalFrames;
 	int currentStep;
 	int totalSteps;
 };

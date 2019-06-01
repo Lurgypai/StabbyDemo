@@ -235,14 +235,13 @@ void Client::receive(ENetEvent & e) {
 		EntitySystem::GenEntities(ids.size(), &entities[0]);
 		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), &entities[0]);
 		EntitySystem::MakeComps<PlayerGC>(entities.size(), &entities[0]);
-		EntitySystem::MakeComps<RenderComponent>(entities.size(), &entities[0]);
 
 		for (int i = 0; i != ids.size(); ++i) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
-			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/evil_stabbyman.png", Vec2i{64, 64});
-			EntitySystem::GetComp<PlayerGC>(entity)->load();
+			EntitySystem::GetComp<PlayerGC>(entity)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
+			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
 		}
 	}
 }

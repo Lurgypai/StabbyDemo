@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "User.h"
 #include "PhysicsAABB.h"
-#include "PlayerData.h"
+#include "PlayerStateComponent.h"
 
 User::User(NetworkId id_, ConnectionPtr && con_) :
 	netId{id_},
@@ -10,7 +10,8 @@ User::User(NetworkId id_, ConnectionPtr && con_) :
 	EntitySystem::GenEntities(1, &id);
 	EntitySystem::MakeComps<ServerPlayerLC>(1, &id);
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
-	EntitySystem::GetComp<PhysicsComponent>(id)->collider = AABB{ {-2, -20}, Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT)} };
+	EntitySystem::GetComp<PhysicsComponent>(id)->setRes({ -2, -20 });
+	EntitySystem::GetComp<PhysicsComponent>(id)->setRes(Vec2f{ static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT) });
 	EntitySystem::GetComp<PhysicsComponent>(id)->weight = 3;
 }
 
@@ -32,4 +33,12 @@ ServerPlayerLC & User::getPlayer() {
 
 PhysicsComponent & User::getPhysics() {
 	return *EntitySystem::GetComp<PhysicsComponent>(id);
+}
+
+PositionComponent & User::getPosition() {
+	return *EntitySystem::GetComp<PositionComponent>(id);
+}
+
+PlayerStateComponent & User::getPlayerState() {
+	return *EntitySystem::GetComp<PlayerStateComponent>(id);
 }
