@@ -129,9 +129,11 @@ public:
 	//render a single texture stretched over the whole screen (for post processing)
 	static void DrawOverScreen(unsigned int texId);
 
-	static PartitionID GenParticleType(unsigned int size, ComputeShader&& shader);
-	static void SpawnParticles(PartitionID id, unsigned int count, Vec2f pos, const Particle& base);
+	static PartitionID GenParticleType(const std::string & tag, int size, ComputeShader&& shader);
+	static void SpawnParticles(PartitionID id, unsigned int count, const Particle& base, float angleModulation = 0, float velModulation = 0, int lifeModulation = 0, Vec2f posModulation = {0, 0});
+	static void SpawnParticles(const std::string & tag, unsigned int count, const Particle& base, float angleModulation = 0, float velModulation = 0, int lifeModulation = 0, Vec2f posModulation = { 0, 0 });
 	static void UpdateAndDrawParticles();
+	static ComputeShader & getComputeShader(const std::string & tag);
 
 	static bool ReadErrors();
 

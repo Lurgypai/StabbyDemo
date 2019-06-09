@@ -24,6 +24,7 @@ public:
 	virtual void updatePosition();
 
 	Vec2f getImgRes() const;
+	void setObjRes(Vec2f objRes);
 
 	void setScale(Vec2f scale);
 
@@ -49,7 +50,7 @@ inline void RenderComponent::loadSprite(Args ...args) {
 template<typename T, typename U>
 inline void RenderComponent::setSprite(U && u) {
 	try {
-	sprite = std::make_unique<T>(std::forward(u));
+	sprite = std::make_unique<T>(std::forward<U>(u));
 	}
 	catch (FileNotFoundException e) {
 		std::cout << e.what() << '\n';

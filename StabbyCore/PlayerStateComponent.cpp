@@ -15,15 +15,14 @@ EntityId PlayerStateComponent::getId() const {
 
 PlayerState PlayerStateComponent::getPlayerState() const {
 	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 
 	//construct a new one using the data we already have, and the missing data
 	PlayerState copy = playerState;
-	if(position != nullptr)
-		copy.pos = position->pos;
 	
-	if(physics != nullptr)
+	if (physics != nullptr) {
 		copy.vel = physics->vel;
+		copy.pos = physics->getPos();
+	}
 
 	return copy;
 }
@@ -62,4 +61,12 @@ void PlayerStateComponent::setStunFrame(int stunFrame) {
 
 void PlayerStateComponent::setFacing(int facing) {
 	playerState.facing = facing;
+}
+
+void PlayerStateComponent::setSpawnPoint(const Vec2f & spawnPoint_) {
+	playerState.spawnPoint = spawnPoint_;
+}
+
+void PlayerStateComponent::setAttackFreezeFrame(int attackFreezeFrame_) {
+	playerState.attackFreezeFrame = attackFreezeFrame_;
 }

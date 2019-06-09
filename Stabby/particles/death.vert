@@ -23,25 +23,19 @@ void main () {
     uint id = gl_GlobalInvocationID.x;
     Particle p = data[id];
     if(p.life > 0) {
+        uint randseed = id * uint(p.life);
         float angle = p.angle;
-        float rotateSpeed = 1.5;
+        float rotateSpeed = 1.2;
+        float deceleration = 0.02;
         
-        if(angle > 180 + rotateSpeed) {
-            angle -= rotateSpeed;
-        } else if (angle < 180 - rotateSpeed) {
-            angle += rotateSpeed;
-        } else {
-            angle = 180;
-        }
+        angle = sin(radians((p.life + 2) * 4)) * 70;
         
-        while(angle < 0)
-            angle += 360;
-            
-        while(angle >= 360)
-            angle -= 360;
+        data[id].vel -= random(randseed) * deceleration;
+        if(data[id].vel < 0)
+            data[id].vel = 0;
         
         data[id].angle = angle;
-        data[id].pos += vec2(p.vel * cos(radians(p.angle - 90)), p.vel * sin(radians(p.angle - 90)));
-        data[id].life--;
+        data[id].pos += vec2(p.vel * cos(radians(p.angle - 70)), p.vel * sin(radians(p.angle - 70)));
+        data[id].life -= 1;
     }
 }

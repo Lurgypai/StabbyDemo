@@ -5,7 +5,7 @@
 #include <iostream>
 
 PlayerLC::PlayerLC(EntityId id_) :
-	id{id_},
+	CombatComponent{id_},
 	maxXVel{ 50 },
 	xAccel{ 10 },
 	jumpSpeed{ 120 },
@@ -13,13 +13,14 @@ PlayerLC::PlayerLC(EntityId id_) :
 	prevButton2{false},
 	prevButton3{ false },
 	isBeingHit{false},
-	rollVel{340},
+	rollVel{220},
 	storedVel{0},
-	rollFrameMax{30},
+	rollFrameMax{68},
 	stunFrameMax{80},
 	stunSlideSpeed{10},
 	deathFrame{0},
-	deathFrameMax{200}
+	deathFrameMax{200},
+	attackFreezeFrameMax{17}
 {
 	if (!EntitySystem::Contains<PhysicsComponent>() || EntitySystem::GetComp<PhysicsComponent>(id) == nullptr) {
 		EntitySystem::MakeComps<PhysicsComponent>(1, &id);
@@ -33,7 +34,7 @@ PlayerLC::PlayerLC(EntityId id_) :
 	if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
 		EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
 		PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
-		stateComp->setHealth(3);
+		stateComp->setHealth(100);
 		stateComp->setFacing(1);
 	}
 }
@@ -46,10 +47,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 	PlayerState state = playerState->getPlayerState();
 
-	attack.setActive(state.activeAttack);
-	attack.setFrame(state.attackFrame);
-
-	Vec2f & vel = comp->vel;
+	state.frozen = comp->frozen;
 
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
@@ -57,65 +55,97 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 		prevButton2 = currButton2;
 		if (currButton2) {
 			attackToggledDown = true;
+			if (state.state == State::attacking && !attack.getNextIsBuffered()) {
+				attack.bufferNext();
+				attackChange = true;
+			}
 		}
 	}
 
-	//always update the attack. Hitboxes should only be out when we are stuck in attack mode.
-	attack.update(position->pos, comp->getRes(), state.facing);
+	attack.setActive(state.activeAttack);
+	attack.setFrame(state.attackFrame);
 
-	switch (state.state) {
-	case State::stunned:
-		if (state.stunFrame == 0) {
+	Vec2f & vel = comp->vel;
+
+	//the problem is, we're frozen client side, but not serverside. Add frozen to the playerstate
+	if (!comp->frozen) {
+
+		//always update the attack. Hitboxes should only be out when we are stuck in attack mode.
+		attack.update(position->pos, comp->getRes(), state.facing);
+
+		switch (state.state) {
+		case State::stunned:
+			if (state.stunFrame == 0) {
+				vel.x = 0;
+				++state.stunFrame;
+			}
+			else if (state.stunFrame != stunFrameMax) {
+				++state.stunFrame;
+			}
+			else {
+				state.stunFrame = 0;
+				state.state = State::free;
+			}
+			playerState->setPlayerState(state);
+			break;
+		case State::attacking:
 			vel.x = 0;
-			++state.stunFrame;
-		}
-		else if (state.stunFrame != stunFrameMax) {
-			++state.stunFrame;
-		}
-		else {
-			state.stunFrame = 0;
-			state.state = State::free;
-		}
-		playerState->setPlayerState(state);
-		break;
-	case State::attacking:
-		vel.x = 0;
-		if (attack.getActiveId() == 0)
-			state.state = State::free;
-		else if(attackToggledDown)
-			attack.bufferNext();
+			if (attack.getActiveId() == 0)
+				state.state = State::free;
 
-		state.activeAttack = attack.getActiveId();
-		state.attackFrame = attack.getCurrFrame();
-		playerState->setPlayerState(state);
-		break;
-	case State::rolling:
-		if (state.rollFrame != rollFrameMax) {
-			state.rollFrame++;
-		}
-		else {
-			state.rollFrame = 0;
-			vel.x = storedVel;
-			state.state = State::free;
-		}
-		playerState->setPlayerState(state);
-		break;
-	case State::free:
-		free(controller, attackToggledDown);
-		break;
-	case State::dead:
-		++deathFrame;
+			state.activeAttack = attack.getActiveId();
+			state.attackFrame = attack.getCurrFrame();
+			playerState->setPlayerState(state);
+			break;
+		case State::rolling:
+			if (state.rollFrame != rollFrameMax) {
+				state.rollFrame++;
 
-		if (deathFrame == deathFrameMax) {
-			deathFrame = 0;
+				int dir{ 0 };
+				if (controller[ControllerBits::LEFT]) {
+					--dir;
+				}
+				if (controller[ControllerBits::RIGHT]) {
+					++dir;
+				}
+
+				vel.x = (rollVel * state.facing) + (dir * 80);
+			}
+			else {
+				state.rollFrame = 0;
+				vel.x = storedVel;
+				state.state = State::free;
+			}
+			playerState->setPlayerState(state);
+			break;
+		case State::free:
+			free(controller, attackToggledDown);
+			break;
+		case State::dead:
+			++deathFrame;
+
+			if (deathFrame == deathFrameMax) {
+				deathFrame = 0;
+				respawn();
+			}
+			break;
+		}
+
+		if (position->pos.y > 1000) {
 			respawn();
 		}
-		break;
+	}
+	else {
+		++state.attackFreezeFrame;
+		if (state.attackFreezeFrame == attackFreezeFrameMax) {
+			comp->frozen = false;
+			state.attackFreezeFrame = 0;
+		}
+		playerState->setPlayerState(state);
 	}
 
-	if (position->pos.y > 1000) {
-		respawn();
-	}
+	state.pos = comp->getPos();
+	state.vel = comp->vel;
 }
 
 PhysicsComponent * PlayerLC::getPhysics() {
@@ -132,10 +162,6 @@ Vec2f PlayerLC::getRes() const {
 	return comp->getRes();
 }
 
-EntityId PlayerLC::getId() const {
-	return id;
-}
-
 Attack & PlayerLC::getAttack() {
 	return attack;
 }
@@ -148,13 +174,21 @@ void PlayerLC::damage(int amount) {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PlayerState state = playerState->getPlayerState();
 
-	state.health -= amount;
-	state.state = State::stunned;
+	if (state.state != State::rolling) {
 
-	if (state.health <= 0)
-		die();
+		state.health -= amount;
+		state.state = State::stunned;
 
-	playerState->setPlayerState(state);
+		playerState->setPlayerState(state);
+
+		if (state.health <= 0)
+			die();
+	}
+}
+
+void PlayerLC::onAttackLand() {
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->frozen = true;
 }
 
 void PlayerLC::die() {
@@ -174,13 +208,40 @@ void PlayerLC::die() {
 	playerState->setPlayerState(state);
 }
 
+
+
+AABB * PlayerLC::getActiveHitbox() {
+	Hitbox * activeHitbox = attack.getActive();
+	if (activeHitbox != nullptr)
+		return &activeHitbox->hit;
+	else
+		return nullptr;
+}
+
+int PlayerLC::getActiveDamage() {
+	return 15;
+}
+
+bool PlayerLC::readAttackChange() {
+	bool a = attackChange;
+	attackChange = false;
+	return a;
+}
+
+const AABB * PlayerLC::getHurtboxes(int * size ) const {
+	if (size != nullptr)
+		*size = 1;
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	return &physics->getCollider();
+}
+
 void PlayerLC::respawn() {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerState state = playerState->getPlayerState();
 
 	state.state = State::free;
-	state.health = 3;
+	state.health = 100;
 	state.activeAttack = 0;
 	state.attackFrame = 0;
 
@@ -201,11 +262,14 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	PlayerState state = playerState->getPlayerState();
 
 	if (attackToggledDown_) {
-		state.state = State::attacking;
-		if (attack.getActiveId() == 0) {
-			attack.startAttacking();
-			state.activeAttack = attack.getActiveId();
-			state.attackFrame = attack.getCurrFrame();
+		if (attack.canStartAttacking()) {
+			state.state = State::attacking;
+			if (attack.getActiveId() == 0) {
+				attack.startAttacking();
+				attackChange = true;
+				state.activeAttack = attack.getActiveId();
+				state.attackFrame = attack.getCurrFrame();
+			}
 		}
 	}
 

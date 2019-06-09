@@ -10,33 +10,42 @@ AnimatedSprite::AnimatedSprite(const std::string &filePath, Vec2f objRes_,
 	totalSteps{ totalSteps_ },
 
 	currentFrame{ 0 },
-	currentStep{ 0 }
+	currentStep{ 0 },
+	looping{false},
+	currentAnimationId{0}
 {
 	data.objRes = objRes_;
 }
 
 void AnimatedSprite::forward() {
+	if (currentFrame < currentAnimation.x)
+		currentFrame = currentAnimation.x;
 	currentStep++;
 	if (currentStep == totalSteps) {
 		currentStep = 0;
 		currentFrame++;
 		if (currentFrame >= currentAnimation.y) {
-			currentFrame = currentAnimation.x;
-		}
-		else if (currentFrame < currentAnimation.x) {
-			currentFrame = currentAnimation.x;
+			if (looping)
+				currentFrame = currentAnimation.x;
+			else
+				currentFrame = currentAnimation.y - 1;
 		}
 	}
 	data.imgOffset = { (currentFrame % columns) * abs(data.objRes.x), (currentFrame / columns) * abs(data.objRes.y) };
 }
 
 void AnimatedSprite::backward() {
+	if (currentFrame > currentAnimation.y - 1)
+		currentFrame = currentAnimation.y - 1;
 	currentStep++;
 	if (currentStep == totalSteps) {
 		currentStep = 0;
 		currentFrame--;
 		if (currentFrame <= currentAnimation.x - 1) {
-			currentFrame = currentAnimation.y - 1;
+			if (looping)
+				currentFrame = currentAnimation.y - 1;
+			else
+				currentFrame = currentAnimation.x;
 		}
 	}
 	data.imgOffset = { (currentFrame % columns) * abs(data.objRes.x), (currentFrame / columns) * abs(data.objRes.y) };
@@ -56,7 +65,11 @@ void AnimatedSprite::addAnimation(int id, int beginFrame, int endFrame) {
 }
 
 void AnimatedSprite::setAnimation(int id) {
+	currentAnimationId = id;
 	currentAnimation = animations[id];
+	currentFrame = currentAnimation.x;
+	currentStep = 0;
+	data.imgOffset = { (currentFrame % columns) * abs(data.objRes.x), (currentFrame / columns) * abs(data.objRes.y) };
 }
 
 void AnimatedSprite::resetDelay() {
@@ -65,6 +78,10 @@ void AnimatedSprite::resetDelay() {
 
 Vec2i AnimatedSprite::getAnimation(int id) {
 	return animations[id];
+}
+
+int AnimatedSprite::getCurrentAnimationId() {
+	return currentAnimationId;
 }
 
 Sprite * AnimatedSprite::clone() const {

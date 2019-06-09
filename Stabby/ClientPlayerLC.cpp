@@ -24,7 +24,8 @@ void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & con
 	states.emplace_back(TotalPlayerState{ playerState->getPlayerState(), controller.getState() });
 }
 
-void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
+//this doesn't run physics - will need to be fixed
+void ClientPlayerLC::repredict(const PlayerState & state) {
 	if (state.when > last) {
 		for (auto i = 0; i != states.size(); ++i) {
 			auto tstate = states[i];
@@ -33,15 +34,40 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 				states.erase(states.begin(), states.begin() + i + 1);
 				if (tstate.plr != state) {
 					std::cout << "Prediction failed, re-predicting\n";
+					if (state.state != tstate.plr.state)
+						std::cout << "state: " << static_cast<int>(tstate.plr.state) << ", " << static_cast<int>(state.state) << '\n';
+					if (state.rollFrame != tstate.plr.rollFrame)
+						std::cout << "rollFrame: " << tstate.plr.rollFrame << ", " << state.rollFrame << '\n';
+					if (state.activeAttack != tstate.plr.activeAttack)
+						std::cout << "activeAttack: " << tstate.plr.activeAttack << ", " << state.activeAttack << '\n';
+					if (state.attackFrame != tstate.plr.attackFrame)
+						std::cout << "attackFrame: " << tstate.plr.attackFrame << ", " << state.attackFrame << '\n';
+					if (state.health != tstate.plr.health)
+						std::cout << "health: " << tstate.plr.health << ", " << state.health << '\n';
+					if (state.stunFrame != tstate.plr.stunFrame)
+						std::cout << "stunFrame: " << tstate.plr.stunFrame << ", " << state.stunFrame << '\n';
+					if (state.facing != tstate.plr.facing)
+						std::cout << "facing: " << tstate.plr.facing << ", " << state.facing << '\n';
+					if (state.spawnPoint != tstate.plr.spawnPoint)
+						std::cout << "spawnPoint: " << tstate.plr.spawnPoint << ", " << state.spawnPoint << '\n';
+					if (state.attackFreezeFrame != tstate.plr.attackFreezeFrame)
+						std::cout << "attackFreezeFrame: " << tstate.plr.attackFreezeFrame << ", " << state.attackFreezeFrame << '\n';
+					if (state.pos != tstate.plr.pos)
+						std::cout << "pos: " << tstate.plr.pos << ", " << state.pos << '\n';
+					if (state.vel != tstate.plr.vel)
+						std::cout << "vel: " << tstate.plr.vel << ", " << state.vel << '\n';
+					if(state.frozen != tstate.plr.frozen)
+						std::cout << "frozen: " << tstate.plr.frozen << ", " << state.frozen << '\n';
 
 					PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 					playerState->setPlayerState(state);
-
-					PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-					position->pos = state.pos;
-
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 					physics->vel = state.vel;
+					physics->teleport(state.pos);
+					physics->frozen = state.frozen;
+
+					attack.setActive(state.activeAttack);
+					attack.setFrame(state.attackFrame);
 
 					//move our remaining values out, and then clear
 					std::deque<TotalPlayerState> toUpdate{ std::move(states) };
@@ -50,9 +76,9 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 					//now reevaulate, this will refill states
 					for (auto& updateState : toUpdate) {
 						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in});
+						physicsSystem->runPhysics(CLIENT_TIME_STEP, id);
 					}
 				}
-
 				last = state.when;
 				break;
 			}
@@ -64,21 +90,27 @@ void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 
 		//we need to send the current time to the server when this happens, as it can happen because of window movements etc
 		if (!states.empty() && states.back().plr.when < state.when) {
-			std::cout << "We're somehow behind the server! Updating to match.\n";
+			std::cout << "Client behind the server, updating positions.\n";
 
 			PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 			playerState->setPlayerState(state);
 
-			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-			position->pos = state.pos;
-
 			PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 			physics->vel = state.vel;
+			physics->teleport(state.pos);
+			physics->frozen = state.frozen;
+
+			attack.setActive(state.activeAttack);
+			attack.setFrame(state.attackFrame);
 
 			states.clear();
 			last = state.when;
 		}
 	}
+}
+
+void ClientPlayerLC::setPhysics(PhysicsSystem & physics_) {
+	physicsSystem = &physics_;
 }
 
 std::string ClientPlayerLC::getHeadPath() {

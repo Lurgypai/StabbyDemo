@@ -10,6 +10,7 @@
 class Stage {
 public:
 	Stage();
+	Vec2f getSpawnPos() const;
 	void loadGraphics(std::string filePath);
 	const std::vector<AABB>& getColliders() const;
 	EntityId getId();

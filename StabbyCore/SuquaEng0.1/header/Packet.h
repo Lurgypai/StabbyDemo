@@ -5,6 +5,7 @@
 #include "enet/enet.h"
 #include "Vec2.h"
 #include <string>
+#include "ZombieLC.h"
 #define PACKET_KEY_SIZE 3	//will be plus oned in the packets to hold the null character.
 #define WELCOME_KEY "SHI"	//suqua hi
 #define CONT_KEY	"SCT"	//suqua control
@@ -12,6 +13,7 @@
 #define JOIN_KEY	"SJN"	//suqua join
 #define QUIT_KEY	"SQT"	//suqua quit
 #define TIME_KEY	"STS"	//suqua time stamp
+#define ZOMBIE_KEY	"SZM"	//temporary zombie state sender
 
 //sent to confirm a connection. Sent from server to client
 struct WelcomePacket {
@@ -85,6 +87,18 @@ struct QuitPacket {
 	char key[PACKET_KEY_SIZE + 1];
 	//the one who quit
 	NetworkId id;
+};
+
+struct ZombiePacket {
+	ZombiePacket() :
+		key{ZOMBIE_KEY}
+	{}
+
+	char key[PACKET_KEY_SIZE + 1];
+	ZombieLC::ZombieState state;
+	int onlineId;
+	//client side time when this update would have occured (unique per client)
+	Time_t when;
 };
 
 struct TimestampPacket {

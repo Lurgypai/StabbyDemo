@@ -35,12 +35,10 @@ void main () {
             
         if(screenSize.y > windowRes.y)
             screenSize.y = windowRes.y;
-            
-        screenSize /= zoom;
         
         //position
         vec2 pixelPos = (part.pos - camPos);
-        vec2 camWindowPos = pixelPos / screenSize;
+        vec2 camWindowPos = pixelPos / (screenSize / zoom);
         camWindowPos.y = (-camWindowPos.y) + 1;
         //scale camera into the window
         windowPos = camWindowPos * (screenSize / windowRes);

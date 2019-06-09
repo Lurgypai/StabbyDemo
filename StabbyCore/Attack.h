@@ -16,6 +16,8 @@ public:
 	Attack();
 	void setActive(int i);
 	void setFrame(int frame);
+	bool canStartAttacking();
+	bool getNextIsBuffered() const;
 	void startAttacking();
 	Hitbox* getActive();
 	unsigned int getActiveId();

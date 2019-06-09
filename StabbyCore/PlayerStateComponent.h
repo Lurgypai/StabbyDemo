@@ -16,7 +16,8 @@ struct PlayerState {
 	bool operator==(const PlayerState & other) {
 		return when == other.when && pos == other.pos && vel == other.vel && state == other.state &&
 			rollFrame == other.rollFrame && activeAttack == other.activeAttack && attackFrame == other.attackFrame &&
-			health == other.health && stunFrame == other.stunFrame && facing == other.facing;
+			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
+			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen;
 	}
 
 
@@ -34,10 +35,13 @@ struct PlayerState {
 	int health;
 	int stunFrame;
 	int facing;
+	Vec2f spawnPoint;
+	int attackFreezeFrame;
 
 	//governed (updated by us) by the associated physics and position components
 	Vec2f pos;
 	Vec2f vel;
+	bool frozen;
 };
 
 class PlayerStateComponent {
@@ -55,6 +59,8 @@ public:
 	void setHealth(int health);
 	void setStunFrame(int stunFrame);
 	void setFacing(int facing);
+	void setSpawnPoint(const Vec2f & spawnPoint_);
+	void setAttackFreezeFrame(int attackFreezeFrame_);
 private:
 	EntityId id;
 	PlayerState playerState;

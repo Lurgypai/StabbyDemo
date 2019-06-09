@@ -6,9 +6,9 @@
 Attack::Attack() :
 	hitboxes{
 		Hitbox{AABB{Vec2f{0, 0}, Vec2f{14, 13}},
-			Vec2f{2, -1}, 0, 20, 16},
+			Vec2f{2, -1}, 8, 12, 16},
 		Hitbox{AABB{Vec2f{0, 0}, Vec2f{20, 20}},
-			Vec2f{2, -1}, 0, 28, 16},
+			Vec2f{2, -1}, 8, 20, 16},
 		Hitbox{AABB{Vec2f{0, 0}, Vec2f{30, 25}},
 			Vec2f{-1, -5}, 8, 32, 8}
 	},
@@ -26,6 +26,14 @@ void Attack::setActive(int i) {
 
 void Attack::setFrame(int frame) {
 	currFrame = frame;
+}
+
+bool Attack::canStartAttacking() {
+	return restartDelay == restartDelayMax;
+}
+
+bool Attack::getNextIsBuffered() const {
+	return nextIsBuffered;
 }
 
 void Attack::startAttacking() {

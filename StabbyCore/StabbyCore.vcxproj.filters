@@ -198,6 +198,15 @@
     <ClInclude Include="PlayerStateComponent.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
+    <ClInclude Include="CombatSystem.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="CombatComponent.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="ZombieLC.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -288,6 +297,15 @@
       <Filter>Source Files\Engine\Physics</Filter>
     </ClCompile>
     <ClCompile Include="PlayerStateComponent.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="CombatSystem.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="CombatComponent.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="ZombieLC.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
   </ItemGroup>

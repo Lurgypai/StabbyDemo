@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Stage.h"
-#include "AABB.h"
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 
@@ -10,6 +9,10 @@ Stage::Stage() :
 {
 	colliders.emplace_back(Vec2f{ -(STAGE_WIDTH / 2), 0 }, Vec2f{STAGE_WIDTH, STAGE_HEIGHT});
 	EntitySystem::GenEntities(1, &id);
+}
+
+Vec2f Stage::getSpawnPos() const {
+	return Vec2f{0, 0};
 }
 
 const std::vector<AABB> & Stage::getColliders() const {

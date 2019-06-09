@@ -4,6 +4,6 @@
 
 struct PlayerCam : public Camera {
 public:
-	PlayerCam(EntityId playerId_, int windowWidth, int windowHieght);
+	PlayerCam(int windowWidth, int windowHieght);
 	void update(EntityId playerId);
 };

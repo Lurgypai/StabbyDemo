@@ -39,13 +39,16 @@
 
 #include "ServerClientData.h"
 #include "RandomUtil.h"
+#include "ZombieGC.h"
+#include "StartCommand.h"
+#include "SpawnZombieCommand.h"
+#include "KillCommand.h"
 
+const int windowWidth = 1920.0 / 1.5;
+const int windowHeight = 1080.0 / 1.5;
 
-const int windowWidth = 1920 / 2;
-const int windowHeight = 1080 / 2;
-
-const int viewWidth = windowWidth / 3;
-const int viewHeight = windowHeight / 3;
+const int viewWidth = 640;
+const int viewHeight = 360;
 
 void MessageCallback(GLenum source,
 	GLenum type,
@@ -80,53 +83,47 @@ int main(int argc, char* argv[]) {
 	GLRenderer::Init(window, { windowWidth, windowHeight }, {viewWidth, viewHeight});
 	RenderSystem render;
 
-	//client time
-	Time_t currentTick{ 0 };
-
 	DebugIO::startDebug("SuquaEng0.1/fonts/consolas_0.png", "SuquaEng0.1/fonts/consolas.fnt");
+	int debugCamId;
+	debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 
-	PartitionID basicParticles = GLRenderer::GenParticleType(1, {"particles/basic.vert"});
-	PartitionID wavyParticles = GLRenderer::GenParticleType(1, { "particles/wavy.vert" });
+	PlayerCam playerCam{ viewWidth, viewHeight };
+	//playerCam.setZoom(.08);
+	int playerCamId = GLRenderer::addCamera(playerCam);
 
+	PartitionID blood = GLRenderer::GenParticleType("blood", 1, {"particles/blood.vert"});
+	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
 
-	/*------------------------ Player Preparation -----------------------------*/
-	Vec2f spawnPos{ 0, -32 };
-	unsigned int playerId;
-	EntitySystem::GenEntities(1, &playerId);
-	EntitySystem::MakeComps<ClientPlayerLC>(1, &playerId);
+	
+	EntityId title;
+	EntitySystem::GenEntities(1, &title);
+	EntitySystem::MakeComps<RenderComponent>(1, &title);
+	RenderComponent * titleRender = EntitySystem::GetComp<RenderComponent>(title);
+	titleRender->loadSprite<Sprite>("images/tempcover.png");
+	EntitySystem::GetComp<PositionComponent>(title)->pos = {-titleRender->getImgRes().x / 2 , -300 };
 
-	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
-	EntitySystem::GetComp<PlayerGC>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
-	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
+	GLRenderer::getCamera(playerCamId).pos = { -titleRender->getImgRes().x / 2 , -300 };
+	
+	/*
+	EntityId testComp;
+	EntitySystem::GenEntities(1, &testComp);
+	EntitySystem::MakeComps<RenderComponent>(1, &testComp);
+	EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/redpixel.png");
+	*/
 
-	PositionComponent * pos = EntitySystem::GetComp<PositionComponent>(playerId);
-	pos->pos = Vec2f{ -2, -30 };
+	Game game{};
+	PhysicsSystem & physics = game.physics;
+	Client & client = game.client;
 
-	Stage stage{};
-	stage.loadGraphics("images/stage.png");
+	game.stage.loadGraphics("images/stage.png");
+	physics.setStage(&game.stage);
 
-	Client client{stage};
-	client.setPlayer(playerId);
-	DebugIO::getCommandManager().registerCommand<ConnectCommand>(ConnectCommand{ client, currentTick });
-
+	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
+	DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
+	DebugIO::getCommandManager().registerCommand<KillCommand>();
 	Controller controller;
-
-	PhysicsSystem physics{stage};
-
-	//EntityId testComp;
-	//EntitySystem::MakeComps<RenderComponent>(1, &testComp);
-	//EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/none.png");
-	/*---------------------------------- Camera Preparation -------------------------------------------------------*/
-	PlayerCam playerCam{ playerId, viewWidth, viewHeight };
-	int camId = GLRenderer::addCamera(playerCam);
-	int menuCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
-
-	double gfxDelay{ 1.0 / 60 };
-	Uint64 currentLog = SDL_GetPerformanceCounter();
-	Uint64 currentGfx = SDL_GetPerformanceCounter();
-
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer fb{};
 	unsigned int screenTex;
@@ -135,8 +132,20 @@ int main(int argc, char* argv[]) {
 	fb.finalizeFramebuffer();
 	Framebuffer::unbind();
 
+	Framebuffer occlusionMap{};
+	unsigned int occlusionTex;
+	occlusionMap.bind();
+	occlusionTex = occlusionMap.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	occlusionMap.finalizeFramebuffer();
+	Framebuffer::unbind();
+
 
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
+
+	double gfxDelay{ 1.0 / 60 };
+	Uint64 currentLog = SDL_GetPerformanceCounter();
+	Uint64 currentGfx = SDL_GetPerformanceCounter();
+
 	bool lockFPS{ true }, lockUPS{ true };
 
 	bool running{ true };
@@ -151,7 +160,7 @@ int main(int argc, char* argv[]) {
 			updateLogic = true;
 
 		if (updateLogic) {
-			currentTick++;
+			game.time++;
 			double ups = 1.0 / (static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency());
 			DebugIO::setLine(0, "UPS: " + std::to_string(int(round(ups))));
 
@@ -212,25 +221,32 @@ int main(int argc, char* argv[]) {
 				controller.off(ControllerBits::ALL);
 			}
 
-			ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-			player->update(currentTick, CLIENT_TIME_STEP, controller);
-
-			physics.runPhysics(CLIENT_TIME_STEP);
+			if (EntitySystem::Contains<ClientPlayerLC>()) {
+				ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(game.getPlayerId());
+				player->update(game.time, CLIENT_TIME_STEP, controller);
+			}
 
 			if (client.getConnected()) {
+				//update all mobs that need it
+				if (EntitySystem::Contains<ZombieLC>()) {
+					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
+						zombie.runLogic();
+					}
+				}
+
 				//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 				client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
 
 				static ControllerPacket lastSent{};
 
 				ControllerPacket state{};
-				state.time = currentTick;
+				state.time = game.time;
 				state.state = controller.getState();
 				state.netId = client.getNetId();
 				state.when = client.getTime();
 
 				lastSent.when = client.getTime();
-				lastSent.time = currentTick;
+				lastSent.time = game.time;
 
 				if (lastSent != state) {
 					lastSent = state;
@@ -239,14 +255,19 @@ int main(int argc, char* argv[]) {
 
 				}
 
-				client.service(currentTick);
+				client.service(game.time);
+
+				if (client.isBehindServer()) {
+					std::cout << "We're behind the server, sending an update.\n";
+					lastSent = state;
+					ENetPacket * p = enet_packet_create(&state, sizeof(StatePacket), 0);
+					client.send(p);
+					client.resetBehindServer();
+				}
 
 				if (EntitySystem::Contains<OnlinePlayerLC>()) {
 					for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
 						onlinePlayer.update(client.getTime());
-
-						//test code
-						//EntitySystem::GetComp<PositionComponent>(testComp)->pos = EntitySystem::GetComp<PositionComponent>(onlinePlayer.getId())->pos;
 					}
 				}
 
@@ -259,14 +280,27 @@ int main(int argc, char* argv[]) {
 				}
 				else {
 					pingDelay = 0;
-					client.ping(currentTick);
+					client.ping(game.time);
 				}
-
-
 
 				DebugIO::setLine(3, "NetId: " + std::to_string(client.getNetId()));
 				DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
 			}
+			else {
+				//singleplayer physics / combat
+
+				if (EntitySystem::Contains<ZombieLC>()) {
+					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
+						zombie.searchForTarget<ClientPlayerLC>();
+						zombie.runLogic();
+					}
+				}
+			}
+
+			physics.runPhysics(CLIENT_TIME_STEP);
+
+			game.combat.runAttackCheck<ClientPlayerLC, ZombieLC>();
+			game.combat.runAttackCheck<ZombieLC, ClientPlayerLC>();
 
 			if (EntitySystem::Contains<HeadParticleLC>()) {
 				Pool<HeadParticleLC> & heads = EntitySystem::GetPool<HeadParticleLC>();
@@ -300,22 +334,45 @@ int main(int argc, char* argv[]) {
 
 			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
 			GLRenderer::SetDefShader(ImageShader);
-			GLRenderer::setCamera(camId);
-			static_cast<PlayerCam &>(GLRenderer::getCamera(camId)).update(playerId);
+			GLRenderer::setCamera(playerCamId);
+			static_cast<PlayerCam &>(GLRenderer::getCamera(playerCamId)).update(game.getPlayerId());
+
+			/*
+			RenderComponent * reddot = EntitySystem::GetComp<RenderComponent>(testComp);
+			PositionComponent * reddotposition = EntitySystem::GetComp<PositionComponent>(testComp);
+			if (EntitySystem::Contains<ZombieLC>()) {
+				ZombieLC & zombie = EntitySystem::GetPool<ZombieLC>().front();
+				const AABB * hitbox = zombie.getHurtboxes(nullptr);
+				if (hitbox != nullptr) {
+					reddot->setScale({hitbox->res.x, hitbox->res.y});
+					reddotposition->pos = hitbox->pos;
+				}
+			}
+			*/
 
 			render.draw<RenderComponent>();
 			render.draw<PlayerGC>();
+			render.draw<ZombieGC>();
 
 			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
 
-			/*
-			Particle p{ {0, -50}, -45.0f + (random(0, 10) - 5), 2.0f, 500, 0};
-			GLRenderer::SpawnParticles(basicParticles, 1, { 0, -50 }, p);
-			Particle p1{ {0, -50}, 0.0f, 0.7f, 1000, 0 };
-			GLRenderer::SpawnParticles(wavyParticles, 1, { 0, -50 }, p1);
+			RenderComponent * stageRender = EntitySystem::GetComp<RenderComponent>(game.stage.getId());
+			if (stageRender != nullptr) {
+				unsigned int stageRenderBuffer = stageRender->getRenderBufferId();
+				occlusionMap.bind();
+				GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+				GLRenderer::Draw(GLRenderer::include, 1, &stageRenderBuffer);
+			}
+			fb.bind();
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
+
+			GLRenderer::getComputeShader("blood").use();
+			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(playerCamId).pos.x, GLRenderer::getCamera(playerCamId).pos.y);
+			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(playerCamId).camScale);
 
 			GLRenderer::UpdateAndDrawParticles();
-			*/
 
 			Framebuffer::unbind();
 			GLRenderer::SetDefShader(FullscreenShader);
@@ -324,7 +381,7 @@ int main(int argc, char* argv[]) {
 			
 			GLRenderer::DrawOverScreen(fb.getTexture(0).id);
 
-			GLRenderer::setCamera(menuCamId);
+			GLRenderer::setCamera(debugCamId);
 			GLRenderer::SetDefShader(DebugShader);
 			DebugIO::drawLines(windowHeight);
 

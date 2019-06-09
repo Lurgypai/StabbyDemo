@@ -53,7 +53,7 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	whens[2] = when;
 
 	state.pos = previousPos[1];
-	position->pos = previousPos[1];
+	position->pos = previousPos[1] - Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH) / 2, static_cast<float>(PlayerLC::PLAYER_HEIGHT)};
 
 	playerState->setPlayerState(state);
 }
@@ -67,7 +67,7 @@ void OnlinePlayerLC::update(Time_t gameTime) {
 		front = 1;
 
 
-	double delta = static_cast<double>(whens[front] - whens[front - 1]) * SERVER_TIME_STEP;
+	double delta = static_cast<double>(whens[front] - whens[front - 1]) * GAME_TIME_STEP;
 	//this is how long it is between each update.
 
 	Vec2f moveDistance = (previousPos[front] - previousPos[front - 1]) * static_cast<float>(CLIENT_TIME_STEP / delta);

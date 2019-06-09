@@ -9,11 +9,10 @@
 #include "PlayerGC.h"
 #include "ClientPlayerLC.h"
 #include "ServerClientData.h"
-
+#include "ZombieGC.h"
 #include <iostream>
 
-Client::Client(const Stage& stage_) :
-	stage{stage_},
+Client::Client() :
 	id{ 0 }
 {
 	enet_initialize();
@@ -152,6 +151,14 @@ void Client::setPlayer(EntityId id_) {
 	playerId = id_;
 }
 
+bool Client::isBehindServer() {
+	return behindServer;
+}
+
+void Client::resetBehindServer() {
+	behindServer = false;
+}
+
 void Client::receive(ENetEvent & e) {
 	std::string packetKey = PacketUtil::readPacketKey(e.packet);
 	std::vector<NetworkId> ids;
@@ -179,32 +186,63 @@ void Client::receive(ENetEvent & e) {
 					}
 				}
 			}
-			if (id == p.id) {
-				ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-				if (player != nullptr) {
-					player->repredict(p.state, stage);
+			if (EntitySystem::Contains<ClientPlayerLC>()) {
+				if (id == p.id) {
+					ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
+					if (player != nullptr) {
+						player->repredict(p.state);
+						//if we're behind where the server is;
+						if(!behindServer)
+							behindServer = p.state.when > now;
+					}
 				}
 			}
 		}
+	}
+	else if (packetKey == ZOMBIE_KEY) {
+		std::vector<ZombiePacket> states;
+		size_t size = (e.packet->dataLength - sizeof(Time_t)) / sizeof(ZombiePacket);
+		states.resize(size);
 
-		/*
-		StatePacket p;
-		PacketUtil::readInto<StatePacket>(p, e.packet);
-		Pool<OnlinePlayerLC> * onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
-		if (onlinePlayers != nullptr) {
-			for (auto& onlinePlayer : *onlinePlayers) {
-				if ((!onlinePlayer.isFree) && onlinePlayer.val.getNetId() == p.id) {
-					onlinePlayer.val.interp(p.state, p.when);
+		PacketUtil::readInto<ZombiePacket>(&states[0], e.packet, size);
+		Time_t when;
+		memcpy(&when, e.packet->data + sizeof(ZombiePacket) * size, sizeof(Time_t));
+
+		if(!behindServer)
+			behindServer = when > now;
+
+		for (auto& zombieState : states) {
+			if (EntitySystem::Contains<ZombieLC>()) {
+				bool idWasFound{ false };
+				for (auto & zombie : EntitySystem::GetPool<ZombieLC>()) {
+					if (zombie.onlineId == zombieState.onlineId) {
+						zombie.setState(zombieState.state);
+						//zombie.repredict(zombieState.state, when);
+						idWasFound = true;
+					}
+				}
+				if (!idWasFound) {
+					EntityId id;
+					EntitySystem::GenEntities(1, &id);
+					EntitySystem::MakeComps<ZombieLC>(1, &id);
+					EntitySystem::MakeComps<ZombieGC>(1, &id);
+					EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
+					EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
+					EntitySystem::GetComp<ZombieGC>(id)->loadSprite<AnimatedSprite>("images/zombie.png", Vec2i{ 32, 32 });
+					EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
 				}
 			}
-		}
-		if (id == p.id) {
-			ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-			if (player != nullptr) {
-				player->repredict(p.state);
+			else {
+				EntityId id;
+				EntitySystem::GenEntities(1, &id);
+				EntitySystem::MakeComps<ZombieLC>(1, &id);
+				EntitySystem::MakeComps<ZombieGC>(1, &id);
+				EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
+				EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
+				EntitySystem::GetComp<ZombieGC>(id)->loadSprite<AnimatedSprite>("images/zombie.png", Vec2i{ 32, 32 });
+				EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
 			}
 		}
-		*/
 	}
 	else if (packetKey == QUIT_KEY) {
 		QuitPacket q;
@@ -240,7 +278,7 @@ void Client::receive(ENetEvent & e) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
-			EntitySystem::GetComp<PlayerGC>(entity)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
+			EntitySystem::GetComp<PlayerGC>(entity)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
 		}
 	}

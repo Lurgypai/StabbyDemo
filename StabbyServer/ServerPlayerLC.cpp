@@ -52,30 +52,3 @@ void ServerPlayerLC::update(Time_t gameTime) {
 	stateComp->setWhen(gameTime);
 	prevStates.emplace_back(stateComp->getPlayerState());
 }
-
-//check if we hit anyone else from ze past
-void ServerPlayerLC::runHitDetect(Time_t gameTime) {
-	Time_t timeToFind = gameTime - (.1 * GAME_TIME_STEP);
-	PlayerState stateWhenAction = getStateAt(timeToFind);
-
-	if (stateWhenAction.state != State::rolling) {
-
-		PhysicsComponent * physics = getPhysics();
-
-		AABB collider = { stateWhenAction.pos, physics->getRes() };
-
-		bool wasHit = false;
-		for (auto& playerComp : EntitySystem::GetPool<ServerPlayerLC>()) {
-			if (playerComp.id != id) {
-				auto& player = playerComp;
-				if (player.getAttack().getActive() != nullptr && collider.intersects(player.getAttack().getActive()->hit)) {
-					if (!isBeingHit) {
-						damage(1);
-					}
-					wasHit = true;
-				}
-			}
-		}
-		isBeingHit = wasHit;
-	}
-}

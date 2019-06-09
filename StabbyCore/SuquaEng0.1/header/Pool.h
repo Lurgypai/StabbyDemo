@@ -22,7 +22,7 @@ public:
 	virtual ~IPool() {};
 };
 
-template<typename T, int Size = 0>
+template<typename T>
 class Pool : public IPool {
 
 public:
@@ -60,9 +60,7 @@ public:
 
 	using iterator = PoolIterator<T>;
 
-	Pool() {
-		resources.resize(Size);
-	}
+	Pool() : resources{}, freeIndices_{0} {}
 
 	Pool(std::size_t size) {
 		resources.resize(size);
@@ -96,12 +94,50 @@ public:
 		resources.emplace_back(T{}, false);
 	}
 
+	template <typename U>
+	inline void add(size_t pos, U&& r) {
+		if (resources.size() > pos) {
+			resources[pos] = Resource<T>(std::forward<U>(r), false);
+		}
+		else {
+			size_t start = resources.size();
+			resize(pos);
+			free(start, pos);
+			resources.emplace_back(std::forward<U>(r), false);
+		}
+	}
+
+	inline void add(size_t pos) {
+		if (resources.size() > pos) {
+			resources[pos] = Resource<T>(T{}, false);
+		}
+		else {
+			size_t start = resources.size();
+			resize(pos);
+			free(start, pos);
+			resources.emplace_back(T{}, false);
+		}
+	}
+
 	//Frees specified indice. Returns false if the indice is out of range.
 	bool free(int index) {
 		if (index < resources.size()) {
+			if (!resources[index].isFree)
+				++freeIndices_;
 			resources[index].isFree = true;
-			++freeIndices_;
 			return true;
+		}
+		return false;
+	}
+
+	bool free(int start, int end) {
+		if (start > 0 && end <= resources.size()) {
+			for (int i = start; i != end; ++i) {
+				if (!resources[i].isFree)
+					++freeIndices_;
+				resources[i].isFree = true;
+				return true;
+			}
 		}
 		return false;
 	}
@@ -161,16 +197,22 @@ public:
 		return resources.end();
 	}
 
-	Resource<T>& operator[](std::size_t i) {
-		return resources[i];
+	T& operator[](std::size_t i) {
+		return resources[i].val;
 	}
 
-	Resource<T>& front() {
-		return resources.front();
+	T& front() {
+		for (auto& resource : resources) {
+			if (!resource.isFree)
+				return resource.val;
+		}
 	}
 
-	Resource<T>& back() {
-		return resources.back();
+	T& back() {
+		for (auto reverseIter = resources.rbegin(); reverseIter != resources.rend(); ++reverseIter) {
+			if (!reverseIter->isFree)
+				return reverseIter->val;
+		}
 	}
 
 	bool empty() {
@@ -179,6 +221,11 @@ public:
 
 	auto data() {
 		return resources.data();
+	}
+
+	//whether the specified indice is valid to pull data from.
+	bool contains(size_t pos) {
+		return pos >= 0 && pos < resources.size() && !resources[pos].isFree;
 	}
 
 private:

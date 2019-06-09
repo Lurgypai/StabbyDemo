@@ -5,19 +5,19 @@
 #include "PlayerLC.h"
 #include "RenderComponent.h"
 
-enum Animation {
-	idle,
-	walking,
-	slash1,
-	slash2,
-	slash3,
-	roll,
-	stun,
-	dead
-};
-
 class PlayerGC : public RenderComponent{
 public:
+	enum Animation {
+		idle,
+		walking,
+		slash1,
+		slash2,
+		slash3,
+		roll,
+		stun,
+		dead
+	};
+
 	PlayerGC(EntityId id_ = 0);
 	void loadAnimations();
 	void spawnHead(Vec2f pos);
@@ -26,4 +26,7 @@ public:
 private:
 	Vec2f offset;
 	bool shouldSpawnHead;
+	State prevState;
+	float prevXVel;
+	int prevAttack;
 };

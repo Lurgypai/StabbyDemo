@@ -10,7 +10,7 @@
 
 class Client {
 public:
-	Client(const Stage& stage_);
+	Client();
 
 	~Client();
 
@@ -34,6 +34,9 @@ public:
 	NetworkId getNetId();
 
 	void setPlayer(EntityId id_);
+	bool isBehindServer();
+	//once we've told the server the time, and what we're doing, this is done to reset that we are behind.
+	void resetBehindServer();
 private:
 	void receive(ENetEvent & e);
 
@@ -52,5 +55,6 @@ private:
 	EntityId playerId;
 	//gameTime
 	Time_t networkTime;
-	const Stage& stage;
+	//if we're behind the server, so that we can tell the server the current time.
+	bool behindServer;
 };

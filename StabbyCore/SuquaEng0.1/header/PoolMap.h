@@ -7,15 +7,14 @@
 #include "TypeData.h"
 #include "PoolNotFoundException.h"
 
-using pool_ptr = std::unique_ptr<IPool>;
+using pool_ptr = std::shared_ptr<IPool>;
 
 class PoolMap {
 public:
 	template<typename U>
 	void add(U&& u) {
-		if (pools.find(TypeTag<U>::tag) == pools.end()) {
-
-			pools.insert(std::pair<type_id, pool_ptr>{ TypeTag<U>::tag, std::make_unique<Pool<U>>()});
+		if (!pools.contains(TypeTag<U>::tag)) {
+			pools.add(TypeTag<U>::tag, std::make_shared<Pool<U>>());
 		}
 
 		Pool<U>* pool = static_cast<Pool<U>*>(pools[TypeTag<U>::tag].get());
@@ -23,10 +22,19 @@ public:
 	}
 
 	template<typename U>
-	void add() {
-		if (pools.find(TypeTag<U>::tag) == pools.end()) {
+	void add(size_t pos, U&& u) {
+		if (!pools.contains(TypeTag<U>::tag)) {
+			pools.add(TypeTag<U>::tag, std::make_shared<Pool<U>>());
+		}
 
-			pools.insert(std::pair<type_id, pool_ptr>{ TypeTag<U>::tag, std::make_unique<Pool<U>>()});
+		Pool<U>* pool = static_cast<Pool<U>*>(pools[TypeTag<U>::tag].get());
+		pool->add(pos, std::forward<U>(u));
+	}
+
+	template<typename U>
+	void add() {
+		if (!pools.contains(TypeTag<U>::tag)) {
+			pools.add(TypeTag<U>::tag, std::make_shared<Pool<U>>());
 		}
 
 		Pool<U>* pool = static_cast<Pool<U>*>(pools[TypeTag<U>::tag].get());
@@ -35,7 +43,7 @@ public:
 
 	template<typename T>
 	Pool<T> & get() {
-		if (pools.find(TypeTag<T>::tag) != pools.end()) {
+		if (pools.contains(TypeTag<T>::tag)) {
 			return static_cast<Pool<T> &>(*(pools[TypeTag<T>::tag]));
 		}
 		else {
@@ -45,7 +53,7 @@ public:
 
 	template<typename T>
 	bool contains() {
-		return pools.find(TypeTag<T>::tag) != pools.end();
+		return pools.contains(TypeTag<T>::tag);
 	}
 
 	auto begin() {
@@ -57,5 +65,5 @@ public:
 	}
 
 private:
-	std::unordered_map<type_id, pool_ptr> pools;
+	Pool<pool_ptr> pools;
 };

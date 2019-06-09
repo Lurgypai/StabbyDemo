@@ -11,5 +11,8 @@ struct ComputeShader {
 
 	void loadFromFiles(std::string path);
 
+	void uniform2f(const std::string & var, float x, float y);
+	void uniform1f(const std::string & var, float x);
+
 	void use() const;
 };

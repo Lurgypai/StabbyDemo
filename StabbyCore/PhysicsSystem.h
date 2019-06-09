@@ -5,10 +5,12 @@
 
 class PhysicsSystem {
 public:
-	PhysicsSystem(Stage& stage);
+	PhysicsSystem();
 
+	void setStage(Stage * stage);
 	void runPhysics(double timeDelta);
+	void runPhysics(double timeDelta, EntityId entity);
 private:
-	Stage & stage;
+	Stage * currStage;
 	std::vector<EntityId> physicsEntities;
 };

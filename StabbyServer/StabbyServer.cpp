@@ -22,6 +22,9 @@
 #include "ServerClientData.h"
 #include "Settings.h"
 #include "PhysicsSystem.h"
+#include "ZombieSpawner.h"
+#include "ServerZombieLC.h"
+#include "CombatSystem.h"
 
 #define MAX_PACKET_COUNT 500
 #define CLIENT_SIDE_DELTA 1.0 / 120
@@ -49,7 +52,7 @@ int main(int argv, char* argc[])
 	}
 
 	string line;
-	Settings settings{0, 0, 0};
+	Settings settings{ 0, 0, 0 };
 	while (std::getline(file, line, '\n')) {
 		size_t splitPos = line.find('=');
 		string idToken = line.substr(0, splitPos);
@@ -106,8 +109,8 @@ int main(int argv, char* argc[])
 	WelcomePacket welcomePacket;
 
 	//current tick in server time
-	Time_t currentTick{0};
-	double serverDelta{0};
+	Time_t currentTick{ 0 };
+	double serverDelta{ 0 };
 
 	Time_t gameTime{ 0 };
 	NetworkId incrementer{ 0 };
@@ -116,7 +119,11 @@ int main(int argv, char* argc[])
 	std::list<UserPtr> users;
 
 	Stage stage{};
-	PhysicsSystem physics{ stage };
+	PhysicsSystem physics{};
+	physics.setStage(&stage);
+	CombatSystem combat{};
+
+	ZombieSpawner zombieSpawner{0};
 
 	//switch game to tick at client speed, but only send updates out at server speed
 	//test this, it looks like its done.
@@ -219,14 +226,11 @@ int main(int argv, char* argc[])
 				++packetsPolled;
 			}
 			
+			zombieSpawner.trySpawnZombies(gameTime);
+
 			//move
 			for (auto& user : users) {
 				user->getPlayer().update(gameTime);
-			}
-
-			//after movement, run collisisons
-			for (auto& user : users) {
-				user->getPlayer().runHitDetect(gameTime);
 			}
 
 			serverDelta += CLIENT_TIME_STEP / SERVER_TIME_STEP;
@@ -248,15 +252,43 @@ int main(int argv, char* argc[])
 					states.push_back(pos);
 				}
 
+				std::vector<ZombiePacket> zombieStates;
+				if (EntitySystem::Contains<ServerZombieLC>()) {
+					zombieStates.reserve(EntitySystem::GetPool<ServerZombieLC>().size() - EntitySystem::GetPool<ServerZombieLC>().freeIndices());
+					for (auto& zombie : EntitySystem::GetPool<ServerZombieLC>()) {
+						ZombiePacket packet;
+						packet.onlineId = zombie.onlineId;
+						packet.state = zombie.getState();
+						zombieStates.push_back(packet);
+					}
+				}
+
 				for (auto& other : users) {
 					//send the contiguous state block
 					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(states.data(), sizeof(StatePacket) * states.size(), 0));
+					if (EntitySystem::Contains<ServerZombieLC>()) {
+						Time_t clientTime = other->getPlayer().clientTime;
+						enet_uint8 * packet = static_cast<enet_uint8 *>(malloc(sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size()));
+						memcpy(packet, zombieStates.data(), sizeof(ZombiePacket) * zombieStates.size());
+						memcpy(packet + (sizeof(ZombiePacket) * zombieStates.size()), &clientTime, sizeof(Time_t));
+
+						enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(packet, sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size(), 0));
+						free(packet);
+					}
 				}
 			}
 
-			//client side stores player state before physics is reapplied, so we have to send the state before physics is reapplied
+			if (EntitySystem::Contains<ServerZombieLC>()) {
+				for (auto& zombie : EntitySystem::GetPool<ServerZombieLC>()) {
+					zombie.searchForTarget<ServerPlayerLC>();
+					zombie.runLogic();
+				}
+			}
+
 			physics.runPhysics(CLIENT_TIME_STEP);
 
+			combat.runAttackCheck<ServerPlayerLC, ServerZombieLC>();
+			combat.runAttackCheck<ServerZombieLC, ServerPlayerLC>();
 			
 			size_t size = ctrls.size();
 			ctrls.clear();

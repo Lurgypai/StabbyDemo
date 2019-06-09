@@ -52,6 +52,14 @@ ComputeShader::ComputeShader(const ComputeShader & other) :
 	id{other.id}
 {}
 
+void ComputeShader::uniform2f(const std::string & var, float x, float y) {
+	glUniform2f(glGetUniformLocation(id, var.c_str()), x, y);
+}
+
+void ComputeShader::uniform1f(const std::string & var, float x) {
+	glUniform1f(glGetUniformLocation(id, var.c_str()), x);
+}
+
 void ComputeShader::use() const {
 	glUseProgram(id);
 }

@@ -94,86 +94,90 @@ void GLRenderer::Draw(SelectType t_, std::vector<unsigned int> & ids) {
 //exclude means draw all texture buffers except the ones specified
 //all means draw all texture buffers
 void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
-	Camera& cam = cameras[currentCam];
+	if (renderBuffers.size() > 0) {
+		Camera& cam = cameras[currentCam];
 
-	//biind the vertex array object
-	glBindVertexArray(VAO);
+		//biind the vertex array object
+		glBindVertexArray(VAO);
 
-	std::vector<unsigned int> allIds;
-	//handles what texture buffers to draw
-	if (count > 0) {
-		switch (t_) {
-		case all:
+		std::vector<unsigned int> allIds;
+		//handles what texture buffers to draw
+		if (count > 0) {
+			switch (t_) {
+			case all:
+				count = renderBuffers.size();
+				for (int i = 0; i != renderBuffers.size(); ++i) {
+					allIds.push_back(i);
+				}
+				ids = &allIds.front();
+				break;
+			case include:
+				//already properly includes. count has how many were passed (and need to be included), 
+				// the id points to the first of the include.
+				//no change
+				break;
+			case exclude:
+				//populate all ids, except for with the ones we don't want
+				allIds.reserve(renderBuffers.size());
+				for (int id = 0; id != renderBuffers.size(); ++id) {
+					//loop through the passed texture ids
+					for (int j = 0; j != count; ++j) {
+						//store only the not equal ones
+						if (ids[j] != id)
+							allIds.push_back(id);
+					}
+				}
+				//set count, and the starting ptr
+				if (allIds.size() > 0) {
+					count = allIds.size();
+					ids = &allIds.front();
+				}
+				break;
+			}
+		}
+		else {
 			count = renderBuffers.size();
 			for (int i = 0; i != renderBuffers.size(); ++i) {
 				allIds.push_back(i);
 			}
 			ids = &allIds.front();
-			break;
-		case include:
-			//already properly includes. count has how many were passed (and need to be included), 
-			// the id points to the first of the include.
-			//no change
-			break;
-		case exclude:
-			//populate all ids, except for with the ones we don't want
-			allIds.reserve(renderBuffers.size());
-			for (int id = 0; id != renderBuffers.size(); ++id) {
-				//loop through the passed texture ids
-				for (int j = 0; j != count; ++j) {
-					//store only the not equal ones
-					if(ids[j] != id)
-						allIds.push_back(id);
+		}
+
+		//loop through the specified texture buffers and draw
+		for (int j = 0; j != count; ++j) {
+			RenderBuffer & renderBuf = renderBuffers[ids[j]];
+			std::vector<ImgData> & textureBuf = renderBuf.data;
+			if (!textureBuf.empty()) {
+
+				shaders[renderBuf.shaderId].use();
+				shaders[renderBuf.shaderId].uniform2f("camPos", cam.pos.x, cam.pos.y);
+				shaders[renderBuf.shaderId].uniform2f("camRes", cam.res.x, cam.res.y);
+				shaders[renderBuf.shaderId].uniform2f("zoom", cam.camScale, cam.camScale);
+
+				//grab the size
+				int size = static_cast<int>(textureBuf.size());
+				//bind the range for the first IMG_DATA_BUFFER_SIZE
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
+				//loop through batches of IMG_DATA_BUFFER_SIZE ImgDatas
+				for (int i = 0; i != ceil(static_cast<float>(size) / IMG_DATA_BUFFER_SIZE); i++) {
+
+					int objsToBuffer{ size - (i * IMG_DATA_BUFFER_SIZE) };
+					if (objsToBuffer > IMG_DATA_BUFFER_SIZE)
+						objsToBuffer = IMG_DATA_BUFFER_SIZE;
+
+					//buffer in as many as there are
+					glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData) * objsToBuffer, &(textureBuf.front()) + (IMG_DATA_BUFFER_SIZE * i));
+
+					//bind the texture
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, renderBuf.textureId);
+
+					//draw. 6 vertices (should) make a rectangle
+					glDrawArrays(GL_TRIANGLES, 0, 6 * objsToBuffer);
 				}
+				glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+				//glBindVertexArray(0);
 			}
-			//set count, and the starting ptr
-			count = allIds.size();
-			ids = &allIds.front();
-			break;
-		}
-	}
-	else {
-		count = renderBuffers.size();
-		for (int i = 0; i != renderBuffers.size(); ++i) {
-			allIds.push_back(i);
-		}
-		ids = &allIds.front();
-	}
-
-	//loop through the specified texture buffers and draw
-	for (int j = 0; j != count; ++j) {
-		RenderBuffer & renderBuf = renderBuffers[ids[j]];
-		std::vector<ImgData> & textureBuf = renderBuf.data;
-		if (!textureBuf.empty()) {
-
-			shaders[renderBuf.shaderId].use();
-			shaders[renderBuf.shaderId].uniform2f("camPos", cam.pos.x, cam.pos.y);
-			shaders[renderBuf.shaderId].uniform2f("camRes", cam.res.x, cam.res.y);
-			shaders[renderBuf.shaderId].uniform2f("zoom", cam.camScale, cam.camScale);
-
-			//grab the size
-			int size = static_cast<int>(textureBuf.size());
-			//bind the range for the first IMG_DATA_BUFFER_SIZE
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
-			//loop through batches of IMG_DATA_BUFFER_SIZE ImgDatas
-			for (int i = 0; i != ceil(static_cast<float>(size) / IMG_DATA_BUFFER_SIZE); i++) {
-
-				int objsToBuffer{ size - (i * IMG_DATA_BUFFER_SIZE) };
-				if (objsToBuffer > IMG_DATA_BUFFER_SIZE)
-					objsToBuffer = IMG_DATA_BUFFER_SIZE;
-
-				//buffer in as many as there are
-				glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData) * objsToBuffer, &(textureBuf.front()) + (IMG_DATA_BUFFER_SIZE * i));
-
-				//bind the texture
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, renderBuf.textureId);
-
-				//draw. 6 vertices (should) make a rectangle
-				glDrawArrays(GL_TRIANGLES, 0, 6 * objsToBuffer);
-			}
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-			//glBindVertexArray(0);
 		}
 	}
 }
@@ -220,16 +224,24 @@ void GLRenderer::DrawOverScreen(unsigned int texId) {
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-PartitionID GLRenderer::GenParticleType(unsigned int size, ComputeShader && shader) {
-	return particleSystem.genPartition(size, std::forward<ComputeShader>(shader));
+PartitionID GLRenderer::GenParticleType(const std::string & tag, int size, ComputeShader && shader) {
+	return particleSystem.genPartition(tag, size, std::forward<ComputeShader>(shader));
 }
 
-void GLRenderer::SpawnParticles(PartitionID id, unsigned int count, Vec2f pos, const Particle & base) {
-	particleSystem.spawnParticles(id, count, pos, base);
+void GLRenderer::SpawnParticles(PartitionID id, unsigned int count, const Particle & base, float angleModulation, float velModulation, int lifeModulation, Vec2f posModulation) {
+	particleSystem.spawnParticles(id, count, base, angleModulation, velModulation, lifeModulation, posModulation);
+}
+
+void GLRenderer::SpawnParticles(const std::string & tag, unsigned int count, const Particle & base, float angleModulation, float velModulation, int lifeModulation, Vec2f posModulation) {
+	particleSystem.spawnParticles(tag, count, base, angleModulation, velModulation, lifeModulation, posModulation);
 }
 
 void GLRenderer::UpdateAndDrawParticles() {
 	particleSystem.updateAndDraw(currentCam);
+}
+
+ComputeShader & GLRenderer::getComputeShader(const std::string & tag) {
+	return particleSystem.getShader(tag);
 }
 
 bool GLRenderer::ReadErrors() {

@@ -11,10 +11,10 @@ struct Vec2 {
 	Vec2 operator+(const Vec2 & other);
 	Vec2 operator-(const Vec2 & other);
 	template<typename V>
-	Vec2 operator+(const V& other);
+	Vec2 operator+(const V& other) const;
 
 	template<typename V>
-	Vec2 operator-(const V& other);
+	Vec2 operator-(const V& other) const;
 
 	template<typename V>
 	void operator+=(const V& other);
@@ -36,8 +36,8 @@ struct Vec2 {
 
 	void operator+=(const Vec2 & other);
 	void operator-=(const Vec2 & other);
-	bool operator==(const Vec2 & other);
-	bool operator!=(const Vec2 & other);
+	bool operator==(const Vec2 & other) const;
+	bool operator!=(const Vec2 & other) const;
 	T distance(const Vec2 & other);
 
 	Vec2 abs();
@@ -66,15 +66,17 @@ Vec2<T>::Vec2(const Vec2<D> & other) {
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator+(const V & other) {
-	return Vec2<T>{x + other, y + other};
+inline Vec2<T> Vec2<T>::operator+(const V & other) const {
+	return Vec2<T>{x + other.x, y + other.y};
 }
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator-(const V & other) {
+inline Vec2<T> Vec2<T>::operator-(const V & other) const {
 	return Vec2<T>{x - other.x, y - other.y};
 }
+
+
 
 template<typename T>
 template<typename V>
@@ -139,12 +141,12 @@ void Vec2<T>::operator-=(const Vec2<T> & other) {
 }
 
 template<typename T>
-inline bool Vec2<T>::operator==(const Vec2 & other) {
+inline bool Vec2<T>::operator==(const Vec2 & other) const {
 	return x == other.x && y == other.y;
 }
 
 template<typename T>
-inline bool Vec2<T>::operator!=(const Vec2 & other) {
+inline bool Vec2<T>::operator!=(const Vec2 & other) const {
 	return x != other.x || y != other.y;
 }
 

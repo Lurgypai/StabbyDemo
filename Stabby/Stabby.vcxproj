@@ -161,19 +161,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
+    <ClInclude Include="ClientZombieLC.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="HeadCommand.h" />
     <ClInclude Include="HeadParticleLC.h" />
+    <ClInclude Include="KillCommand.h" />
     <ClInclude Include="PlayerCam.h" />
     <ClInclude Include="PlayerGC.h" />
     <ClInclude Include="ClientPlayerLC.h" />
     <ClInclude Include="ConnectCommand.h" />
     <ClInclude Include="OnlinePlayerLC.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="SpawnZombieCommand.h" />
+    <ClInclude Include="StartCommand.h" />
+    <ClInclude Include="ZombieGC.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="ClientZombieLC.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="HeadCommand.cpp" />
     <ClCompile Include="HeadParticleLC.cpp" />
+    <ClCompile Include="KillCommand.cpp" />
     <ClCompile Include="PlayerCam.cpp" />
     <ClCompile Include="PlayerGC.cpp" />
     <ClCompile Include="ClientPlayerLC.cpp" />
@@ -185,7 +194,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SpawnZombieCommand.cpp" />
     <ClCompile Include="Stabby.cpp" />
+    <ClCompile Include="StartCommand.cpp" />
+    <ClCompile Include="ZombieGC.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

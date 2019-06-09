@@ -12,7 +12,9 @@
 PlayerGC::PlayerGC(EntityId id_) :
 	RenderComponent{ id_ },
 	offset{0, 0},
-	shouldSpawnHead{true}
+	shouldSpawnHead{true},
+	prevXVel{0},
+	prevAttack{0}
 {}
 
 void PlayerGC::loadAnimations() {
@@ -24,9 +26,9 @@ void PlayerGC::loadAnimations() {
 	animSprite.addAnimation(slash1, 17, 20);
 	animSprite.addAnimation(slash2, 20, 24);
 	animSprite.addAnimation(slash3, 24, 30);
-	animSprite.addAnimation(roll, 30, 38);
-	animSprite.addAnimation(stun, 38, 39);
-	animSprite.addAnimation(dead, 39, 51);
+	animSprite.addAnimation(roll, 30, 39);
+	animSprite.addAnimation(stun, 39, 40);
+	animSprite.addAnimation(dead, 40, 52);
 
 	//ClientPlayerLC* playerLogic = EntitySystem::GetComp<ClientPlayerLC>(id);
 	//Vec2f res = playerLogic->getRes();
@@ -70,53 +72,79 @@ void PlayerGC::updatePosition() {
 		animSprite.setPos(position->pos - offset);
 
 		State plrState = state.state;
-		switch (plrState) {
-		case State::dead:
-			animSprite.setAnimation(dead);
-			if (animSprite.getFrame() != animSprite.getAnimation(dead).y - 1)
-				animSprite.forward();
-			break;
-		case State::stunned:
-			animSprite.setAnimation(stun);
+		static bool shouldSpawnParticles = false;
+		if (state.attackFreezeFrame == 0) {
+			shouldSpawnParticles = true;
+			if (state.state != prevState) {
+				prevState = state.state;
+				animSprite.looping = true;
+				switch (plrState) {
+				case State::dead:
+					animSprite.setAnimation(dead);
+					animSprite.looping = false;
+					break;
+				case State::stunned:
+					animSprite.setAnimation(stun);
+					break;
+				case State::rolling:
+					animSprite.setAnimation(roll);
+					animSprite.looping = false;
+					break;
+				}
+			}
+
+			if (prevAttack != state.activeAttack) {
+				prevAttack = state.activeAttack;
+				if (state.state == State::attacking) {
+					if (state.activeAttack == 1) {
+						animSprite.setAnimation(slash1);
+					}
+					else if (state.activeAttack == 2)
+						animSprite.setAnimation(slash2);
+					else if (state.activeAttack == 3)
+						animSprite.setAnimation(slash3);
+					animSprite.looping = false;
+				}
+			}
+
+			if (state.state == State::free) {
+				shouldSpawnHead = true;
+				if (state.vel.x == 0 && animSprite.getCurrentAnimationId() != idle) {
+					animSprite.setAnimation(idle);
+				}
+				else if (state.vel.x != 0 && animSprite.getCurrentAnimationId() != walking){
+					animSprite.setAnimation(walking);
+				}
+				prevXVel = state.vel.x;
+			}
+			
 			animSprite.forward();
-			break;
-		case State::rolling:
-			animSprite.setAnimation(roll);
-			animSprite.forward();
-			break;
-		case State::attacking:
+
+			//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
+			if (shouldSpawnHead && plrState == State::dead) {
+				shouldSpawnHead = false;
+				spawnHead(state.pos);
+			}
+		}
+		else if (shouldSpawnParticles){
+			shouldSpawnParticles = false;
+			float offset = 7;
+			Vec2f spawnPos = state.pos;
+			spawnPos.x += offset * state.facing;
+			spawnPos.y -= 15;
 			if (state.activeAttack == 1) {
-				animSprite.setAnimation(slash1);
-				if (animSprite.getFrame() != animSprite.getAnimation(slash1).y - 1)
-					animSprite.forward();
+				Particle p1{ spawnPos, -90 + 36.0f * state.facing, 1.6f, 100, 0 };
+				GLRenderer::SpawnParticles("blood", 5, p1, 2.0f, 0.0f, 0.0f, { 0.3f, 3.0f });
 			}
 			else if (state.activeAttack == 2) {
-				animSprite.setAnimation(slash2);
-				if (animSprite.getFrame() != animSprite.getAnimation(slash2).y - 1)
-					animSprite.forward();
+				Particle p1{ spawnPos, -90 + 35.0f * state.facing, 2.0f, 100, 0 };
+				GLRenderer::SpawnParticles("blood", 7, p1, 23.0f, 0.0f, 0.0f, { 0.3f, 3.0f });
 			}
 			else if (state.activeAttack == 3) {
-				animSprite.setAnimation(slash3);
-				if (animSprite.getFrame() != animSprite.getAnimation(slash3).y - 1)
-					animSprite.forward();
-			}
-			break;
-		case State::free:
-			shouldSpawnHead = true;
-			if (state.vel.x == 0) {
-				animSprite.setAnimation(idle);
-			}
-			else {
-				animSprite.setAnimation(walking);
-			}
-			animSprite.forward();
-			break;
-		}
+				Particle p1{ spawnPos, -90 + 53.0f * state.facing, 2.4f, 150, 0 };
+				GLRenderer::SpawnParticles("blood", 15, p1, 35.0f, 0.0f, 0.0f, { 0.5f, 1.0f });
 
-		//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
-		if (shouldSpawnHead && plrState == State::dead) {
-			shouldSpawnHead = false;
-			spawnHead(state.pos);
+			}
 		}
 	}
 }

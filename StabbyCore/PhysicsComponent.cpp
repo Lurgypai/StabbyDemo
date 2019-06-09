@@ -8,7 +8,8 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 	collider{collider_},
 	weight{weight_},
 	vel{vel_},
-	grounded{false}
+	grounded{false},
+	frozen{false}
 {
 	if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
 		EntitySystem::MakeComps<PositionComponent>(1, &id);
@@ -25,8 +26,16 @@ EntityId PhysicsComponent::getId() const {
 	return id;
 }
 
+const AABB & PhysicsComponent::getCollider() const {
+	return collider;
+}
+
 void PhysicsComponent::reevaluatePosition() {
 	collider.pos = EntitySystem::GetComp<PositionComponent>(id)->pos;
+}
+
+bool PhysicsComponent::intersects(const AABB & other) {
+	return collider.intersects(other);
 }
 
 void PhysicsComponent::move(Vec2f amount) {
@@ -52,6 +61,16 @@ void PhysicsComponent::accelerate(float angle, float amount) {
 	acceleration.x = std::cos(radians(angle)) * amount;
 	acceleration.y = std::sin(radians(angle)) * amount;
 	vel += acceleration;
+}
+
+void PhysicsComponent::teleport(const Vec2f & newPos) {
+	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+	position->pos = newPos - Vec2f{collider.res.x / 2, collider.res.y};
+	collider.pos = position->pos;
+}
+
+Vec2f PhysicsComponent::getPos() const {
+	return collider.pos + Vec2f{ collider.res.x / 2, collider.res.y };
 }
 
 Vec2f PhysicsComponent::center() {

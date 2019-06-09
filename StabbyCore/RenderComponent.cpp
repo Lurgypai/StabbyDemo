@@ -41,6 +41,10 @@ Vec2f RenderComponent::getImgRes() const {
 	return sprite->getImgRes();
 }
 
+void RenderComponent::setObjRes(Vec2f objRes) {
+	sprite->setObjRes(objRes);
+}
+
 void RenderComponent::setScale(Vec2f scale) {
 	sprite->setScale(scale);
 }

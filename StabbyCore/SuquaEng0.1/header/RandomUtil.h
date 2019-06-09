@@ -1,4 +1,5 @@
 #pragma once
 #include <random>
 
-int random(int min, int max);
+int randInt(int min, int max);
+float randFloat(float min, float max);

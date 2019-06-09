@@ -16,11 +16,13 @@ public:
 	ClientPlayerLC(EntityId id_ = 0);
 	void update(Time_t now, double timeDelta, const Controller & controller);
 	//Repredict current loc using correct position at time when.
-	void repredict(const PlayerState & state, const Stage& stage);
+	void repredict(const PlayerState & state);
+	void setPhysics(PhysicsSystem & physics);
 	std::string getHeadPath();
 	Vec2f getCenter();
 private:
 	//client sender tick of last acknowledged input
 	Time_t last;
 	std::deque<TotalPlayerState> states;
+	PhysicsSystem * physicsSystem;
 };

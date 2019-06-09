@@ -5,6 +5,7 @@
 #include "ParticleSystem.h"
 #include "DebugIO.h"
 #include "GLRenderer.h"
+#include "RandomUtil.h"
 
 ParticleSystem::ParticleSystem() :
 	ParticleDataBuffer{ 0 },
@@ -19,16 +20,17 @@ void ParticleSystem::genBuffer() {
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * MAX_PARTICLES, NULL, GL_STATIC_DRAW);
 }
 
-PartitionID ParticleSystem::genPartition(unsigned int workGroupCount, ComputeShader && shader) {
+PartitionID ParticleSystem::genPartition(const std::string & tag, int workGroupCount, ComputeShader && shader) {
 	unsigned int size = workGroupCount * WORK_GROUP_SIZE;
 	if (partitionOffset + size <= MAX_PARTICLES) {
 		partitions.emplace_back(ParticlePartition{ size, 0, 0, partitionOffset, shader });
 		partitionOffset += size;
+		partitionIds.emplace(std::pair<std::string, PartitionID>{tag, partitions.size() - 1});
 		return partitions.size() - 1;
 	}
 }
 
-void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Vec2f pos, Particle base) {
+void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Particle base, float angleModulation, float velModulation, int lifeModulation, Vec2f posModulation) {
 	ParticlePartition & partition = partitions[id];
 	auto & head = partition.head;
 	auto & tail = partition.tail;
@@ -49,9 +51,34 @@ void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Vec2f po
 	if (end < start) {
 		for (int i = start; i != size; ++i) {
 			particles[i + offset] = base;
+			auto & p = particles[i + offset];
+
+			if (angleModulation != 0.0f)
+				p.angle += randFloat(-angleModulation, angleModulation);
+			if (velModulation != 0.0f)
+				p.vel += randFloat(-velModulation, velModulation);
+			if (lifeModulation != 0)
+				p.life += randInt(-lifeModulation, lifeModulation);
+			if (posModulation.x != 0.0f)
+				p.pos.x += randFloat(-posModulation.x, posModulation.x);
+			if (posModulation.y != 0.0f)
+				p.pos.y += randFloat(-posModulation.y, posModulation.y);
+
 		}
 		for (int i = 0; i != end; ++i) {
 			particles[i + offset] = base;
+			auto & p = particles[i + offset];
+
+			if (angleModulation != 0.0f)
+				p.angle += randFloat(-angleModulation, angleModulation);
+			if (velModulation != 0.0f)
+				p.vel += randFloat(-velModulation, velModulation);
+			if (lifeModulation != 0)
+				p.life += randInt(-lifeModulation, lifeModulation);
+			if (posModulation.x != 0.0f)
+				p.pos.x += randFloat(-posModulation.x, posModulation.x);
+			if (posModulation.y != 0.0f)
+				p.pos.y += randFloat(-posModulation.y, posModulation.y);
 		}
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ParticleDataBuffer);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * (start + offset), sizeof(Particle) * (size - start), &particles[start + offset]);
@@ -60,9 +87,27 @@ void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Vec2f po
 	else if (end > start) {
 		for (int i = start; i != end; ++i) {
 			particles[i + offset] = base;
+			auto & p = particles[i + offset];
+
+			if (angleModulation != 0.0f)
+				p.angle += randFloat(-angleModulation, angleModulation);
+			if (velModulation != 0.0f)
+				p.vel += randFloat(-velModulation, velModulation);
+			if (lifeModulation != 0)
+				p.life += randInt(-lifeModulation, lifeModulation);
+			if (posModulation.x != 0.0f)
+				p.pos.x += randFloat(-posModulation.x, posModulation.x);
+			if (posModulation.y != 0.0f)
+				p.pos.y += randFloat(-posModulation.y, posModulation.y);
 		}
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ParticleDataBuffer);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * (start + offset), sizeof(Particle) * (end - start), &particles[start + offset]);
+	}
+}
+
+void ParticleSystem::spawnParticles(const std::string & tag, unsigned int count, Particle base, float angleModulation, float velModulation, int lifeModulation, Vec2f posModulation) {
+	if (partitionIds.find(tag) != partitionIds.end()) {
+		spawnParticles(partitionIds[tag], count, base, angleModulation, velModulation, lifeModulation, posModulation);
 	}
 }
 
@@ -104,4 +149,14 @@ void ParticleSystem::updateAndDraw(unsigned int camera) {
 	}
 
 	DebugIO::setLine(3, "Particles: " + std::to_string(particleCount));
+}
+
+ComputeShader & ParticleSystem::getShader(PartitionID id) {
+	return partitions[id].comp;
+}
+
+ComputeShader & ParticleSystem::getShader(const std::string & tag) {
+	if (partitionIds.find(tag) != partitionIds.end()) {
+		return partitions[partitionIds[tag]].comp;
+	}
 }
