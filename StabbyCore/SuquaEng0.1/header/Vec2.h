@@ -1,5 +1,6 @@
 #pragma once
 #include <ostream>
+#include <cstdint>
 
 template<typename T>
 struct Vec2 {
@@ -169,4 +170,4 @@ std::ostream & operator<<(std::ostream & os, const Vec2<T> & vec) {
 }
 
 using Vec2f = Vec2<float>;
-using Vec2i = Vec2<int>;
+using Vec2i = Vec2<int32_t>;

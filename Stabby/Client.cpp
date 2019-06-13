@@ -17,8 +17,7 @@ Client::Client() :
 {
 	enet_initialize();
 	DebugIO::printLine("Starting client.");
-	client = enet_host_create(NULL, 1, 2, 0, 0);
-	if (client == NULL) {
+	if (!client.createClient(1, 3)) {
 		DebugIO::printLine("Error while trying to create client.");
 		return;
 	}
@@ -26,41 +25,33 @@ Client::Client() :
 }
 
 Client::~Client() {
-	if(peer != nullptr)
-		enet_peer_disconnect(peer, 0);
-	enet_host_destroy(client);
 	enet_deinitialize();
 }
 
 void Client::connect(Time_t now, const std::string & ip, int port) {
 	if (!connected) {
-		ENetAddress address;
-		enet_address_set_host(&address, ip.c_str());
-		address.port = port;
-
-		peer = enet_host_connect(client, &address, 2, 0);
-		if (peer == NULL) {
-			DebugIO::printLine("Unable to establish connection.");
-		}
+		serverId = client.connect(ip, port, 3);
 
 		ENetEvent e;
-		if (enet_host_service(client, &e, 5000) > 0 && e.type == ENET_EVENT_TYPE_CONNECT) {
+		if (client.service(&e, 5000) > 0 && e.type == ENET_EVENT_TYPE_CONNECT) {
 			DebugIO::printLine("Connection established.");
 		}
 
 		//attempt to get the time, as well as the networkid.
 
 		bool handshakeComplete{ false };
-		while (enet_host_service(client, &e, 5000) > 0) {
+		while (client.service(&e, 5000) > 0) {
 			switch (e.type) {
 			case ENET_EVENT_TYPE_DISCONNECT:
 				DebugIO::printLine("Disconnected from server.");
+				client.removePeer(serverId);
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 				//this portion will denote a welcome packet
 				if (PacketUtil::readPacketKey(e.packet) == WELCOME_KEY) {
 					WelcomePacket packet{};
 					std::memcpy(&packet, e.packet->data, e.packet->dataLength);
+					packet.unserialize();
 					DebugIO::printLine("Handshake Complete!");
 					DebugIO::printLine("Time is " + std::to_string(packet.currentTick) + ", and our ID is " + std::to_string(packet.netId) + "!");
 					networkTime = packet.currentTick;
@@ -75,13 +66,13 @@ void Client::connect(Time_t now, const std::string & ip, int port) {
 		}
 		if (!handshakeComplete) {
 			DebugIO::printLine("Unable to complete handshake, disconnecting.");
-			enet_peer_disconnect(peer, 0);
+			client.disconnect(serverId);
 		}
 		else {
 			TimestampPacket p;
 			p.clientTime = now;
 			p.id = id;
-			enet_peer_send(peer, 0, enet_packet_create(&p, sizeof(TimestampPacket), 0));
+			client.sendPacket(serverId, 0, p);
 			connected = true;
 		}
 	}
@@ -90,18 +81,15 @@ void Client::connect(Time_t now, const std::string & ip, int port) {
 	}
 }
 
-void Client::send(ENetPacket * p) {
-	enet_peer_send(peer, 0, p);
-}
-
 void Client::service(Time_t now_) {
 	now = now_;
 	if (connected) {
 		ENetEvent e;
-		while (enet_host_service(client, &e, 0) > 0) {
+		while (client.service(&e, 0) > 0) {
 			switch (e.type) {
 			case ENET_EVENT_TYPE_DISCONNECT:
 				DebugIO::printLine("Disconnected from server.");
+				connected = false;
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 				receive(e);
@@ -115,8 +103,9 @@ void Client::service(Time_t now_) {
 
 void Client::ping(Time_t now) {
 	TimestampPacket p;
+	p.id = id;
 	p.clientTime = now;
-	enet_peer_send(peer, 0, enet_packet_create(&p, sizeof(TimestampPacket), 0));
+	client.sendPacket(serverId, 0, p);
 }
 
 void Client::recalculatePing(Time_t nextPing) {
@@ -165,10 +154,10 @@ void Client::receive(ENetEvent & e) {
 	if (packetKey == JOIN_KEY) {
 		JoinPacket p;
 		PacketUtil::readInto<JoinPacket>(p, e.packet);
+		p.unserialize();
 		DebugIO::printLine("Player with id " + std::to_string(p.joinerId) + " has joined!");
 		ids.push_back(p.joinerId);
 	}
-
 	else if (packetKey == STATE_KEY) {
 		std::vector<StatePacket> states;
 		size_t size = e.packet->dataLength / sizeof(StatePacket);
@@ -178,6 +167,7 @@ void Client::receive(ENetEvent & e) {
 
 
 		for (auto & p : states) {
+			p.unserialize();
 			if (EntitySystem::Contains<OnlinePlayerLC>()) {
 				Pool<OnlinePlayerLC> & onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
 				for (auto& onlinePlayer : onlinePlayers) {
@@ -207,29 +197,33 @@ void Client::receive(ENetEvent & e) {
 		PacketUtil::readInto<ZombiePacket>(&states[0], e.packet, size);
 		Time_t when;
 		memcpy(&when, e.packet->data + sizeof(ZombiePacket) * size, sizeof(Time_t));
+		when = ntohll(when);
 
 		if(!behindServer)
 			behindServer = when > now;
 
+		//to be removed, in favor of a storing the "master sprite" inside the zombiegc
+		static AnimatedSprite sprite{ "images/zombie.png", Vec2i{32, 32} };
+
 		for (auto& zombieState : states) {
+			zombieState.unserialize();
 			if (EntitySystem::Contains<ZombieLC>()) {
-				bool idWasFound{ false };
-				for (auto & zombie : EntitySystem::GetPool<ZombieLC>()) {
-					if (zombie.onlineId == zombieState.onlineId) {
-						zombie.setState(zombieState.state);
-						//zombie.repredict(zombieState.state, when);
-						idWasFound = true;
-					}
+				if (idTable.contains(zombieState.onlineId)) {
+					//remove this in favor of the server determining when a zombie dies.
+					ZombieLC * zombie = EntitySystem::GetComp<ZombieLC>(idTable[zombieState.onlineId]);
+					if(zombie != nullptr)
+						zombie->setState(zombieState.state);
 				}
-				if (!idWasFound) {
+				else {
 					EntityId id;
 					EntitySystem::GenEntities(1, &id);
 					EntitySystem::MakeComps<ZombieLC>(1, &id);
 					EntitySystem::MakeComps<ZombieGC>(1, &id);
 					EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
 					EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-					EntitySystem::GetComp<ZombieGC>(id)->loadSprite<AnimatedSprite>("images/zombie.png", Vec2i{ 32, 32 });
+					EntitySystem::GetComp<ZombieGC>(id)->setSprite<AnimatedSprite>(sprite);
 					EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
+					idTable.add(zombieState.onlineId, id);
 				}
 			}
 			else {
@@ -239,14 +233,16 @@ void Client::receive(ENetEvent & e) {
 				EntitySystem::MakeComps<ZombieGC>(1, &id);
 				EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
 				EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-				EntitySystem::GetComp<ZombieGC>(id)->loadSprite<AnimatedSprite>("images/zombie.png", Vec2i{ 32, 32 });
+				EntitySystem::GetComp<ZombieGC>(id)->setSprite<AnimatedSprite>(sprite);
 				EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
+				idTable.add(zombieState.onlineId, id);
 			}
 		}
 	}
 	else if (packetKey == QUIT_KEY) {
 		QuitPacket q;
 		PacketUtil::readInto<QuitPacket>(q, e.packet);
+		q.unserialize();
 		for (auto iter = EntitySystem::GetPool<OnlinePlayerLC>().beginResource(); iter != EntitySystem::GetPool<OnlinePlayerLC>().endResource(); iter++) {
 			auto& onlinePlayer = *iter;
 			if (!onlinePlayer.isFree && onlinePlayer.val.getNetId() == q.id) {
@@ -261,6 +257,7 @@ void Client::receive(ENetEvent & e) {
 	else if (packetKey == TIME_KEY) {
 		TimestampPacket p;
 		PacketUtil::readInto<TimestampPacket>(p, e.packet);
+		p.unserialize();
 		Time_t latestRtt = now - p.clientTime;
 		recalculatePing(latestRtt);
 		//kinda maybe synchronized

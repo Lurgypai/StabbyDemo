@@ -23,6 +23,8 @@ public:
 	Time_t clientTime;
 
 private:
-	ClientCommand latest;
+	ClientCommand activeCommand;
+	Time_t latestTime;
+	std::deque<ClientCommand> commands;
 	std::deque<PlayerState> prevStates;
 };

@@ -235,6 +235,8 @@ const AABB * PlayerLC::getHurtboxes(int * size ) const {
 	return &physics->getCollider();
 }
 
+void PlayerLC::updateHurtboxes() {}
+
 void PlayerLC::respawn() {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);

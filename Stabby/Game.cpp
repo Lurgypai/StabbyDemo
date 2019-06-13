@@ -27,7 +27,7 @@ void Game::startOfflineGame() {
 void Game::startOnlineGame(const std::string & address, int port) {
 	client.connect(time, address, port);
 	
-	Vec2f spawnPos = stage.getSpawnPos() + Vec2f{-50, 0};
+	Vec2f spawnPos = stage.getSpawnPos();
 
 	EntitySystem::GenEntities(1, &playerId);
 	EntitySystem::MakeComps<ClientPlayerLC>(1, &playerId);

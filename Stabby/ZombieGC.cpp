@@ -5,11 +5,8 @@
 
 ZombieGC::ZombieGC(EntityId id_) :
 	RenderComponent{ id_ },
-	facing{1},
 	prevXVel{0},
-	center{ 0, 0 },
-	deathFrame{0},
-	deathFrameMax{2}
+	center{ 0, 0 }
 {}
 
 void ZombieGC::loadAnimations() {
@@ -36,14 +33,7 @@ void ZombieGC::updatePosition() {
 		int width = animSprite.getObjRes().abs().x;
 		int height = animSprite.getObjRes().abs().y;
 
-		if (physics->vel.x < 0) {
-			facing = -1;
-		}
-		else if (physics->vel.x > 0) {
-			facing = 1;
-		}
-
-		animSprite.setObjRes(Vec2i{ facing * width, height });
+		animSprite.setObjRes(Vec2i{ zombie->getState().facing * width, height });
 
 		animSprite.setPos(position->pos - offset);
 
@@ -59,17 +49,15 @@ void ZombieGC::updatePosition() {
 
 			animSprite.forward();
 		}
-	}
-	else {
-		if (deathFrame != deathFrameMax) {
-			++deathFrame;
+		else if (zombie->getState().state == ZombieLC::State::dead) {
+			animSprite.setObjRes(Vec2i{ 0, 0 });
 			Vec2f spawnPos = center;
 
 			Particle p1{ spawnPos, -90, 1.7f, 100, 0 };
 			GLRenderer::SpawnParticles("blood", 20, p1, 90.0f, 0.0f, 0, { 2.0f, 10.0f });
 		}
-		else {
-			EntitySystem::FreeComps<ZombieGC>(1, &id);
-		}
+	}
+	else {
+		EntitySystem::FreeComps<ZombieGC>(1, &id);
 	}
 }

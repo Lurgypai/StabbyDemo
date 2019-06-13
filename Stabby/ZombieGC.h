@@ -12,8 +12,5 @@ public:
 private:
 	Vec2f offset;
 	Vec2f center;
-	int facing;
 	float prevXVel;
-	int deathFrame;
-	int deathFrameMax;
 };

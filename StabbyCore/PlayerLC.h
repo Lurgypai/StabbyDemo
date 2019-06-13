@@ -27,6 +27,7 @@ public:
 	int getActiveDamage() override;
 	bool readAttackChange() override;
 	virtual const AABB * getHurtboxes(int * size) const override;
+	virtual void updateHurtboxes() override;
 
 	const static int PLAYER_WIDTH = 4;
 	const static int PLAYER_HEIGHT = 20;

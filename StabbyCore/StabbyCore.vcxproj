@@ -159,6 +159,10 @@
     <ClInclude Include="CombatComponent.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="ControllerPacket.h" />
+    <ClInclude Include="Host.h" />
+    <ClInclude Include="JoinPacket.h" />
+    <ClInclude Include="PacketTypes.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PhysicsComponent.h" />
@@ -167,10 +171,12 @@
     <ClInclude Include="PlayerStateComponent.h" />
     <ClInclude Include="PoolNotFoundException.h" />
     <ClInclude Include="PositionComponent.h" />
+    <ClInclude Include="QuitPacket.h" />
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="RenderSystem.h" />
     <ClInclude Include="ServerClientData.h" />
     <ClInclude Include="Stage.h" />
+    <ClInclude Include="StatePacket.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SuquaEng0.1\header\AABB.h" />
     <ClInclude Include="SuquaEng0.1\header\AngleUtil.h" />
@@ -198,13 +204,19 @@
     <ClInclude Include="SuquaEng0.1\header\TypeData.h" />
     <ClInclude Include="SuquaEng0.1\header\Vec2.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TimestampPacket.h" />
+    <ClInclude Include="WelcomePacket.h" />
     <ClInclude Include="ZombieLC.h" />
+    <ClInclude Include="ZombiePacket.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Attack.cpp" />
     <ClCompile Include="CombatComponent.cpp" />
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="ControllerPacket.cpp" />
+    <ClCompile Include="Host.cpp" />
+    <ClCompile Include="JoinPacket.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsSystem.cpp" />
@@ -212,9 +224,11 @@
     <ClCompile Include="PlayerStateComponent.cpp" />
     <ClCompile Include="PoolNotFoundException.cpp" />
     <ClCompile Include="PositionComponent.cpp" />
+    <ClCompile Include="QuitPacket.cpp" />
     <ClCompile Include="RandomUtil.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
     <ClCompile Include="Stage.cpp" />
+    <ClCompile Include="StatePacket.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -243,7 +257,10 @@
     <ClCompile Include="SuquaEng0.1\src\stb_image.cpp" />
     <ClCompile Include="SuquaEng0.1\src\Texture.cpp" />
     <ClCompile Include="SuquaEng0.1\src\TypeData.cpp" />
+    <ClCompile Include="TimestampPacket.cpp" />
+    <ClCompile Include="WelcomePacket.cpp" />
     <ClCompile Include="ZombieLC.cpp" />
+    <ClCompile Include="ZombiePacket.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

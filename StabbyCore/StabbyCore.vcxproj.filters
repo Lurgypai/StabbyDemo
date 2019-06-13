@@ -73,6 +73,15 @@
     <Filter Include="Header Files\Engine\Render\GLRenderer">
       <UniqueIdentifier>{7a7a8211-d22c-45e7-99d8-4a8f2f813173}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Network">
+      <UniqueIdentifier>{e5c94bec-c503-49d4-9b50-8085aaaae06d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game\Network\Packets">
+      <UniqueIdentifier>{dd2b0337-7d3e-4f39-8526-afba9a90c607}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game\Network\Packets">
+      <UniqueIdentifier>{71f859cb-707f-404b-ac00-4c171c0169ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -109,9 +118,6 @@
       <Filter>Header Files\Engine\ECS</Filter>
     </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\NetworkTypes.h">
-      <Filter>Header Files\Game\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\Packet.h">
       <Filter>Header Files\Game\Network</Filter>
     </ClInclude>
     <ClInclude Include="PlayerLC.h">
@@ -206,6 +212,36 @@
     </ClInclude>
     <ClInclude Include="ZombieLC.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Host.h">
+      <Filter>Header Files\Game\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Packet.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="WelcomePacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerPacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="JoinPacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="StatePacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="QuitPacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="TimestampPacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="ZombiePacket.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketTypes.h">
+      <Filter>Header Files\Game\Network\Packets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -307,6 +343,30 @@
     </ClCompile>
     <ClCompile Include="ZombieLC.cpp">
       <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Host.cpp">
+      <Filter>Source Files\Game\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="WelcomePacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerPacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="JoinPacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="StatePacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="QuitPacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="ZombiePacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="TimestampPacket.cpp">
+      <Filter>Source Files\Game\Network\Packets</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

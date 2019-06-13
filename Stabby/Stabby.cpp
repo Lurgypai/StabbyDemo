@@ -227,12 +227,6 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (client.getConnected()) {
-				//update all mobs that need it
-				if (EntitySystem::Contains<ZombieLC>()) {
-					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
-						zombie.runLogic();
-					}
-				}
 
 				//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 				client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
@@ -248,20 +242,18 @@ int main(int argc, char* argv[]) {
 				lastSent.when = client.getTime();
 				lastSent.time = game.time;
 
+				//the sent state is the controller state from after the timestamped update has run
 				if (lastSent != state) {
 					lastSent = state;
-					ENetPacket * p = enet_packet_create(&state, sizeof(StatePacket), 0);
-					client.send(p);
-
+					client.send(state);
+					//std::cout << "Sending update for time: " << lastSent.when << '\n';
 				}
 
 				client.service(game.time);
 
 				if (client.isBehindServer()) {
-					std::cout << "We're behind the server, sending an update.\n";
-					lastSent = state;
-					ENetPacket * p = enet_packet_create(&state, sizeof(StatePacket), 0);
-					client.send(p);
+					std::cout << "We're behind the server, pinging our time.\n";
+					client.ping(game.time);
 					client.resetBehindServer();
 				}
 

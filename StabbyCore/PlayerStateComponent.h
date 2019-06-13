@@ -2,8 +2,9 @@
 #include "EntitySystem.h"
 #include "Vec2.h"
 #include "NetworkTypes.h"
+#include <cstdint>
 
-enum class State {
+enum class State : uint8_t {
 	free,
 	attacking,
 	rolling,
@@ -29,14 +30,14 @@ struct PlayerState {
 
 	//goverened DIRECTLY by the associtaed playerLC
 	State state;
-	int rollFrame;
-	unsigned int activeAttack;
-	unsigned int attackFrame;
-	int health;
-	int stunFrame;
-	int facing;
+	uint32_t rollFrame;
+	uint32_t activeAttack;
+	uint32_t attackFrame;
+	int32_t health;
+	uint32_t stunFrame;
+	int32_t facing;
 	Vec2f spawnPoint;
-	int attackFreezeFrame;
+	int32_t attackFreezeFrame;
 
 	//governed (updated by us) by the associated physics and position components
 	Vec2f pos;

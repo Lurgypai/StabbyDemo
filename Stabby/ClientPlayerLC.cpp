@@ -31,9 +31,10 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 			auto tstate = states[i];
 			if (tstate.plr.when == state.when) {
 				//reevaulate current pos
+				auto backup = states;
 				states.erase(states.begin(), states.begin() + i + 1);
 				if (tstate.plr != state) {
-					std::cout << "Prediction failed, re-predicting\n";
+					std::cout << "Prediction failed, re-predicting at time:" << state.when << '\n';
 					if (state.state != tstate.plr.state)
 						std::cout << "state: " << static_cast<int>(tstate.plr.state) << ", " << static_cast<int>(state.state) << '\n';
 					if (state.rollFrame != tstate.plr.rollFrame)
@@ -75,8 +76,8 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 
 					//now reevaulate, this will refill states
 					for (auto& updateState : toUpdate) {
-						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in});
 						physicsSystem->runPhysics(CLIENT_TIME_STEP, id);
+						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in});
 					}
 				}
 				last = state.when;

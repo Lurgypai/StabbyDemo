@@ -16,6 +16,7 @@ public:
 	//checks if the attack changed, and resets it if it did.
 	virtual bool readAttackChange() = 0;
 	virtual const AABB * getHurtboxes(int * size) const = 0;
+	virtual void updateHurtboxes() = 0;
 
 protected:
 	EntityId id;

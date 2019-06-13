@@ -7,11 +7,12 @@
 
 class ZombieLC : public CombatComponent {
 public:
-	enum class State {
+	enum class State : uint8_t {
 		walking,
 		attacking,
 		charging,
-		stunned
+		stunned,
+		dead
 	};
 
 	struct ZombieState {
@@ -26,12 +27,13 @@ public:
 			return !(*this == other);
 		}
 
-		int facing;
-		int health;
-		int relaxFrame;
-		int stunFrame;
-		int chargeFrame;
-		int attackFrame;
+		int32_t facing;
+		int32_t health;
+		uint32_t relaxFrame;
+		uint32_t stunFrame;
+		uint32_t chargeFrame;
+		uint32_t attackFrame;
+		uint32_t deathFrame;
 		bool attackChanged;
 		State state;
 
@@ -55,6 +57,7 @@ public:
 	//checks if the attack changed, and resets it if it did.
 	virtual bool readAttackChange() override;
 	virtual const AABB * getHurtboxes(int * size) const override;
+	virtual void updateHurtboxes() override;
 
 	bool isStunned() const;
 	void setState(const ZombieState & state);
@@ -72,6 +75,7 @@ protected:
 	int stunFrameMax;
 	int chargeFrameMax;
 	int attackFrameMax;
+	int deathFrameMax;
 
 	AABB hitbox;
 	AABB hurtbox;

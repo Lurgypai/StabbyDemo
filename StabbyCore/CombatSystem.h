@@ -42,6 +42,7 @@ inline void CombatSystem::runAttackCheck() {
 
 				if (attacker.getActiveHitbox() != nullptr) {
 					int count;
+					defender.updateHurtboxes();
 					const AABB * hurtboxes = defender.getHurtboxes(&count);
 					for (int i = 0; i != count; ++i) {
 						//if we are hitting them

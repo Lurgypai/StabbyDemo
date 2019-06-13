@@ -1,9 +1,10 @@
 #pragma once
 #include <string>
 #include "enet/enet.h"
-#include "Packet.h"
+#include "PacketTypes.h"
 #include "EntitySystem.h"
 #include "Stage.h"
+#include "Host.h"
 #include <deque>
 
 #define PING_COUNT 10
@@ -16,7 +17,8 @@ public:
 
 	void connect(Time_t now, const std::string & ip, int port);
 
-	void send(ENetPacket * p);
+	template<typename Packet>
+	void send(Packet p);
 
 	void service(Time_t now_);
 
@@ -48,8 +50,7 @@ private:
 	//average ping in local client time
 	Time_t currentPing;
 
-	ENetHost * client;
-	ENetPeer * peer;
+	NetworkId serverId;
 	bool connected;
 	NetworkId id;
 	EntityId playerId;
@@ -57,4 +58,11 @@ private:
 	Time_t networkTime;
 	//if we're behind the server, so that we can tell the server the current time.
 	bool behindServer;
+	Pool<EntityId> idTable;
+	Host client;
 };
+
+template<typename Packet>
+inline void Client::send(Packet p) {
+	client.sendPacket<Packet>(serverId, 0, p);
+}

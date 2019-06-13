@@ -8,18 +8,20 @@
 #include "SDL.h"
 ServerPlayerLC::ServerPlayerLC(EntityId id_) :
 	PlayerLC{id_},
-	latest{},
+	activeCommand{},
 	prevStates{},
-	clientTime{0}
+	clientTime{0},
+	latestTime{0}
 {
 	prevStates.emplace_back(PlayerState{});
 }
 
 ServerPlayerLC::ServerPlayerLC(const ServerPlayerLC & other) :
 	PlayerLC{other},
-	latest{other.latest},
+	activeCommand{other.activeCommand},
 	prevStates{other.prevStates},
-	clientTime{ other.clientTime }
+	clientTime{ other.clientTime },
+	latestTime{ other.latestTime }
 {}
 
 PlayerState ServerPlayerLC::getStateAt(Time_t gameTime) {
@@ -34,16 +36,29 @@ PlayerState ServerPlayerLC::getStateAt(Time_t gameTime) {
 }
 
 void ServerPlayerLC::bufferInput(ClientCommand c) {
-	if (c.when > latest.when) {
-		latest = c;
-		clientTime = latest.when - 1; 
+	if (c.when > latestTime) {
+		commands.push_back(c);
+		latestTime = c.when;
 	}
 }
 
 void ServerPlayerLC::update(Time_t gameTime) {
 	//update the client side time
 	++clientTime;
-	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState);
+	//std::cout << "updating for time: " << clientTime << '\n';
+
+	int i = 0;
+	for (; i != commands.size(); ++i) {
+		if (commands[i].when <= clientTime)
+			activeCommand = commands[i];
+		else
+			break;
+	}
+	commands.erase(commands.begin(), commands.begin() + i);
+
+	//std::cout << "command for time: " << clientTime << "is from time " << activeCommand.when << '\n';
+
+	PlayerLC::update(CLIENT_TIME_STEP, activeCommand.controllerState);
 
 	if (prevStates.size() >= 32)
 		prevStates.pop_front();

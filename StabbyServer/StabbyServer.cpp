@@ -9,7 +9,7 @@
 
 #include "SDL.h"
 #include "NetworkTypes.h"
-#include "Packet.h"
+#include "PacketTypes.h"
 #include "Controller.h"
 #include <list>
 #include <algorithm>
@@ -23,10 +23,9 @@
 #include "Settings.h"
 #include "PhysicsSystem.h"
 #include "ZombieSpawner.h"
-#include "ServerZombieLC.h"
 #include "CombatSystem.h"
+#include "Host.h"
 
-#define MAX_PACKET_COUNT 500
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
 //I don't know how to copy peers, or If I should even try. Thus, to simplifiy things copying of connections is not allowed,
@@ -42,8 +41,6 @@ int main(int argv, char* argc[])
 	SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
 	cout << "Starting server...\n";
 	enet_initialize();
-	ENetAddress address;
-	ENetHost * server;
 
 	ifstream file{ "settings" };
 	if (!file.good()) {
@@ -86,15 +83,12 @@ int main(int argv, char* argc[])
 		}
 	}
 
-	address.host = ENET_HOST_ANY;
-	address.port = settings.port;
-
-	server = enet_host_create(&address, 32, 2, 0, 0);
-
-	if (server == NULL) {
+	Host server;
+	if (!server.createServer(settings.port, 32, 3)) {
 		std::cout << "Oops, no server! Perhaps one is already running on this port?\n";
 		return -1;
 	}
+
 	std::cout << "Beginning server loop.\n";
 
 
@@ -113,7 +107,6 @@ int main(int argv, char* argc[])
 	double serverDelta{ 0 };
 
 	Time_t gameTime{ 0 };
-	NetworkId incrementer{ 0 };
 
 	std::vector<ControllerPacket> ctrls;
 	std::list<UserPtr> users;
@@ -125,9 +118,10 @@ int main(int argv, char* argc[])
 
 	ZombieSpawner zombieSpawner{0};
 
+	NetworkId clientId = 0;
+
 	//switch game to tick at client speed, but only send updates out at server speed
 	//test this, it looks like its done.
-
 	while (true) {
 		Time_t now = SDL_GetPerformanceCounter();
 		if (static_cast<double>(now - prev) / SDL_GetPerformanceFrequency() >= CLIENT_TIME_STEP) {
@@ -137,30 +131,29 @@ int main(int argv, char* argc[])
 			//std::cout << "Server tick, polling packets...\n";
 			ENetEvent event;
 			int packetsPolled = 0;
-			while (enet_host_service(server, &event, 0) > 0) {
+			while (server.service(&event, 0) > 0) {
 				switch (event.type) {
 				case ENET_EVENT_TYPE_CONNECT:
 					std::cout << "Connection received.\n";
+					clientId = server.addPeer(event.peer);
 					welcomePacket.currentTick = gameTime;
-					welcomePacket.netId = ++incrementer;
-					packet = enet_packet_create(&welcomePacket, sizeof(welcomePacket), ENET_PACKET_FLAG_RELIABLE);
-					enet_peer_send(event.peer, 0, packet);
-
+					welcomePacket.netId = clientId;
+					server.sendPacket<WelcomePacket>(event.peer, 0, welcomePacket);
 
 					//notify all online players of a new players join
 					for (auto& user : users) {
 						//tell them about us
 						JoinPacket join{};
-						join.joinerId = incrementer;
-						enet_peer_send(user->getConnection()->getPeer(), 0, enet_packet_create(&join, sizeof(join), ENET_PACKET_FLAG_RELIABLE));
+						join.joinerId = clientId;
+						server.sendPacket<JoinPacket>(user->getConnection()->getPeer(), 0, join);
 
 						//tell us about them
 						JoinPacket us{};
 						us.joinerId = user->getNetId();
-						enet_peer_send(event.peer, 0, enet_packet_create(&us, sizeof(us), ENET_PACKET_FLAG_RELIABLE));
+						server.sendPacket(event.peer, 0, us);
 					}
 
-					users.emplace_back(std::make_unique<User>(User{incrementer, std::make_unique<Connection>(*event.peer, incrementer, currentTick) }));
+					users.emplace_back(std::make_unique<User>(User{clientId, std::make_unique<Connection>(*event.peer, clientId, currentTick) }));
 					break;
 				case ENET_EVENT_TYPE_RECEIVE:
 					if (event.packet->dataLength == 0) {
@@ -182,6 +175,7 @@ int main(int argv, char* argc[])
 						if (key == CONT_KEY) {
 							ControllerPacket cont{};
 							std::memcpy(&cont, event.packet->data, event.packet->dataLength);
+							cont.unserialize();
 
 							for (auto& user : users) {
 								ServerPlayerLC& player = user->getPlayer();
@@ -194,9 +188,16 @@ int main(int argv, char* argc[])
 						else if (key == TIME_KEY) {
 							TimestampPacket time{};
 							PacketUtil::readInto<TimestampPacket>(time, event.packet);
+							time.unserialize();
+
 							time.gameTime = gameTime;
 							time.serverTime = currentTick;
-							enet_peer_send(event.peer, 0, enet_packet_create(&time, sizeof(TimestampPacket), 0));
+							server.sendPacket<TimestampPacket>(event.peer, 0, time);
+							for (auto& user : users) {
+								if (user->getNetId() == time.id) {
+									user->getPlayer().clientTime = time.clientTime - 1;
+								}
+							}
 						}
 						
 					}
@@ -215,7 +216,7 @@ int main(int argv, char* argc[])
 								con->setShouldReset(true);
 							}
 							else {
-								enet_peer_send(con->getPeer(), 0, enet_packet_create(&q, sizeof(q), 0));
+								server.sendPacket<QuitPacket>(con->getPeer(), 0, q);
 							}
 						}
 					}
@@ -248,38 +249,41 @@ int main(int argv, char* argc[])
 					pos.state.when = user->getPlayer().clientTime;
 					pos.when = gameTime;
 					pos.id = user->getNetId();
-
+					pos.serialize();
 					states.push_back(pos);
+					pos.unserialize();
+					pos.unserialize();
 				}
 
 				std::vector<ZombiePacket> zombieStates;
-				if (EntitySystem::Contains<ServerZombieLC>()) {
-					zombieStates.reserve(EntitySystem::GetPool<ServerZombieLC>().size() - EntitySystem::GetPool<ServerZombieLC>().freeIndices());
-					for (auto& zombie : EntitySystem::GetPool<ServerZombieLC>()) {
+				if (EntitySystem::Contains<ZombieLC>()) {
+					zombieStates.reserve(EntitySystem::GetPool<ZombieLC>().size() - EntitySystem::GetPool<ZombieLC>().freeIndices());
+					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
 						ZombiePacket packet;
 						packet.onlineId = zombie.onlineId;
 						packet.state = zombie.getState();
+						packet.serialize();
 						zombieStates.push_back(packet);
 					}
 				}
 
 				for (auto& other : users) {
 					//send the contiguous state block
-					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(states.data(), sizeof(StatePacket) * states.size(), 0));
-					if (EntitySystem::Contains<ServerZombieLC>()) {
-						Time_t clientTime = other->getPlayer().clientTime;
+					server.sendData(other->getConnection()->getPeer(), 1, states.data(), sizeof(StatePacket) * states.size());
+					if (EntitySystem::Contains<ZombieLC>()) {
+						Time_t clientTime = htonll(other->getPlayer().clientTime);
 						enet_uint8 * packet = static_cast<enet_uint8 *>(malloc(sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size()));
 						memcpy(packet, zombieStates.data(), sizeof(ZombiePacket) * zombieStates.size());
 						memcpy(packet + (sizeof(ZombiePacket) * zombieStates.size()), &clientTime, sizeof(Time_t));
 
-						enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(packet, sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size(), 0));
+						server.sendData(other->getConnection()->getPeer(), 2, packet, sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size());
 						free(packet);
 					}
 				}
 			}
 
-			if (EntitySystem::Contains<ServerZombieLC>()) {
-				for (auto& zombie : EntitySystem::GetPool<ServerZombieLC>()) {
+			if (EntitySystem::Contains<ZombieLC>()) {
+				for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
 					zombie.searchForTarget<ServerPlayerLC>();
 					zombie.runLogic();
 				}
@@ -287,8 +291,8 @@ int main(int argv, char* argc[])
 
 			physics.runPhysics(CLIENT_TIME_STEP);
 
-			combat.runAttackCheck<ServerPlayerLC, ServerZombieLC>();
-			combat.runAttackCheck<ServerZombieLC, ServerPlayerLC>();
+			combat.runAttackCheck<ServerPlayerLC, ZombieLC>();
+			combat.runAttackCheck<ZombieLC, ServerPlayerLC>();
 			
 			size_t size = ctrls.size();
 			ctrls.clear();
@@ -305,13 +309,13 @@ int main(int argv, char* argc[])
 					//tell everyone else
 					for (auto& other : users) {
 						if(other->getNetId() != user->getNetId())
-							enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(&q, sizeof(q), 0));
+							server.sendPacket<QuitPacket>(other->getNetId(), 0, q);
 					}
-					enet_peer_reset(con->getPeer());
+					server.resetConnection(user->getNetId());
 				}
 				else if (static_cast<double>(currentTick - con->getLastPacket()) * SERVER_TIME_STEP > disconnectDelay) {
 					std::cout << "Attempting to disconnect player " << user->getNetId() << ", no packets received recently.\n";
-					enet_peer_disconnect(con->getPeer(), 0);
+					server.disconnect(user->getNetId());
 				}
 			}
 
@@ -323,11 +327,16 @@ int main(int argv, char* argc[])
 		}
 	}
 
-	enet_host_destroy(server);
 	enet_deinitialize();
 	SDL_Quit();
 	return 0;
 }
+
+/*
+- create a better sending system, to spread things across multiple channels. packets of each type are required to go allong the same channels
+- turn packets into classes. Require serialization and unserialization.
+- client side shouldn't set things as truly dead until teh server tells them to. think more about this.
+
 /*
 The player state will hold
 - Player position
