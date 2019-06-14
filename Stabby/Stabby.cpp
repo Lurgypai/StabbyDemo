@@ -44,8 +44,8 @@
 #include "SpawnZombieCommand.h"
 #include "KillCommand.h"
 
-const int windowWidth = 1920.0 / 1.5;
-const int windowHeight = 1080.0 / 1.5;
+const int windowWidth = 1920.0;
+const int windowHeight = 1080.0;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -227,6 +227,14 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (client.getConnected()) {
+				//singleplayer physics / combat
+
+				if (EntitySystem::Contains<ZombieLC>()) {
+					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
+						zombie.searchForTarget<ClientPlayerLC>();
+						zombie.runLogic();
+					}
+				}
 
 				//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 				client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);

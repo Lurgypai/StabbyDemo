@@ -12,14 +12,15 @@ public:
 		attacking,
 		charging,
 		stunned,
-		dead
+		dead,
+		idle
 	};
 
 	struct ZombieState {
 
 		bool operator==(const ZombieState & other) {
 			return facing == other.facing && health == other.health && relaxFrame == other.relaxFrame && stunFrame == other.stunFrame &&
-				chargeFrame == other.chargeFrame && attackFrame == other.attackFrame && attackChanged == other.attackChanged && state ==
+				chargeFrame == other.chargeFrame && attackChanged == other.attackChanged && state ==
 				other.state && pos == other.pos && vel == other.vel;
 		}
 
@@ -32,8 +33,8 @@ public:
 		uint32_t relaxFrame;
 		uint32_t stunFrame;
 		uint32_t chargeFrame;
-		uint32_t attackFrame;
 		uint32_t deathFrame;
+		uint32_t idleFrame;
 		bool attackChanged;
 		State state;
 
@@ -74,8 +75,8 @@ protected:
 	int relaxFramMax;
 	int stunFrameMax;
 	int chargeFrameMax;
-	int attackFrameMax;
 	int deathFrameMax;
+	int idleFrameMax;
 
 	AABB hitbox;
 	AABB hurtbox;

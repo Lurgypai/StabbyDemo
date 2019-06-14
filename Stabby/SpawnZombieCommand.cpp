@@ -21,7 +21,7 @@ void SpawnZombieCommand::onCommand(const std::vector<std::string>& args) {
 			EntitySystem::MakeComps<ZombieLC>(count, &id[0]);
 			EntitySystem::MakeComps<ZombieGC>(count, &id[0]);
 
-			AnimatedSprite sprite{ "images/zombie.png", Vec2i{32, 32} };
+			AnimatedSprite sprite{ "images/zambo.png", Vec2i{32, 32} };
 
 			for (int i = 0; i != count; ++i) {
 				EntitySystem::GetComp<PhysicsComponent>(id[i])->teleport({ x, y });

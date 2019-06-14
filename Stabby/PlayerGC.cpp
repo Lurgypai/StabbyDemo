@@ -123,7 +123,7 @@ void PlayerGC::updatePosition() {
 			//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
 			if (shouldSpawnHead && plrState == State::dead) {
 				shouldSpawnHead = false;
-				spawnHead(state.pos);
+				spawnHead(position->pos);
 			}
 		}
 		else if (shouldSpawnParticles){

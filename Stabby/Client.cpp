@@ -203,7 +203,7 @@ void Client::receive(ENetEvent & e) {
 			behindServer = when > now;
 
 		//to be removed, in favor of a storing the "master sprite" inside the zombiegc
-		static AnimatedSprite sprite{ "images/zombie.png", Vec2i{32, 32} };
+		static AnimatedSprite sprite{ "images/zambo.png", Vec2i{32, 32} };
 
 		for (auto& zombieState : states) {
 			zombieState.unserialize();
@@ -213,6 +213,8 @@ void Client::receive(ENetEvent & e) {
 					ZombieLC * zombie = EntitySystem::GetComp<ZombieLC>(idTable[zombieState.onlineId]);
 					if(zombie != nullptr)
 						zombie->setState(zombieState.state);
+					else
+						idTable.free(zombieState.onlineId);
 				}
 				else {
 					EntityId id;

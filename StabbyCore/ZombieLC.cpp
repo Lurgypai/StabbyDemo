@@ -9,9 +9,9 @@ ZombieLC::ZombieLC(EntityId id_) :
 	stunFrameMax{ 50 },
 	hitbox{ {0, 0}, {11, 7} },
 	hurtbox{ {0, 0}, {13, 20} },
-	chargeFrameMax{120},
-	attackFrameMax{100},
+	chargeFrameMax{70},
 	deathFrameMax{5},
+	idleFrameMax{60},
 	targetId{0}
 {
 	zombieState = ZombieState();
@@ -38,7 +38,7 @@ void ZombieLC::runLogic() {
 			zombieState.relaxFrame = 0;
 			if (targetPos != nullptr) {
 				float distance = targetPos->pos.distance(pos);
-				if (distance < 300) {
+				if (distance < 250) {
 					zombieState.facing = 0;
 					if (targetPos->pos.x < pos.x)
 						zombieState.facing = -1;
@@ -56,6 +56,7 @@ void ZombieLC::runLogic() {
 				}
 				else {
 					targetId = 0;
+					zombieState.state = State::idle;
 				}
 			}
 		}
@@ -72,7 +73,7 @@ void ZombieLC::runLogic() {
 			++zombieState.chargeFrame;
 		}
 		else {
-			physics->accelerate((75 * zombieState.facing) - 90, 270);
+			physics->accelerate((75 * zombieState.facing) - 90, 300);
 			zombieState.state = State::attacking;
 			zombieState.attackChanged = true;
 		}
@@ -94,6 +95,14 @@ void ZombieLC::runLogic() {
 			++zombieState.deathFrame;
 		else
 			die();
+	case State::idle:
+		if (zombieState.idleFrame != idleFrameMax) {
+			++zombieState.idleFrame;
+		}
+		else {
+			zombieState.idleFrame = 0;
+			zombieState.state = State::walking;
+		}
 	}
 
 	if(zombieState.facing == 1)

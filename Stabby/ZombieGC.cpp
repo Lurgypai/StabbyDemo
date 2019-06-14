@@ -14,7 +14,8 @@ void ZombieGC::loadAnimations() {
 
 	//keep in mind graphics gale starts at frame 1, not 0
 	animSprite.addAnimation(0, 0, 11);
-	animSprite.setAnimation(0);
+	animSprite.addAnimation(1, 12, 21);
+	animSprite.setAnimation(1);
 
 	Vec2f res = { 4.0f, 20.0f };
 	offset = Vec2f{ (sprite->getObjRes().abs().x - res.x) / 2, (sprite->getObjRes().abs().y - res.y) };
@@ -38,23 +39,32 @@ void ZombieGC::updatePosition() {
 		animSprite.setPos(position->pos - offset);
 
 		if (!zombie->isStunned()) {
-			animSprite.looping = false;
+			if (zombie->getState().state != ZombieLC::State::dead && zombie->getState().state != ZombieLC::State::idle) {
+				animSprite.looping = false;
 
-			if (physics->vel.x != prevXVel) {
-				if (physics->vel.x != 0 && prevXVel == 0) {
-					animSprite.setAnimation(0);
+				if (physics->vel.x != prevXVel) {
+					if (physics->vel.x != 0 && prevXVel == 0) {
+						animSprite.setAnimation(0);
+					}
+					prevXVel = physics->vel.x;
 				}
-				prevXVel = physics->vel.x;
+
+				animSprite.forward();
 			}
+			else if (zombie->getState().state == ZombieLC::State::idle) {
+				animSprite.looping = false;
+				if (animSprite.getCurrentAnimationId() != 1) {
+					animSprite.setAnimation(1);
+				}
+				animSprite.forward();
+			}
+			else if(zombie->getState().state == ZombieLC::State::dead) {
+				animSprite.setObjRes(Vec2i{ 0, 0 });
+				Vec2f spawnPos = center;
 
-			animSprite.forward();
-		}
-		else if (zombie->getState().state == ZombieLC::State::dead) {
-			animSprite.setObjRes(Vec2i{ 0, 0 });
-			Vec2f spawnPos = center;
-
-			Particle p1{ spawnPos, -90, 1.7f, 100, 0 };
-			GLRenderer::SpawnParticles("blood", 20, p1, 90.0f, 0.0f, 0, { 2.0f, 10.0f });
+				Particle p1{ spawnPos, -90, 1.7f, 100, 0 };
+				GLRenderer::SpawnParticles("blood", 20, p1, 90.0f, 0.0f, 0, { 2.0f, 10.0f });
+			}
 		}
 	}
 	else {

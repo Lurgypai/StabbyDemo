@@ -36,7 +36,7 @@ void ZombieSpawner::trySpawnZombies(Time_t gameTime) {
 			EntitySystem::GenEntities(count, &id[0]);
 			EntitySystem::MakeComps<ZombieLC>(count, &id[0]);
 			for (int i = 0; i != count; ++i) {
-				EntitySystem::GetComp<PhysicsComponent>(id[i])->teleport({ 400.0f * side + randInt(-10, 10), 0 });
+				EntitySystem::GetComp<PhysicsComponent>(id[i])->teleport({ 350.0f * side + randInt(-20, 20), 0 });
 				EntitySystem::GetComp<ZombieLC>(id[i])->onlineId = ++onlineIdIncrementer;
 			}
 		}

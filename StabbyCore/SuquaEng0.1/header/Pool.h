@@ -228,6 +228,10 @@ public:
 		return pos >= 0 && pos < resources.size() && !resources[pos].isFree;
 	}
 
+
+	Resource<T> & getResource(size_t pos) {
+		return resources[pos];
+	}
 private:
 	std::vector<Resource<T>> resources;
 	std::size_t freeIndices_;

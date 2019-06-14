@@ -7,8 +7,8 @@ void ZombiePacket::serialize() {
 	state.relaxFrame = htonl(state.relaxFrame);
 	state.stunFrame = htonl(state.stunFrame);
 	state.chargeFrame = htonl(state.chargeFrame);
-	state.attackFrame = htonl(state.attackFrame);
 	state.deathFrame = htonl(state.deathFrame);
+	state.idleFrame = htonl(state.idleFrame);
 	state.when = htonll(state.when);
 
 	pos.x = htonf(state.pos.x);
@@ -26,8 +26,8 @@ void ZombiePacket::unserialize() {
 	state.relaxFrame = ntohl(state.relaxFrame);
 	state.stunFrame = ntohl(state.stunFrame);
 	state.chargeFrame = ntohl(state.chargeFrame);
-	state.attackFrame = ntohl(state.attackFrame);
 	state.deathFrame = ntohl(state.deathFrame);
+	state.idleFrame = htonl(state.idleFrame);
 	state.when = htonll(state.when);
 
 	state.pos.x = ntohf(pos.x);
