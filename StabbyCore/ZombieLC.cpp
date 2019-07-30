@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ZombieLC.h"
 #include "PhysicsComponent.h"
+#include "EntityBaseComponent.h"
 
 ZombieLC::ZombieLC(EntityId id_) :
 	CombatComponent{ id_ },
@@ -127,9 +128,7 @@ void ZombieLC::damage(int i) {
 }
 
 void ZombieLC::die() {
-	EntitySystem::FreeComps<ZombieLC>(1, &id);
-	EntitySystem::FreeComps<PhysicsComponent>(1, &id);
-	EntitySystem::FreeComps<PositionComponent>(1, &id);
+	EntitySystem::GetComp<EntityBaseComponent>(id)->isDead = true;
 }
 
 bool ZombieLC::isStunned() const {

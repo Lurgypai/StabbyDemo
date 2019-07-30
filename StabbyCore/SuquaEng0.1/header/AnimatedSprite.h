@@ -6,10 +6,10 @@
 class AnimatedSprite  : public Sprite {
 public:
 	AnimatedSprite(const std::string &filePath, Vec2f objRes_,
-		int columns_ = 8, int totalSteps = 4,
+		int columns_ = 8, float frameDelay = (4.0 / 60),
 		Vec2f pos_ = {0.0, 0.0}, Vec2f origin_ = { 0.0, 0.0 }, Vec2f scale_ = { 1.0, 1.0 }, Vec2f imgOffset_ = { 0.0f, 0.0f });
-	void forward();
-	void backward();
+	void forward(double timeDelta);
+	void backward(double timeDelta);
 	int getFrame();
 	void setFrame(int frame);
 	void addAnimation(int id, int beginFrame, int endFrame);
@@ -17,10 +17,10 @@ public:
 	void resetDelay();
 	Vec2i getAnimation(int id);
 	int getCurrentAnimationId();
-
 	virtual Sprite * clone() const override;
 
 	bool looping;
+	double frameDelay;
 private:
 	std::unordered_map<int, Vec2i> animations;
 	Vec2i currentAnimation;
@@ -28,6 +28,5 @@ private:
 	int columns;
 	int sheetOffset;
 	int currentFrame;
-	int currentStep;
-	int totalSteps;
+	double currentTime;
 };

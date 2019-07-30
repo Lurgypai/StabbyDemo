@@ -16,6 +16,7 @@ public:
 	Attack();
 	void setActive(int i);
 	void setFrame(int frame);
+	void setSpeed(double newSpeed);
 	bool canStartAttacking();
 	bool getNextIsBuffered() const;
 	void startAttacking();
@@ -24,13 +25,18 @@ public:
 	unsigned int getCurrFrame();
 	unsigned int getCurrentTotalFrames();
 	void bufferNext();
-	void update(Vec2f pos, Vec2f res, int facing);
+	void update(double timeDelta, Vec2f pos, Vec2f res, int facing);
 private:
 	std::array<Hitbox, 3> hitboxes;
 	int active = 0;
 	//current frame relative to the current attack
 	unsigned int currFrame;
 	bool nextIsBuffered;
+	//delay for attacking again
 	int restartDelay;
 	int restartDelayMax;
+	//delay between each frame of attacking
+	double frameDelay;
+	double elapsedTime;
+	double speed;
 };

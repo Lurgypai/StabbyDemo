@@ -16,7 +16,9 @@ Attack::Attack() :
 	nextIsBuffered{false},
 	active{0},
 	restartDelay{0},
-	restartDelayMax{40}
+	restartDelayMax{40},
+	frameDelay{1.0 / 120},
+	speed{1.0}
 {}
 
 void Attack::setActive(int i) {
@@ -26,6 +28,10 @@ void Attack::setActive(int i) {
 
 void Attack::setFrame(int frame) {
 	currFrame = frame;
+}
+
+void Attack::setSpeed(double newSpeed) {
+	speed = newSpeed;
 }
 
 bool Attack::canStartAttacking() {
@@ -68,7 +74,7 @@ void Attack::bufferNext() {
 	nextIsBuffered = true;
 }
 
-void Attack::update(Vec2f pos, Vec2f res, int facing) {
+void Attack::update(double timeDelta, Vec2f pos, Vec2f res, int facing) {
 	if (restartDelay != restartDelayMax) {
 		++restartDelay;
 		return;
@@ -84,21 +90,28 @@ void Attack::update(Vec2f pos, Vec2f res, int facing) {
 	}
 
 	//if a hitbox is running, keep moving through the frames. 
-	if (active != 0 && currFrame != hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending) {
+	if (active != 0 && currFrame < hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending) {
 		//skip delay. wait a frame so that we get multiple hits
-		if (nextIsBuffered && currFrame > hitboxes[active - 1].startup + hitboxes[active - 1].active + 2 && active < 3) {
+		if (nextIsBuffered && currFrame > hitboxes[active - 1].startup + hitboxes[active - 1].active && active < hitboxes.size()) {
 			++active;
 			currFrame = 0;
+			elapsedTime = 0;
 			nextIsBuffered = false;
 		}
 		else {
-			++currFrame;
+			elapsedTime += timeDelta;
+			int passedFrames = static_cast<int>(elapsedTime / (frameDelay / speed));
+			if (passedFrames != 0)
+				elapsedTime = 0;
+
+			currFrame += passedFrames;
 		}
 	}
 	//otherwise reset (only if we weren't attacking)
 	else if(active != 0) {
 		active = 0;
 		currFrame = 0;
+		elapsedTime = 0;
 		nextIsBuffered = false;
 		restartDelay = 0;
 	}

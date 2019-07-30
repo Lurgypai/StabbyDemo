@@ -160,12 +160,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AttackSpeedCommand.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientZombieLC.h" />
+    <ClInclude Include="FrameByFrameCommand.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="HeadCommand.h" />
     <ClInclude Include="HeadParticleLC.h" />
+    <ClInclude Include="HealthPickupGC.h" />
     <ClInclude Include="KillCommand.h" />
+    <ClInclude Include="MoveSpeedCommand.h" />
     <ClInclude Include="PlayerCam.h" />
     <ClInclude Include="PlayerGC.h" />
     <ClInclude Include="ClientPlayerLC.h" />
@@ -177,12 +181,16 @@
     <ClInclude Include="ZombieGC.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AttackSpeedCommand.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientZombieLC.cpp" />
+    <ClCompile Include="FrameByFrameCommand.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HeadCommand.cpp" />
     <ClCompile Include="HeadParticleLC.cpp" />
+    <ClCompile Include="HealthPickupGC.cpp" />
     <ClCompile Include="KillCommand.cpp" />
+    <ClCompile Include="MoveSpeedCommand.cpp" />
     <ClCompile Include="PlayerCam.cpp" />
     <ClCompile Include="PlayerGC.cpp" />
     <ClCompile Include="ClientPlayerLC.cpp" />

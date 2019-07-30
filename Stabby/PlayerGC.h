@@ -5,7 +5,7 @@
 #include "PlayerLC.h"
 #include "RenderComponent.h"
 
-class PlayerGC : public RenderComponent{
+class PlayerGC {
 public:
 	enum Animation {
 		idle,
@@ -22,11 +22,15 @@ public:
 	void loadAnimations();
 	void spawnHead(Vec2f pos);
 
-	void updatePosition() override;
+	void updateState(double timeDelta);
+
+	EntityId getId() const;
 private:
-	Vec2f offset;
+	EntityId id;
+
 	bool shouldSpawnHead;
 	State prevState;
 	float prevXVel;
 	int prevAttack;
+	double defaultFrameDelay;
 };

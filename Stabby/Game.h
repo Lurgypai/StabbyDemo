@@ -4,6 +4,7 @@
 #include "Client.h"
 #include "PhysicsSystem.h"
 #include "CombatSystem.h"
+#include "PickupSystem.h"
 
 class Game {
 public:
@@ -15,6 +16,7 @@ public:
 	Client client;
 	PhysicsSystem physics;
 	CombatSystem combat;
+	PickupSystem pickups;
 	Stage stage;
 
 	EntityId getPlayerId();

@@ -1,18 +1,12 @@
 #pragma once
-#include "ZombieLC.h"
 #include "RenderComponent.h"
 
-class ZombieGC {
+class HealthPickupGC {
 public:
-
-	ZombieGC(EntityId id_ = 0);
-	void loadAnimations();
+	HealthPickupGC(EntityId id_ = 0);
 	void updateState(double timeDelta);
 
 	EntityId getId() const;
 private:
 	EntityId id;
-
-	Vec2f center;
-	float prevXVel;
 };

@@ -20,7 +20,8 @@ public:
 	static void enterInput();
 	static void printLine(std::string line);
 	static void setLine(int line, std::string txt);
-	static void drawLines(int windowHeight);
+	static void drawLines();
+	static void drawDebugInfo();
 	static void stopDebug();
 	static unsigned int getRenderBuffer();
 	static bool getOpen();

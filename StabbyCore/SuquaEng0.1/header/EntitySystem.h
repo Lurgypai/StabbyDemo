@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include "PoolMap.h"
 
-
 using EntityId = unsigned int;
 
 //you may need to alter the inner workings of makeComps, and how components are stored
@@ -19,6 +18,8 @@ public:
 	static void MakeComps(unsigned int size, unsigned int* first);
 
 	static void GenEntities(unsigned int num, unsigned int* idStore);
+	static void FreeEntities(unsigned int num, unsigned int * idStore);
+	static void FreeDeadEntities();
 	
 	template<typename T>
 	static Pool<T> & GetPool();

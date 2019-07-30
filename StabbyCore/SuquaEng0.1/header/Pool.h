@@ -20,6 +20,7 @@ struct Resource {
 class IPool {
 public:
 	virtual ~IPool() {};
+	virtual bool free(size_t index) = 0;
 };
 
 template<typename T>
@@ -120,7 +121,7 @@ public:
 	}
 
 	//Frees specified indice. Returns false if the indice is out of range.
-	bool free(int index) {
+	bool free(size_t index) override {
 		if (index < resources.size()) {
 			if (!resources[index].isFree)
 				++freeIndices_;

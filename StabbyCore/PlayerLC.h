@@ -20,12 +20,13 @@ public:
 	int getActiveId();
 	void respawn();
 
-	void damage(int amount) override;
-	void die() override;
-	void onAttackLand() override;
+	void heal(int amount);
+	virtual void damage(int amount) override;
+	virtual void die() override;
+	virtual void onAttackLand() override;
 	virtual AABB * getActiveHitbox() override;
-	int getActiveDamage() override;
-	bool readAttackChange() override;
+	virtual int getActiveDamage() override;
+	virtual bool readAttackChange() override;
 	virtual const AABB * getHurtboxes(int * size) const override;
 	virtual void updateHurtboxes() override;
 
@@ -34,12 +35,10 @@ public:
 protected:
 	void free(const Controller & controller, bool attackToggledDown_);
 	//as a multiple of acceleration
-	int maxXVel;
-	float xAccel;
 	float jumpSpeed;
 	//for only getting hit once per slash
 	bool isBeingHit;
-
+	double stepDistance;
 	Attack attack;
 	bool attackBuffered;
 

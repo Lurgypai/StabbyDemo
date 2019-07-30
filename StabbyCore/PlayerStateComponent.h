@@ -18,7 +18,8 @@ struct PlayerState {
 		return when == other.when && pos == other.pos && vel == other.vel && state == other.state &&
 			rollFrame == other.rollFrame && activeAttack == other.activeAttack && attackFrame == other.attackFrame &&
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
-			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen;
+			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
+			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed;
 	}
 
 
@@ -28,7 +29,6 @@ struct PlayerState {
 
 	Time_t when;
 
-	//goverened DIRECTLY by the associtaed playerLC
 	State state;
 	uint32_t rollFrame;
 	uint32_t activeAttack;
@@ -38,8 +38,9 @@ struct PlayerState {
 	int32_t facing;
 	Vec2f spawnPoint;
 	int32_t attackFreezeFrame;
+	double attackSpeed;
+	double moveSpeed;
 
-	//governed (updated by us) by the associated physics and position components
 	Vec2f pos;
 	Vec2f vel;
 	bool frozen;
@@ -62,6 +63,8 @@ public:
 	void setFacing(int facing);
 	void setSpawnPoint(const Vec2f & spawnPoint_);
 	void setAttackFreezeFrame(int attackFreezeFrame_);
+	void setAttackSpeed(double attackSpeed);
+	void setMoveSpeed(double moveSpeed);
 private:
 	EntityId id;
 	PlayerState playerState;

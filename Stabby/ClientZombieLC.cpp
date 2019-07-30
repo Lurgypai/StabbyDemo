@@ -83,9 +83,3 @@ void ClientZombieLC::repredict(ZombieState otherState, Time_t when) {
 	}
 }
 */
-
-void ClientZombieLC::die() {
-	EntitySystem::FreeComps<ClientZombieLC>(1, &id);
-	EntitySystem::FreeComps<PhysicsComponent>(1, &id);
-	EntitySystem::FreeComps<PositionComponent>(1, &id);
-}

@@ -24,6 +24,7 @@
 #include "PhysicsSystem.h"
 #include "ZombieSpawner.h"
 #include "CombatSystem.h"
+#include "EntityBaseComponent.h"
 #include "Host.h"
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
@@ -226,7 +227,7 @@ int main(int argv, char* argc[])
 				}
 				++packetsPolled;
 			}
-			
+
 			zombieSpawner.trySpawnZombies(gameTime);
 
 			//move
@@ -262,6 +263,7 @@ int main(int argv, char* argc[])
 						ZombiePacket packet;
 						packet.onlineId = zombie.onlineId;
 						packet.state = zombie.getState();
+						packet.isDead = EntitySystem::GetComp<EntityBaseComponent>(zombie.getId())->isDead;
 						packet.serialize();
 						zombieStates.push_back(packet);
 					}
@@ -280,6 +282,9 @@ int main(int argv, char* argc[])
 						free(packet);
 					}
 				}
+
+				//cleanup after server update, so that all "dead" states can be sent
+				EntitySystem::FreeDeadEntities();
 			}
 
 			if (EntitySystem::Contains<ZombieLC>()) {

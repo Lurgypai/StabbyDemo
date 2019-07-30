@@ -19,10 +19,12 @@ public:
 	Time_t when;
 	PlayerState state;
 
-	//these are used for storing floats over the network
+	//these are used for storing floats/doubles over the network
 	Vec2i pos;
 	Vec2i vel;
 	Vec2i spawnPoint;
+	uint64_t attackSpeed;
+	uint64_t moveSpeed;
 
 	// Inherited via Packet
 	void serialize();

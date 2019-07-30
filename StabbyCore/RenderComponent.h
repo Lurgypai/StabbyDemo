@@ -10,6 +10,8 @@ using SpritePtr = std::unique_ptr<Sprite>;
 
 class RenderComponent {
 public:
+	Vec2f offset;
+
 	RenderComponent(EntityId id_ = 0);
 	RenderComponent(const RenderComponent & other);
 	
@@ -20,8 +22,8 @@ public:
 
 	template<typename T, typename U>
 	void setSprite(U&& u);
-
-	virtual void updatePosition();
+	
+	Sprite * getSprite();
 
 	Vec2f getImgRes() const;
 	void setObjRes(Vec2f objRes);
@@ -35,6 +37,8 @@ public:
 protected:
 	SpritePtr sprite;
 	EntityId id;
+
+	friend class RenderSystem;
 };
 
 template<typename T, typename ...Args>

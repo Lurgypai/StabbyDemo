@@ -1,30 +1,32 @@
 #pragma once
 #include "GLRenderer.h"
-#include "RenderComponent.h"
+#include "RenderComponent.h"]
+#include "PositionComponent.h"
 
 class RenderSystem {
 public:
-	template<typename T>
-	void draw();
+	void drawAll();
 };
 
-template<typename T>
-inline void RenderSystem::draw() {
-	if (EntitySystem::Contains<T>()) {
-		Pool<T> & pool = EntitySystem::GetPool<T>();
-		unsigned int prevRenderBufferId{ 0 };
-		for (auto & comp : pool) {
+void RenderSystem::drawAll() {
+	if (EntitySystem::Contains<RenderComponent>()) {
+		unsigned int prevRenderBufferId{0};
+		bool setBuffer{true};
+		for (auto & comp : EntitySystem::GetPool<RenderComponent>()) {
+			Sprite * sprite = comp.sprite.get();
+			if (sprite != nullptr) {
+				PositionComponent * position = EntitySystem::GetComp<PositionComponent>(comp.getId());
+				sprite->setPos(position->pos - comp.offset);
 
-			comp.updatePosition();
+				unsigned int renderBufferId = comp.getRenderBufferId();
+				if (setBuffer || prevRenderBufferId != renderBufferId) {
+					prevRenderBufferId = renderBufferId;
+					GLRenderer::SetBuffer(renderBufferId);
+					setBuffer = false;
+				}
 
-			unsigned int renderBufferId = comp.getRenderBufferId();
-			if (prevRenderBufferId != renderBufferId) {
-				prevRenderBufferId = renderBufferId;
-				GLRenderer::SetBuffer(renderBufferId);
-
+				GLRenderer::Buffer(comp.getImgData());
 			}
-
-			GLRenderer::Buffer(comp.getImgData());
 		}
 	}
 }

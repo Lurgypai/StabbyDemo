@@ -10,15 +10,19 @@
 
 
 PlayerGC::PlayerGC(EntityId id_) :
-	RenderComponent{ id_ },
-	offset{0, 0},
+	id{ id_ },
 	shouldSpawnHead{true},
 	prevXVel{0},
 	prevAttack{0}
-{}
+{
+	if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
+		EntitySystem::MakeComps<RenderComponent>(1, &id);
+	}
+}
 
 void PlayerGC::loadAnimations() {
-	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*sprite);
+	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
+	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
 
 	//keep in mind graphics gale starts at frame 1, not 0
 	animSprite.addAnimation(idle, 0, 1);
@@ -33,7 +37,10 @@ void PlayerGC::loadAnimations() {
 	//ClientPlayerLC* playerLogic = EntitySystem::GetComp<ClientPlayerLC>(id);
 	//Vec2f res = playerLogic->getRes();
 	Vec2f res = { 4.0f, 20.0f };
-	offset = Vec2f{ (sprite->getObjRes().abs().x - res.x) / 2, (sprite->getObjRes().abs().y - res.y) };
+	render->offset = Vec2f{ (animSprite.getObjRes().abs().x - res.x) / 2, (animSprite.getObjRes().abs().y - res.y) };
+
+	animSprite.setAnimation(idle);
+	defaultFrameDelay = animSprite.frameDelay;
 }
 
 void PlayerGC::spawnHead(Vec2f pos) {
@@ -58,21 +65,20 @@ void PlayerGC::spawnHead(Vec2f pos) {
 	image->loadSprite<Sprite>("images/head.png");
 }
 
-void PlayerGC::updatePosition() {
+void PlayerGC::updateState(double timeDelta) {
 	PlayerStateComponent * player = EntitySystem::GetComp<PlayerStateComponent>(id);
 	if (player != nullptr) {
-		PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-		AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*sprite);
+		RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
+		AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
 		PlayerState state = player->getPlayerState();
 
 		int width = animSprite.getObjRes().abs().x;
 		int height = animSprite.getObjRes().abs().y;
 		animSprite.setObjRes(Vec2i{ state.facing * width, height });
 
-		animSprite.setPos(position->pos - offset);
-
 		State plrState = state.state;
 		static bool shouldSpawnParticles = false;
+		
 		if (state.attackFreezeFrame == 0) {
 			shouldSpawnParticles = true;
 			if (state.state != prevState) {
@@ -80,13 +86,16 @@ void PlayerGC::updatePosition() {
 				animSprite.looping = true;
 				switch (plrState) {
 				case State::dead:
+					animSprite.frameDelay = defaultFrameDelay;
 					animSprite.setAnimation(dead);
 					animSprite.looping = false;
 					break;
 				case State::stunned:
+					animSprite.frameDelay = defaultFrameDelay;
 					animSprite.setAnimation(stun);
 					break;
 				case State::rolling:
+					animSprite.frameDelay = defaultFrameDelay;
 					animSprite.setAnimation(roll);
 					animSprite.looping = false;
 					break;
@@ -96,6 +105,7 @@ void PlayerGC::updatePosition() {
 			if (prevAttack != state.activeAttack) {
 				prevAttack = state.activeAttack;
 				if (state.state == State::attacking) {
+					animSprite.frameDelay = defaultFrameDelay / state.attackSpeed;
 					if (state.activeAttack == 1) {
 						animSprite.setAnimation(slash1);
 					}
@@ -108,25 +118,27 @@ void PlayerGC::updatePosition() {
 			}
 
 			if (state.state == State::free) {
+				animSprite.frameDelay = defaultFrameDelay / state.moveSpeed;
 				shouldSpawnHead = true;
 				if (state.vel.x == 0 && animSprite.getCurrentAnimationId() != idle) {
 					animSprite.setAnimation(idle);
 				}
-				else if (state.vel.x != 0 && animSprite.getCurrentAnimationId() != walking){
+				else if (state.vel.x != 0 && animSprite.getCurrentAnimationId() != walking) {
 					animSprite.setAnimation(walking);
 				}
 				prevXVel = state.vel.x;
 			}
-			
-			animSprite.forward();
+
+			animSprite.forward(timeDelta);
 
 			//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
 			if (shouldSpawnHead && plrState == State::dead) {
 				shouldSpawnHead = false;
+				PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 				spawnHead(position->pos);
 			}
 		}
-		else if (shouldSpawnParticles){
+		else if (shouldSpawnParticles) {
 			shouldSpawnParticles = false;
 			float offset = 7;
 			Vec2f spawnPos = state.pos;
@@ -143,8 +155,11 @@ void PlayerGC::updatePosition() {
 			else if (state.activeAttack == 3) {
 				Particle p1{ spawnPos, -90 + 53.0f * state.facing, 2.4f, 150, 0 };
 				GLRenderer::SpawnParticles("blood", 15, p1, 35.0f, 0.0f, 0.0f, { 0.5f, 1.0f });
-
 			}
 		}
 	}
+}
+
+EntityId PlayerGC::getId() const {
+	return id;
 }

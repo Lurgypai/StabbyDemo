@@ -4,39 +4,42 @@
 #include "PhysicsComponent.h"
 
 ZombieGC::ZombieGC(EntityId id_) :
-	RenderComponent{ id_ },
+	id{ id_ },
 	prevXVel{0},
 	center{ 0, 0 }
-{}
+{
+	if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
+		EntitySystem::MakeComps<RenderComponent>(1, &id);
+	}
+}
 
 void ZombieGC::loadAnimations() {
-	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*sprite);
+	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
+	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
 
 	//keep in mind graphics gale starts at frame 1, not 0
 	animSprite.addAnimation(0, 0, 11);
-	animSprite.addAnimation(1, 12, 21);
+	animSprite.addAnimation(1, 12, 23);
 	animSprite.setAnimation(1);
 
 	Vec2f res = { 4.0f, 20.0f };
-	offset = Vec2f{ (sprite->getObjRes().abs().x - res.x) / 2, (sprite->getObjRes().abs().y - res.y) };
+	render->offset = Vec2f{ (animSprite.getObjRes().abs().x - res.x) / 2, (animSprite.getObjRes().abs().y - res.y) };
 }
 
-void ZombieGC::updatePosition() {
-	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+void ZombieGC::updateState(double timeDelta) {
 	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*sprite);
+	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
+	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
 
 	ZombieLC * zombie = EntitySystem::GetComp<ZombieLC>(id);
 
-	if (position != nullptr && physics != nullptr && zombie != nullptr) {
+	if (physics != nullptr && zombie != nullptr) {
 		center = physics->center();
 
 		int width = animSprite.getObjRes().abs().x;
 		int height = animSprite.getObjRes().abs().y;
 
 		animSprite.setObjRes(Vec2i{ zombie->getState().facing * width, height });
-
-		animSprite.setPos(position->pos - offset);
 
 		if (!zombie->isStunned()) {
 			if (zombie->getState().state != ZombieLC::State::dead && zombie->getState().state != ZombieLC::State::idle) {
@@ -49,16 +52,16 @@ void ZombieGC::updatePosition() {
 					prevXVel = physics->vel.x;
 				}
 
-				animSprite.forward();
+				animSprite.forward(timeDelta);
 			}
 			else if (zombie->getState().state == ZombieLC::State::idle) {
 				animSprite.looping = false;
 				if (animSprite.getCurrentAnimationId() != 1) {
 					animSprite.setAnimation(1);
 				}
-				animSprite.forward();
+				animSprite.forward(timeDelta);
 			}
-			else if(zombie->getState().state == ZombieLC::State::dead) {
+			else if (zombie->getState().state == ZombieLC::State::dead) {
 				animSprite.setObjRes(Vec2i{ 0, 0 });
 				Vec2f spawnPos = center;
 
@@ -67,7 +70,8 @@ void ZombieGC::updatePosition() {
 			}
 		}
 	}
-	else {
-		EntitySystem::FreeComps<ZombieGC>(1, &id);
-	}
+}
+
+EntityId ZombieGC::getId() const {
+	return id;
 }

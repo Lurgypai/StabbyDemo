@@ -17,11 +17,15 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+
 	context = SDL_GL_CreateContext(window);
+
 
 	gladLoadGLLoader(SDL_GL_GetProcAddress);
 
+
 	SDL_GL_SetSwapInterval(0);
+
 	
 	glViewport(0, 0, windowRes.x, windowRes.y);
 	glDisable(GL_DEPTH_TEST);

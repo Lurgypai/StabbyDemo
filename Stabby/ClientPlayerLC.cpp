@@ -122,3 +122,7 @@ Vec2f ClientPlayerLC::getCenter() {
 	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	return physics->center();
 }
+
+int ClientPlayerLC::getActiveDamage() {
+	return 0;
+}

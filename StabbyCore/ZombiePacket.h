@@ -16,6 +16,9 @@ public:
 	//client side time when this update would have occured (unique per client)
 	Time_t when;
 
+	//kill the zombie client side
+	bool isDead;
+
 	//used for storing floats over the network
 	Vec2i pos;
 	Vec2i vel;

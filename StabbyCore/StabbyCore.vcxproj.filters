@@ -243,6 +243,15 @@
     <ClInclude Include="PacketTypes.h">
       <Filter>Header Files\Game\Network\Packets</Filter>
     </ClInclude>
+    <ClInclude Include="HealthPickupLC.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="PickupSystem.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityBaseComponent.h">
+      <Filter>Header Files\Engine\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -320,9 +329,6 @@
     <ClCompile Include="ComputeShader.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
-    <ClCompile Include="PhysicsSystem.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
     <ClCompile Include="RenderComponent.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
@@ -367,6 +373,15 @@
     </ClCompile>
     <ClCompile Include="TimestampPacket.cpp">
       <Filter>Source Files\Game\Network\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="HealthPickupLC.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsSystem.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityBaseComponent.cpp">
+      <Filter>Source Files\Engine\ECS</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

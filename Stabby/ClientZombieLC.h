@@ -7,8 +7,6 @@ class ClientZombieLC : public ZombieLC	{
 public:
 	ClientZombieLC(EntityId id_ = 0);
 	void runLogic(Time_t now);
-
-	void die() override;
 private:
 	unsigned int start;
 	unsigned int end;

@@ -1,13 +1,12 @@
 #include "stdafx.h"
 #include "PlayerLC.h"
 #include "PositionComponent.h"
+#include "DebugIO.h"
 
 #include <iostream>
 
 PlayerLC::PlayerLC(EntityId id_) :
 	CombatComponent{id_},
-	maxXVel{ 50 },
-	xAccel{ 10 },
 	jumpSpeed{ 120 },
 	attack{},
 	prevButton2{false},
@@ -20,7 +19,8 @@ PlayerLC::PlayerLC(EntityId id_) :
 	stunSlideSpeed{10},
 	deathFrame{0},
 	deathFrameMax{200},
-	attackFreezeFrameMax{17}
+	attackFreezeFrameMax{17},
+	stepDistance{50}
 {
 	if (!EntitySystem::Contains<PhysicsComponent>() || EntitySystem::GetComp<PhysicsComponent>(id) == nullptr) {
 		EntitySystem::MakeComps<PhysicsComponent>(1, &id);
@@ -36,6 +36,9 @@ PlayerLC::PlayerLC(EntityId id_) :
 		PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
 		stateComp->setHealth(100);
 		stateComp->setFacing(1);
+		stateComp->setAttackSpeed(1);
+		stateComp->setAttackSpeed(1.0);
+		stateComp->setMoveSpeed(1.0);
 	}
 }
 
@@ -64,14 +67,14 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 	attack.setActive(state.activeAttack);
 	attack.setFrame(state.attackFrame);
+	attack.setSpeed(state.attackSpeed);
 
 	Vec2f & vel = comp->vel;
 
-	//the problem is, we're frozen client side, but not serverside. Add frozen to the playerstate
 	if (!comp->frozen) {
 
 		//always update the attack. Hitboxes should only be out when we are stuck in attack mode.
-		attack.update(position->pos, comp->getRes(), state.facing);
+		attack.update(timeDelta, position->pos, comp->getRes(), state.facing);
 
 		switch (state.state) {
 		case State::stunned:
@@ -109,7 +112,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 					++dir;
 				}
 
-				vel.x = (rollVel * state.facing) + (dir * 80);
+				vel.x = (rollVel * state.moveSpeed * state.facing) + (dir * 80 * state.moveSpeed);
 			}
 			else {
 				state.rollFrame = 0;
@@ -146,6 +149,8 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 	state.pos = comp->getPos();
 	state.vel = comp->vel;
+
+	//DebugIO::setLine(6, std::to_string(state.health));
 }
 
 PhysicsComponent * PlayerLC::getPhysics() {
@@ -168,6 +173,12 @@ Attack & PlayerLC::getAttack() {
 
 int PlayerLC::getActiveId() {
 	return attack.getActiveId();
+}
+
+void PlayerLC::heal(int amount) {
+	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	PlayerState state = playerState->getPlayerState();
+	playerState->setHealth(state.health + amount);
 }
 
 void PlayerLC::damage(int amount) {
@@ -302,21 +313,9 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 			}
 		}
 		//otherwise do
-		if (dir == 0) {
-			if (vel.x > 0)
-				vel.x -= xAccel;
-			else if (vel.x < 0)
-				vel.x += xAccel;
-		}
-		else {
+		if (dir != 0)
 			state.facing = dir;
-			vel.x += (dir * xAccel);
-		}
-
-		if (vel.x > maxXVel)
-			vel.x = maxXVel;
-		else if (vel.x < -maxXVel)
-			vel.x = -maxXVel;
+		vel.x = dir * state.moveSpeed * stepDistance;
 	}
 
 	playerState->setPlayerState(state);

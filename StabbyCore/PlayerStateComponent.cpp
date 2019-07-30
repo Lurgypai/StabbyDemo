@@ -70,3 +70,11 @@ void PlayerStateComponent::setSpawnPoint(const Vec2f & spawnPoint_) {
 void PlayerStateComponent::setAttackFreezeFrame(int attackFreezeFrame_) {
 	playerState.attackFreezeFrame = attackFreezeFrame_;
 }
+
+void PlayerStateComponent::setAttackSpeed(double attackSpeed) {
+	playerState.attackSpeed = attackSpeed;
+}
+
+void PlayerStateComponent::setMoveSpeed(double moveSpeed) {
+	playerState.moveSpeed = moveSpeed;
+}

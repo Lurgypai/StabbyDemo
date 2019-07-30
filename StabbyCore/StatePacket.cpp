@@ -19,6 +19,9 @@ void StatePacket::serialize() {
 	vel.y = htonf(state.vel.y);
 	spawnPoint.x = htonf(state.spawnPoint.x);
 	spawnPoint.y = htonf(state.spawnPoint.y);
+
+	attackSpeed = htond(state.attackSpeed);
+	moveSpeed = htond(state.moveSpeed);
 }
 
 void StatePacket::unserialize() {
@@ -39,4 +42,7 @@ void StatePacket::unserialize() {
 	state.vel.y = ntohf(vel.y);
 	state.spawnPoint.x = ntohf(spawnPoint.x);
 	state.spawnPoint.y = ntohf(spawnPoint.y);
+
+	state.attackSpeed = ntohd(attackSpeed);
+	state.moveSpeed = ntohd(moveSpeed);
 }

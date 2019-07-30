@@ -10,6 +10,7 @@
 #include "ClientPlayerLC.h"
 #include "ServerClientData.h"
 #include "ZombieGC.h"
+#include "EntityBaseComponent.h"
 #include <iostream>
 
 Client::Client() :
@@ -211,10 +212,16 @@ void Client::receive(ENetEvent & e) {
 				if (idTable.contains(zombieState.onlineId)) {
 					//remove this in favor of the server determining when a zombie dies.
 					ZombieLC * zombie = EntitySystem::GetComp<ZombieLC>(idTable[zombieState.onlineId]);
-					if(zombie != nullptr)
+					if (zombie != nullptr && !zombieState.isDead) {
 						zombie->setState(zombieState.state);
-					else
+					}
+					else {
 						idTable.free(zombieState.onlineId);
+
+						EntityBaseComponent * death = EntitySystem::GetComp<EntityBaseComponent>(zombie->getId());
+						if (death != nullptr)
+							death->isDead = true;
+					}
 				}
 				else {
 					EntityId id;
@@ -223,7 +230,7 @@ void Client::receive(ENetEvent & e) {
 					EntitySystem::MakeComps<ZombieGC>(1, &id);
 					EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
 					EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-					EntitySystem::GetComp<ZombieGC>(id)->setSprite<AnimatedSprite>(sprite);
+					EntitySystem::GetComp<RenderComponent>(id)->setSprite<AnimatedSprite>(sprite);
 					EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
 					idTable.add(zombieState.onlineId, id);
 				}
@@ -235,7 +242,7 @@ void Client::receive(ENetEvent & e) {
 				EntitySystem::MakeComps<ZombieGC>(1, &id);
 				EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
 				EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-				EntitySystem::GetComp<ZombieGC>(id)->setSprite<AnimatedSprite>(sprite);
+				EntitySystem::GetComp<RenderComponent>(id)->setSprite<AnimatedSprite>(sprite);
 				EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
 				idTable.add(zombieState.onlineId, id);
 			}
@@ -277,7 +284,7 @@ void Client::receive(ENetEvent & e) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
-			EntitySystem::GetComp<PlayerGC>(entity)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
+			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
 		}
 	}
