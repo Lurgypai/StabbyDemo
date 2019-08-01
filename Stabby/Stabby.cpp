@@ -184,6 +184,7 @@ int main(int argc, char* argv[]) {
 				updateLogic = true;
 			}
 			if (updateLogic) {
+
 				tick++;
 				game.time++;
 				double ups = 1.0 / (static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency());

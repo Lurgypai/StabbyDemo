@@ -13,7 +13,6 @@ enum class State : uint8_t {
 };
 
 struct PlayerState {
-
 	bool operator==(const PlayerState & other) {
 		return when == other.when && pos == other.pos && vel == other.vel && state == other.state &&
 			rollFrame == other.rollFrame && activeAttack == other.activeAttack && attackFrame == other.attackFrame &&
@@ -47,25 +46,13 @@ struct PlayerState {
 };
 
 class PlayerStateComponent {
+	//only player controllers should have control over the state. Do not use anything else, it will muddy the design.
+
 public:
 	PlayerStateComponent(EntityId id = 0);
 	EntityId getId() const;
 
-	PlayerState getPlayerState() const;
-	void setPlayerState(const PlayerState & state_);
-	void setWhen(Time_t when);
-	void setState(State state_);
-	void setRollFrame(int rollFrame);
-	void setActiveAttack(unsigned int activeAttack);
-	void setAttackFrame(unsigned int attackFrame);
-	void setHealth(int health);
-	void setStunFrame(int stunFrame);
-	void setFacing(int facing);
-	void setSpawnPoint(const Vec2f & spawnPoint_);
-	void setAttackFreezeFrame(int attackFreezeFrame_);
-	void setAttackSpeed(double attackSpeed);
-	void setMoveSpeed(double moveSpeed);
+	PlayerState playerState;
 private:
 	EntityId id;
-	PlayerState playerState;
 };

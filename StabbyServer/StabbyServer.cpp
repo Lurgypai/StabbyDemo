@@ -246,7 +246,7 @@ int main(int argv, char* argc[])
 				for (auto& user : users) {
 
 					StatePacket pos{};
-					pos.state = user->getPlayerState().getPlayerState();
+					pos.state = user->getPlayerState().playerState;
 					pos.state.when = user->getPlayer().clientTime;
 					pos.when = gameTime;
 					pos.id = user->getNetId();

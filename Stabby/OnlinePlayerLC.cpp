@@ -16,7 +16,7 @@ OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 	}
 	if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
 		EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
-		EntitySystem::GetComp<PlayerStateComponent>(id)->setFacing(1);
+		EntitySystem::GetComp<PlayerStateComponent>(id)->playerState.facing = 1;
 	}
 }
 
@@ -35,7 +35,7 @@ EntityId OnlinePlayerLC::getId() const {
 void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent *playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState state = playerState->getPlayerState();
+	PlayerState & state = playerState->playerState;
 
 	state = st;
 
@@ -54,8 +54,6 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 
 	state.pos = previousPos[1];
 	position->pos = previousPos[1] - Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH) / 2, static_cast<float>(PlayerLC::PLAYER_HEIGHT)};
-
-	playerState->setPlayerState(state);
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {

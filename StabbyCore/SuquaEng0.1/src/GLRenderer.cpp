@@ -24,7 +24,7 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	gladLoadGLLoader(SDL_GL_GetProcAddress);
 
 
-	SDL_GL_SetSwapInterval(0);
+	SDL_GL_SetSwapInterval(1);
 
 	
 	glViewport(0, 0, windowRes.x, windowRes.y);

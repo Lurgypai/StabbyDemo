@@ -34,11 +34,11 @@ PlayerLC::PlayerLC(EntityId id_) :
 	if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
 		EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
 		PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
-		stateComp->setHealth(100);
-		stateComp->setFacing(1);
-		stateComp->setAttackSpeed(1);
-		stateComp->setAttackSpeed(1.0);
-		stateComp->setMoveSpeed(1.0);
+		stateComp->playerState.health = 100;
+		stateComp->playerState.facing = 1;
+		stateComp->playerState.activeAttack = 0;
+		stateComp->playerState.moveSpeed = 1.0;
+		stateComp->playerState.attackSpeed = 1.0;
 	}
 }
 
@@ -48,7 +48,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 
-	PlayerState state = playerState->getPlayerState();
+	PlayerState& state = playerState->playerState;
 
 	state.frozen = comp->frozen;
 
@@ -89,7 +89,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 				state.stunFrame = 0;
 				state.state = State::free;
 			}
-			playerState->setPlayerState(state);
 			break;
 		case State::attacking:
 			vel.x = 0;
@@ -98,7 +97,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 			state.activeAttack = attack.getActiveId();
 			state.attackFrame = attack.getCurrFrame();
-			playerState->setPlayerState(state);
 			break;
 		case State::rolling:
 			if (state.rollFrame != rollFrameMax) {
@@ -119,7 +117,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 				vel.x = storedVel;
 				state.state = State::free;
 			}
-			playerState->setPlayerState(state);
 			break;
 		case State::free:
 			free(controller, attackToggledDown);
@@ -144,7 +141,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 			comp->frozen = false;
 			state.attackFreezeFrame = 0;
 		}
-		playerState->setPlayerState(state);
 	}
 
 	state.pos = comp->getPos();
@@ -177,20 +173,17 @@ int PlayerLC::getActiveId() {
 
 void PlayerLC::heal(int amount) {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState state = playerState->getPlayerState();
-	playerState->setHealth(state.health + amount);
+	playerState->playerState.health += amount;
 }
 
 void PlayerLC::damage(int amount) {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState state = playerState->getPlayerState();
+	PlayerState& state = playerState->playerState;
 
 	if (state.state != State::rolling) {
 
 		state.health -= amount;
 		state.state = State::stunned;
-
-		playerState->setPlayerState(state);
 
 		if (state.health <= 0)
 			die();
@@ -204,7 +197,7 @@ void PlayerLC::onAttackLand() {
 
 void PlayerLC::die() {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState state = playerState->getPlayerState();
+	PlayerState & state = playerState->playerState;
 
 	state.state = State::dead;
 	state.rollFrame = 0;
@@ -215,8 +208,6 @@ void PlayerLC::die() {
 	attack.setFrame(0);
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
 	comp->vel = { 0, 0 };
-
-	playerState->setPlayerState(state);
 }
 
 
@@ -251,14 +242,13 @@ void PlayerLC::updateHurtboxes() {}
 void PlayerLC::respawn() {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-	PlayerState state = playerState->getPlayerState();
+	PlayerState & state = playerState->playerState;
 
 	state.state = State::free;
 	state.health = 100;
 	state.activeAttack = 0;
 	state.attackFrame = 0;
 
-	playerState->setPlayerState(state);
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
 	position->pos = Vec2f{static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
 	comp->vel = { 0, 0 };
@@ -272,7 +262,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	Vec2f & vel = comp->vel;
 
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState state = playerState->getPlayerState();
+	PlayerState & state = playerState->playerState;
 
 	if (attackToggledDown_) {
 		if (attack.canStartAttacking()) {
@@ -317,6 +307,4 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 			state.facing = dir;
 		vel.x = dir * state.moveSpeed * stepDistance;
 	}
-
-	playerState->setPlayerState(state);
 }

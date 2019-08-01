@@ -20,8 +20,8 @@ void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & con
 		states.pop_front();
 
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	playerState->setWhen(now);
-	states.emplace_back(TotalPlayerState{ playerState->getPlayerState(), controller.getState() });
+	playerState->playerState.when = now;
+	states.emplace_back(TotalPlayerState{ playerState->playerState, controller.getState() });
 }
 
 //this doesn't run physics - will need to be fixed
@@ -61,7 +61,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 						std::cout << "frozen: " << tstate.plr.frozen << ", " << state.frozen << '\n';
 
 					PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-					playerState->setPlayerState(state);
+					playerState->playerState = state;
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 					physics->vel = state.vel;
 					physics->teleport(state.pos);
@@ -94,7 +94,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 			std::cout << "Client behind the server, updating positions.\n";
 
 			PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-			playerState->setPlayerState(state);
+			playerState->playerState = state;
 
 			PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 			physics->vel = state.vel;

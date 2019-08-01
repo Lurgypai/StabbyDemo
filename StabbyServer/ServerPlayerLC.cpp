@@ -64,6 +64,6 @@ void ServerPlayerLC::update(Time_t gameTime) {
 		prevStates.pop_front();
 
 	PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
-	stateComp->setWhen(gameTime);
-	prevStates.emplace_back(stateComp->getPlayerState());
+	stateComp->playerState.when = gameTime;
+	prevStates.emplace_back(stateComp->playerState);
 }

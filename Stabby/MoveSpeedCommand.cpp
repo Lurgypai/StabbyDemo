@@ -20,7 +20,7 @@ void MoveSpeedCommand::onCommand(const std::vector<std::string>& args) {
 		try {
 			double speed = std::stod(args[1]);
 			PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(game.getPlayerId());
-			playerState->setMoveSpeed(speed);
+			playerState->playerState.moveSpeed = speed;
 		}
 		catch (std::invalid_argument e) {
 			DebugIO::printLine("Invalid argument. Needs a double.");

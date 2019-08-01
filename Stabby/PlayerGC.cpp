@@ -70,7 +70,7 @@ void PlayerGC::updateState(double timeDelta) {
 	if (player != nullptr) {
 		RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
 		AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
-		PlayerState state = player->getPlayerState();
+		PlayerState state = player->playerState;
 
 		int width = animSprite.getObjRes().abs().x;
 		int height = animSprite.getObjRes().abs().y;
