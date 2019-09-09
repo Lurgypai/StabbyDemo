@@ -50,16 +50,6 @@ public:
 	void searchForTarget();
 	void runLogic();
 
-	virtual void damage(int i) override;
-	virtual void die() override;
-	virtual void onAttackLand() override;
-	virtual AABB * getActiveHitbox() override;
-	virtual int getActiveDamage() override;
-	//checks if the attack changed, and resets it if it did.
-	virtual bool readAttackChange() override;
-	virtual const AABB * getHurtboxes(int * size) const override;
-	virtual void updateHurtboxes() override;
-
 	bool isStunned() const;
 	void setState(const ZombieState & state);
 	ZombieState getState();
@@ -78,9 +68,7 @@ protected:
 	int deathFrameMax;
 	int idleFrameMax;
 
-	AABB hitbox;
-	AABB hurtbox;
-
+	EntityId id;
 	EntityId targetId;
 };
 

@@ -14,24 +14,28 @@ struct Hitbox {
 class Attack {
 public:
 	Attack();
+	Attack(int restartDelayMax_, double frameDelay_ = 1.0/120);
 	void setActive(int i);
 	void setFrame(int frame);
 	void setSpeed(double newSpeed);
 	bool canStartAttacking();
 	bool getNextIsBuffered() const;
 	void startAttacking();
-	Hitbox* getActive();
+	const Hitbox* getActive() const;
 	unsigned int getActiveId();
 	unsigned int getCurrFrame();
 	unsigned int getCurrentTotalFrames();
 	void bufferNext();
-	void update(double timeDelta, Vec2f pos, Vec2f res, int facing);
+	void update(double timeDelta, Vec2f pos, int facing);
+	void addHitbox(Hitbox && hitbox);
+	bool pollAttackChange();
 private:
-	std::array<Hitbox, 3> hitboxes;
+	std::vector<Hitbox> hitboxes;
 	int active = 0;
 	//current frame relative to the current attack
 	unsigned int currFrame;
 	bool nextIsBuffered;
+	bool attackChanged;
 	//delay for attacking again
 	int restartDelay;
 	int restartDelayMax;

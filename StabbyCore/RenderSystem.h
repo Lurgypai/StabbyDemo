@@ -15,6 +15,7 @@ void RenderSystem::drawAll() {
 		for (auto & comp : EntitySystem::GetPool<RenderComponent>()) {
 			Sprite * sprite = comp.sprite.get();
 			if (sprite != nullptr) {
+				EntityId id = comp.getId();
 				PositionComponent * position = EntitySystem::GetComp<PositionComponent>(comp.getId());
 				sprite->setPos(position->pos - comp.offset);
 

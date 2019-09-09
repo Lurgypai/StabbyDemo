@@ -7,6 +7,9 @@
 
 #include "targetver.h"
 
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
+
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
 

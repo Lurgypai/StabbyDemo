@@ -6,8 +6,10 @@ RenderComponent::RenderComponent(EntityId id_) :
 	id{id_},
 	offset{0, 0}
 {
-	if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<PositionComponent>(1, &id);
+	if (id != 0) {
+		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		}
 	}
 }
 

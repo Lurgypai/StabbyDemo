@@ -38,8 +38,8 @@ private:
 template<typename T>
 inline T * EntitySystem::GetComp(EntityId id) {
 	auto & pool = ComponentMaps.get<T>();
-	if (pool.contains(id))
-		return &pool[id];
+	if (pool.contains(id - 1))
+		return &pool[id - 1];
 	else
 		return nullptr;
 }
@@ -48,7 +48,8 @@ inline T * EntitySystem::GetComp(EntityId id) {
 template<typename T>
 inline void EntitySystem::MakeComps(unsigned int size, unsigned int * first) {
 	for (int i = 0; i != size; i++) {
-		ComponentMaps.add<T>(first[i], first[i]);
+		if(first[i] > 0)
+			ComponentMaps.add<T>(first[i] - 1, first[i]);
 	}
 }
 

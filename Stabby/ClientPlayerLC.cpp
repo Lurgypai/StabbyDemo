@@ -67,6 +67,8 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 					physics->teleport(state.pos);
 					physics->frozen = state.frozen;
 
+					CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
+					Attack & attack = combat->attack;
 					attack.setActive(state.activeAttack);
 					attack.setFrame(state.attackFrame);
 
@@ -101,6 +103,9 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 			physics->teleport(state.pos);
 			physics->frozen = state.frozen;
 
+
+			CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
+			Attack & attack = combat->attack;
 			attack.setActive(state.activeAttack);
 			attack.setFrame(state.attackFrame);
 
@@ -121,8 +126,4 @@ std::string ClientPlayerLC::getHeadPath() {
 Vec2f ClientPlayerLC::getCenter() {
 	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	return physics->center();
-}
-
-int ClientPlayerLC::getActiveDamage() {
-	return 0;
 }

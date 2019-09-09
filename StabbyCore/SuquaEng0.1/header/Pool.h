@@ -61,7 +61,7 @@ public:
 
 	using iterator = PoolIterator<T>;
 
-	Pool() : resources{}, freeIndices_{0} {}
+	Pool() : resources{}, freeIndices_{ 0 } {}
 
 	Pool(std::size_t size) {
 		resources.resize(size);
@@ -98,6 +98,8 @@ public:
 	template <typename U>
 	inline void add(size_t pos, U&& r) {
 		if (resources.size() > pos) {
+			if (resources[pos].isFree)
+				--freeIndices_;
 			resources[pos] = Resource<T>(std::forward<U>(r), false);
 		}
 		else {
@@ -137,8 +139,8 @@ public:
 				if (!resources[i].isFree)
 					++freeIndices_;
 				resources[i].isFree = true;
-				return true;
 			}
+			return true;
 		}
 		return false;
 	}
@@ -166,8 +168,12 @@ public:
 		resources.resize(s);
 	}
 
-	std::size_t size() const {
+	std::size_t capacity() const {
 		return resources.size();
+	}
+
+	std::size_t size() const {
+		return resources.size() - freeIndices_;
 	}
 
 	std::size_t freeIndices() const {

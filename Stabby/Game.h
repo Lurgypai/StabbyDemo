@@ -5,6 +5,7 @@
 #include "PhysicsSystem.h"
 #include "CombatSystem.h"
 #include "PickupSystem.h"
+#include "AttackManager.h"
 
 class Game {
 public:
@@ -17,6 +18,7 @@ public:
 	PhysicsSystem physics;
 	CombatSystem combat;
 	PickupSystem pickups;
+	AttackManager attacks;
 	Stage stage;
 
 	EntityId getPlayerId();

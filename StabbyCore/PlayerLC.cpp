@@ -1,14 +1,14 @@
 #include "stdafx.h"
 #include "PlayerLC.h"
 #include "PositionComponent.h"
+#include "DirectionComponent.h"
 #include "DebugIO.h"
 
 #include <iostream>
 
 PlayerLC::PlayerLC(EntityId id_) :
-	CombatComponent{id_},
+	id{id_},
 	jumpSpeed{ 120 },
-	attack{},
 	prevButton2{false},
 	prevButton3{ false },
 	isBeingHit{false},
@@ -22,23 +22,34 @@ PlayerLC::PlayerLC(EntityId id_) :
 	attackFreezeFrameMax{17},
 	stepDistance{50}
 {
-	if (!EntitySystem::Contains<PhysicsComponent>() || EntitySystem::GetComp<PhysicsComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<PhysicsComponent>(1, &id);
-		PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-		physics->weight = 3;
-		physics->setRes(Vec2f{ static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT) });
+	//do not default construct
+	if (id != 0) {
+		if (!EntitySystem::Contains<PhysicsComponent>() || EntitySystem::GetComp<PhysicsComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+			PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
+			physics->weight = 3;
+			physics->setRes(Vec2f{ static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT) });
 
-		PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-		position->pos = {-2, -20};
-	}
-	if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
-		PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
-		stateComp->playerState.health = 100;
-		stateComp->playerState.facing = 1;
-		stateComp->playerState.activeAttack = 0;
-		stateComp->playerState.moveSpeed = 1.0;
-		stateComp->playerState.attackSpeed = 1.0;
+			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+			position->pos = { -2, -20 };
+		}
+		if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
+			PlayerStateComponent * stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
+			stateComp->playerState.health = 100;
+			stateComp->playerState.facing = 1;
+			stateComp->playerState.activeAttack = 0;
+			stateComp->playerState.moveSpeed = 1.0;
+			stateComp->playerState.attackSpeed = 1.0;
+		}
+		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<DirectionComponent>(1, &id);
+			DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
+			direction->dir = -1;
+		}
+		if (!EntitySystem::Contains<CombatComponent>() || EntitySystem::GetComp<CombatComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<CombatComponent>(1, &id);
+		}
 	}
 }
 
@@ -47,10 +58,11 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
+	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
 
 	PlayerState& state = playerState->playerState;
-
-	state.frozen = comp->frozen;
+	Attack & attack = combat->attack;
 
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
@@ -65,17 +77,9 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 		}
 	}
 
-	attack.setActive(state.activeAttack);
-	attack.setFrame(state.attackFrame);
-	attack.setSpeed(state.attackSpeed);
-
 	Vec2f & vel = comp->vel;
 
 	if (!comp->frozen) {
-
-		//always update the attack. Hitboxes should only be out when we are stuck in attack mode.
-		attack.update(timeDelta, position->pos, comp->getRes(), state.facing);
-
 		switch (state.state) {
 		case State::stunned:
 			if (state.stunFrame == 0) {
@@ -110,7 +114,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 					++dir;
 				}
 
-				vel.x = (rollVel * state.moveSpeed * state.facing) + (dir * 80 * state.moveSpeed);
+				vel.x = (rollVel * state.moveSpeed * direction->dir) + (dir * 80 * state.moveSpeed);
 			}
 			else {
 				state.rollFrame = 0;
@@ -145,6 +149,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 	state.pos = comp->getPos();
 	state.vel = comp->vel;
+	state.facing = direction->dir;
 
 	//DebugIO::setLine(6, std::to_string(state.health));
 }
@@ -163,82 +168,6 @@ Vec2f PlayerLC::getRes() const {
 	return comp->getRes();
 }
 
-Attack & PlayerLC::getAttack() {
-	return attack;
-}
-
-int PlayerLC::getActiveId() {
-	return attack.getActiveId();
-}
-
-void PlayerLC::heal(int amount) {
-	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	playerState->playerState.health += amount;
-}
-
-void PlayerLC::damage(int amount) {
-	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState& state = playerState->playerState;
-
-	if (state.state != State::rolling) {
-
-		state.health -= amount;
-		state.state = State::stunned;
-
-		if (state.health <= 0)
-			die();
-	}
-}
-
-void PlayerLC::onAttackLand() {
-	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	physics->frozen = true;
-}
-
-void PlayerLC::die() {
-	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
-	PlayerState & state = playerState->playerState;
-
-	state.state = State::dead;
-	state.rollFrame = 0;
-	state.stunFrame = 0;
-	state.activeAttack = 0;
-	state.attackFrame = 0;
-	attack.setActive(0);
-	attack.setFrame(0);
-	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
-	comp->vel = { 0, 0 };
-}
-
-
-
-AABB * PlayerLC::getActiveHitbox() {
-	Hitbox * activeHitbox = attack.getActive();
-	if (activeHitbox != nullptr)
-		return &activeHitbox->hit;
-	else
-		return nullptr;
-}
-
-int PlayerLC::getActiveDamage() {
-	return 15;
-}
-
-bool PlayerLC::readAttackChange() {
-	bool a = attackChange;
-	attackChange = false;
-	return a;
-}
-
-const AABB * PlayerLC::getHurtboxes(int * size ) const {
-	if (size != nullptr)
-		*size = 1;
-	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	return &physics->getCollider();
-}
-
-void PlayerLC::updateHurtboxes() {}
-
 void PlayerLC::respawn() {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
@@ -250,10 +179,17 @@ void PlayerLC::respawn() {
 	state.attackFrame = 0;
 
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
+	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
+	Attack & attack = combat->attack;
+
 	position->pos = Vec2f{static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
 	comp->vel = { 0, 0 };
 	attack.setActive(0);
 	attack.setFrame(0);
+}
+
+EntityId PlayerLC::getId() const {
+	return id;
 }
 
 void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
@@ -263,6 +199,10 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PlayerState & state = playerState->playerState;
+	DirectionComponent* direction = EntitySystem::GetComp<DirectionComponent>(id);
+
+	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
+	Attack & attack = combat->attack;
 
 	if (attackToggledDown_) {
 		if (attack.canStartAttacking()) {
@@ -284,7 +224,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 			if (currButton3) {
 				state.state = State::rolling;
 				storedVel = vel.x;
-				vel.x = state.facing * rollVel;
+				vel.x = direction->dir * rollVel;
 			}
 		}
 	}
@@ -304,7 +244,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		}
 		//otherwise do
 		if (dir != 0)
-			state.facing = dir;
+			direction->dir = dir;
 		vel.x = dir * state.moveSpeed * stepDistance;
 	}
 }

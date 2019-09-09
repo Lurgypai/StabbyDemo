@@ -23,32 +23,32 @@
     <ProjectGuid>{7D835308-D4E4-4EF2-B74F-AD45F3AC06FD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Stabby</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -92,6 +92,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\Stabby\SuquaEng0.1\header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,8 +108,9 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\Stabby;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\Stabby;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,6 +130,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,8 +150,9 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\Stabby;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\Stabby;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

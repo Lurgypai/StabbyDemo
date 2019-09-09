@@ -20,8 +20,6 @@ public:
 	void setPhysics(PhysicsSystem & physics);
 	std::string getHeadPath();
 	Vec2f getCenter();
-
-	int getActiveDamage() override;
 private:
 	//client sender tick of last acknowledged input
 	Time_t last;

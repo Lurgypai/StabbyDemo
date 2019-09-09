@@ -15,7 +15,6 @@
 #include <glad\glad.h>
 #include <SDL.H>
 #include "stb_image.h"
-
 #include "Shader.h"
 #include "PlayerGC.h"
 #include "AABB.h"
@@ -23,10 +22,8 @@
 #include "DebugIO.h"
 #include "EntitySystem.h"
 #include "PhysicsAABB.h"
-
 #include "GLRenderer.h"
 #include "PlayerCam.h"
-
 #include "PhysicsSystem.h"
 #include "RenderSystem.h"
 #include "RenderComponent.h"
@@ -39,7 +36,6 @@
 #include "HealthPickupLC.h"
 #include "PickupSystem.h"
 #include "HealthPickupGC.h"
-
 #include "ServerClientData.h"
 #include "RandomUtil.h"
 #include "ZombieGC.h"
@@ -50,8 +46,8 @@
 #include "AttackSpeedCommand.h"
 #include "MoveSpeedCommand.h"
 
-const int windowWidth = 1920.0;
-const int windowHeight = 1080.0;
+const int windowWidth = 1920 / 2;
+const int windowHeight = 1080 /2;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -74,6 +70,7 @@ extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 */
+
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -119,7 +116,6 @@ int main(int argc, char* argv[]) {
 	EntitySystem::GenEntities(1, &testComp);
 	EntitySystem::MakeComps<RenderComponent>(1, &testComp);
 	EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/redpixel.png");
-	
 
 	Game game{};
 	PhysicsSystem & physics = game.physics;
@@ -137,6 +133,9 @@ int main(int argc, char* argv[]) {
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
 	Controller controller;
+
+	game.attacks.loadAttacks("attacks/default");
+
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer fb{};
 	unsigned int screenTex;
@@ -259,8 +258,7 @@ int main(int argc, char* argv[]) {
 
 				if (client.getConnected()) {
 
-					game.combat.runAttackCheck<ClientPlayerLC, ZombieLC>();
-					game.combat.runAttackCheck<ZombieLC, ClientPlayerLC>();
+					game.combat.runAttackCheck(CLIENT_TIME_STEP);
 
 					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
@@ -328,10 +326,9 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
-					game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
+					//game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
 
-					game.combat.runAttackCheck<PlayerLC, ZombieLC>();
-					game.combat.runAttackCheck<ZombieLC, PlayerLC>();
+					game.combat.runAttackCheck(CLIENT_TIME_STEP);
 				}
 
 				physics.runPhysics(CLIENT_TIME_STEP);
@@ -390,6 +387,19 @@ int main(int argc, char* argv[]) {
 					}
 					else {
 						reddot->setScale({ 0, 0 });
+					}
+				}
+				*/
+
+				/*
+				if (EntitySystem::Contains<CombatComponent>()) {
+					for (auto & combat : EntitySystem::GetPool<CombatComponent>()) {
+						if (combat.getActiveHitbox() != nullptr) {
+							RenderComponent * renderComp = EntitySystem::GetComp<RenderComponent>(testComp);
+							PositionComponent * position = EntitySystem::GetComp<PositionComponent>(testComp);
+							renderComp->setObjRes(combat.getActiveHitbox()->hit.res);
+							position->pos = combat.getActiveHitbox()->hit.pos;
+						}
 					}
 				}
 				*/

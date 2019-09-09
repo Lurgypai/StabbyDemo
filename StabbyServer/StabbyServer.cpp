@@ -258,7 +258,7 @@ int main(int argv, char* argc[])
 
 				std::vector<ZombiePacket> zombieStates;
 				if (EntitySystem::Contains<ZombieLC>()) {
-					zombieStates.reserve(EntitySystem::GetPool<ZombieLC>().size() - EntitySystem::GetPool<ZombieLC>().freeIndices());
+					zombieStates.reserve(EntitySystem::GetPool<ZombieLC>().size());
 					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
 						ZombiePacket packet;
 						packet.onlineId = zombie.onlineId;
@@ -296,8 +296,8 @@ int main(int argv, char* argc[])
 
 			physics.runPhysics(CLIENT_TIME_STEP);
 
-			combat.runAttackCheck<ServerPlayerLC, ZombieLC>();
-			combat.runAttackCheck<ZombieLC, ServerPlayerLC>();
+			combat.runAttackCheck(CLIENT_TIME_STEP);
+			combat.runAttackCheck(CLIENT_TIME_STEP);
 			
 			size_t size = ctrls.size();
 			ctrls.clear();

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "KillCommand.h"
 #include "ClientPlayerLC.h"
+#include "EntityBaseComponent.h"
 
 std::string KillCommand::getTag() const {
 	return "kill";
@@ -8,6 +9,6 @@ std::string KillCommand::getTag() const {
 
 void KillCommand::onCommand(const std::vector<std::string>& args) {
 	for (auto& player : EntitySystem::GetPool<ClientPlayerLC>()) {
-		player.die();
+		EntitySystem::GetComp<EntityBaseComponent>(player.getId())->isDead = true;
 	}
 }

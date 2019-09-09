@@ -6,7 +6,7 @@
 #include "PhysicsAABB.h"
 #include "HeadParticleLC.h"
 #include "PositionComponent.h"
-
+#include "DirectionComponent.h"
 
 
 PlayerGC::PlayerGC(EntityId id_) :
@@ -69,12 +69,13 @@ void PlayerGC::updateState(double timeDelta) {
 	PlayerStateComponent * player = EntitySystem::GetComp<PlayerStateComponent>(id);
 	if (player != nullptr) {
 		RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
+		DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
 		AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
 		PlayerState state = player->playerState;
 
 		int width = animSprite.getObjRes().abs().x;
 		int height = animSprite.getObjRes().abs().y;
-		animSprite.setObjRes(Vec2i{ state.facing * width, height });
+		animSprite.setObjRes(Vec2i{ direction->dir * width, height });
 
 		State plrState = state.state;
 		static bool shouldSpawnParticles = false;
@@ -142,18 +143,18 @@ void PlayerGC::updateState(double timeDelta) {
 			shouldSpawnParticles = false;
 			float offset = 7;
 			Vec2f spawnPos = state.pos;
-			spawnPos.x += offset * state.facing;
+			spawnPos.x += offset * direction->dir;
 			spawnPos.y -= 15;
 			if (state.activeAttack == 1) {
-				Particle p1{ spawnPos, -90 + 36.0f * state.facing, 1.6f, 100, 0 };
+				Particle p1{ spawnPos, -90 + 36.0f * direction->dir, 1.6f, 100, 0 };
 				GLRenderer::SpawnParticles("blood", 5, p1, 2.0f, 0.0f, 0.0f, { 0.3f, 3.0f });
 			}
 			else if (state.activeAttack == 2) {
-				Particle p1{ spawnPos, -90 + 35.0f * state.facing, 2.0f, 100, 0 };
+				Particle p1{ spawnPos, -90 + 35.0f * direction->dir, 2.0f, 100, 0 };
 				GLRenderer::SpawnParticles("blood", 7, p1, 23.0f, 0.0f, 0.0f, { 0.3f, 3.0f });
 			}
 			else if (state.activeAttack == 3) {
-				Particle p1{ spawnPos, -90 + 53.0f * state.facing, 2.4f, 150, 0 };
+				Particle p1{ spawnPos, -90 + 53.0f * direction->dir, 2.4f, 150, 0 };
 				GLRenderer::SpawnParticles("blood", 15, p1, 35.0f, 0.0f, 0.0f, { 0.5f, 1.0f });
 			}
 		}

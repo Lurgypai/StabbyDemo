@@ -21,6 +21,17 @@ Attack::Attack() :
 	speed{1.0}
 {}
 
+Attack::Attack(int restartDelayMax_, double frameDelay_) :
+	restartDelayMax{ restartDelayMax_ },
+	frameDelay{ frameDelay_ },
+
+	currFrame{ 0 },
+	nextIsBuffered{ false },
+	active{ 0 },
+	restartDelay{ 0 },
+	speed{ 1.0 }
+{}
+
 void Attack::setActive(int i) {
 	if (i >= 0 && i < hitboxes.size())
 		active = i;
@@ -45,12 +56,13 @@ bool Attack::getNextIsBuffered() const {
 void Attack::startAttacking() {
 	if (restartDelay == restartDelayMax) {
 		active = 1;
+		attackChanged = true;
 	}
 }
 
-Hitbox * Attack::getActive() {
+const Hitbox * Attack::getActive() const {
 	if (active != 0 && active <= hitboxes.size()) {
-		Hitbox * hitbox = &hitboxes[active - 1];
+		const Hitbox * hitbox = &hitboxes[active - 1];
 		if (hitbox->startup < currFrame && currFrame < hitbox->startup + hitbox->active) {
 			return hitbox;
 		}
@@ -74,7 +86,7 @@ void Attack::bufferNext() {
 	nextIsBuffered = true;
 }
 
-void Attack::update(double timeDelta, Vec2f pos, Vec2f res, int facing) {
+void Attack::update(double timeDelta, Vec2f pos, int facing) {
 	if (restartDelay != restartDelayMax) {
 		++restartDelay;
 		return;
@@ -84,19 +96,19 @@ void Attack::update(double timeDelta, Vec2f pos, Vec2f res, int facing) {
 		Hitbox& hbox = hitboxes[active - 1];
 		Vec2f offset = hbox.offset;
 		if(facing == -1)
-			offset.x = (-(hbox.hit.res.x - res.x)) - offset.x;
+			offset.x = -(offset.x + hbox.hit.res.x);
 
 		hbox.hit.pos = (pos + offset);
 	}
 
 	//if a hitbox is running, keep moving through the frames. 
 	if (active != 0 && currFrame < hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending) {
-		//skip delay. wait a frame so that we get multiple hits
 		if (nextIsBuffered && currFrame > hitboxes[active - 1].startup + hitboxes[active - 1].active && active < hitboxes.size()) {
 			++active;
 			currFrame = 0;
 			elapsedTime = 0;
 			nextIsBuffered = false;
+			attackChanged = true;
 		}
 		else {
 			elapsedTime += timeDelta;
@@ -115,4 +127,16 @@ void Attack::update(double timeDelta, Vec2f pos, Vec2f res, int facing) {
 		nextIsBuffered = false;
 		restartDelay = 0;
 	}
+}
+
+void Attack::addHitbox(Hitbox && hitbox) {
+	hitboxes.emplace_back(hitbox);
+}
+
+bool Attack::pollAttackChange() {
+	if (attackChanged) {
+		attackChanged = false;
+		return true;
+	}
+	return false;
 }

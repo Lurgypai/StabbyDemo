@@ -9,37 +9,28 @@
 #include "PlayerStateComponent.h"
 #include "CombatComponent.h"
 
-class PlayerLC : public CombatComponent {
+class PlayerLC {
 public:
 	PlayerLC(EntityId id_ = 0);
 	void update(double timeDelta, const Controller& controller);
 	PhysicsComponent * getPhysics();
 	Vec2f getVel() const;
 	Vec2f getRes() const;
-	Attack& getAttack();
-	int getActiveId();
 	void respawn();
 
-	void heal(int amount);
-	virtual void damage(int amount) override;
-	virtual void die() override;
-	virtual void onAttackLand() override;
-	virtual AABB * getActiveHitbox() override;
-	virtual int getActiveDamage() override;
-	virtual bool readAttackChange() override;
-	virtual const AABB * getHurtboxes(int * size) const override;
-	virtual void updateHurtboxes() override;
+	EntityId getId() const;
 
 	const static int PLAYER_WIDTH = 4;
 	const static int PLAYER_HEIGHT = 20;
 protected:
+	EntityId id;
+
 	void free(const Controller & controller, bool attackToggledDown_);
 	//as a multiple of acceleration
 	float jumpSpeed;
 	//for only getting hit once per slash
 	bool isBeingHit;
 	double stepDistance;
-	Attack attack;
 	bool attackBuffered;
 
 	bool prevButton2;
@@ -61,3 +52,11 @@ protected:
 	
 	State storedState;
 };
+
+/*
+set everything with direction to use direction component
+complete the implementation of the CombatComponent
+add the AttackStats struct
+
+Begin implementation of Effects
+*/

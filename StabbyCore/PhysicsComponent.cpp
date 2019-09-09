@@ -11,14 +11,16 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 	grounded{false},
 	frozen{false}
 {
-	if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<PositionComponent>(1, &id);
-		PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
-		posComp->pos = collider.pos;
-	}
-	else {
-		PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
-		collider.pos = posComp->pos;
+	if (id != 0) {
+		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<PositionComponent>(1, &id);
+			PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
+			posComp->pos = collider.pos;
+		}
+		else {
+			PositionComponent * posComp = EntitySystem::GetComp<PositionComponent>(id);
+			collider.pos = posComp->pos;
+		}
 	}
 }
 
