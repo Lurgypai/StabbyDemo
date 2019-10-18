@@ -22,10 +22,10 @@
 #include "ServerClientData.h"
 #include "Settings.h"
 #include "PhysicsSystem.h"
-#include "ZombieSpawner.h"
 #include "CombatSystem.h"
 #include "EntityBaseComponent.h"
 #include "Host.h"
+#include "AttackManager.h"
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
@@ -116,8 +116,8 @@ int main(int argv, char* argc[])
 	PhysicsSystem physics{};
 	physics.setStage(&stage);
 	CombatSystem combat{};
-
-	ZombieSpawner zombieSpawner{0};
+	AttackManager attacks{};
+	attacks.loadAttacks("attacks/default");
 
 	NetworkId clientId = 0;
 
@@ -155,6 +155,11 @@ int main(int argv, char* argc[])
 					}
 
 					users.emplace_back(std::make_unique<User>(User{clientId, std::make_unique<Connection>(*event.peer, clientId, currentTick) }));
+					users.back()->getCombat().attack = attacks.cloneAttack("player_sword");
+					users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
+					users.back()->getCombat().teamId = users.back()->getNetId();
+					users.back()->getCombat().health = 100;
+					users.back()->getCombat().stats = CombatStats{100, 0, 0, 20, 0.0f, 0.0f, 0.0f, 0.0f};
 					break;
 				case ENET_EVENT_TYPE_RECEIVE:
 					if (event.packet->dataLength == 0) {
@@ -228,8 +233,6 @@ int main(int argv, char* argc[])
 				++packetsPolled;
 			}
 
-			zombieSpawner.trySpawnZombies(gameTime);
-
 			//move
 			for (auto& user : users) {
 				user->getPlayer().update(gameTime);
@@ -253,50 +256,18 @@ int main(int argv, char* argc[])
 					pos.serialize();
 					states.push_back(pos);
 					pos.unserialize();
-					pos.unserialize();
-				}
-
-				std::vector<ZombiePacket> zombieStates;
-				if (EntitySystem::Contains<ZombieLC>()) {
-					zombieStates.reserve(EntitySystem::GetPool<ZombieLC>().size());
-					for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
-						ZombiePacket packet;
-						packet.onlineId = zombie.onlineId;
-						packet.state = zombie.getState();
-						packet.isDead = EntitySystem::GetComp<EntityBaseComponent>(zombie.getId())->isDead;
-						packet.serialize();
-						zombieStates.push_back(packet);
-					}
 				}
 
 				for (auto& other : users) {
 					//send the contiguous state block
 					server.sendData(other->getConnection()->getPeer(), 1, states.data(), sizeof(StatePacket) * states.size());
-					if (EntitySystem::Contains<ZombieLC>()) {
-						Time_t clientTime = htonll(other->getPlayer().clientTime);
-						enet_uint8 * packet = static_cast<enet_uint8 *>(malloc(sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size()));
-						memcpy(packet, zombieStates.data(), sizeof(ZombiePacket) * zombieStates.size());
-						memcpy(packet + (sizeof(ZombiePacket) * zombieStates.size()), &clientTime, sizeof(Time_t));
-
-						server.sendData(other->getConnection()->getPeer(), 2, packet, sizeof(Time_t) + sizeof(ZombiePacket) * zombieStates.size());
-						free(packet);
-					}
 				}
 
 				//cleanup after server update, so that all "dead" states can be sent
 				EntitySystem::FreeDeadEntities();
 			}
 
-			if (EntitySystem::Contains<ZombieLC>()) {
-				for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
-					zombie.searchForTarget<ServerPlayerLC>();
-					zombie.runLogic();
-				}
-			}
-
 			physics.runPhysics(CLIENT_TIME_STEP);
-
-			combat.runAttackCheck(CLIENT_TIME_STEP);
 			combat.runAttackCheck(CLIENT_TIME_STEP);
 			
 			size_t size = ctrls.size();

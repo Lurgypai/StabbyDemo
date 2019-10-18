@@ -71,6 +71,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 					Attack & attack = combat->attack;
 					attack.setActive(state.activeAttack);
 					attack.setFrame(state.attackFrame);
+					combat->health = state.health;
 
 					//move our remaining values out, and then clear
 					std::deque<TotalPlayerState> toUpdate{ std::move(states) };

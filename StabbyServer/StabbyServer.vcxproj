@@ -91,14 +91,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyServer;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyServer;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\x64\Debug;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\x64\Debug;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>StabbyCore.lib;ws2_32.lib;winmm.lib;enet64.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

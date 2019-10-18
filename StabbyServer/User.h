@@ -17,6 +17,7 @@ public:
 	PhysicsComponent & getPhysics();
 	PositionComponent & getPosition();
 	PlayerStateComponent & getPlayerState();
+	CombatComponent & getCombat();
 
 private:
 	EntityId id;

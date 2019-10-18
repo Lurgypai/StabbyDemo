@@ -10,6 +10,7 @@ User::User(NetworkId id_, ConnectionPtr && con_) :
 	EntitySystem::GenEntities(1, &id);
 	EntitySystem::MakeComps<ServerPlayerLC>(1, &id);
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+	EntitySystem::MakeComps<CombatComponent>(1, &id);
 	EntitySystem::GetComp<PhysicsComponent>(id)->setRes({ -2, -20 });
 	EntitySystem::GetComp<PhysicsComponent>(id)->setRes(Vec2f{ static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT) });
 	EntitySystem::GetComp<PhysicsComponent>(id)->weight = 3;
@@ -41,4 +42,8 @@ PositionComponent & User::getPosition() {
 
 PlayerStateComponent & User::getPlayerState() {
 	return *EntitySystem::GetComp<PlayerStateComponent>(id);
+}
+
+CombatComponent& User::getCombat() {
+	return *EntitySystem::GetComp<CombatComponent>(id);
 }

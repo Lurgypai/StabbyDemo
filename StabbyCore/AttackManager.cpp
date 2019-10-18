@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <fstream>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 void AttackManager::loadAttacks(const std::string & attackDir) {
 	fs::path path{ attackDir };

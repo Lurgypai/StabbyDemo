@@ -38,16 +38,14 @@
 #include "HealthPickupGC.h"
 #include "ServerClientData.h"
 #include "RandomUtil.h"
-#include "ZombieGC.h"
 #include "StartCommand.h"
-#include "SpawnZombieCommand.h"
 #include "KillCommand.h"
 #include "FrameByFrameCommand.h"
 #include "AttackSpeedCommand.h"
 #include "MoveSpeedCommand.h"
 
-const int windowWidth = 1920 / 2;
-const int windowHeight = 1080 /2;
+const int windowWidth = 1920;
+const int windowHeight = 1080;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -71,6 +69,7 @@ extern "C" {
 }
 */
 
+Game game{};
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -117,7 +116,6 @@ int main(int argc, char* argv[]) {
 	EntitySystem::MakeComps<RenderComponent>(1, &testComp);
 	EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/redpixel.png");
 
-	Game game{};
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
 
@@ -127,7 +125,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
 	DebugIO::getCommandManager().registerCommand<AttackSpeedCommand>(AttackSpeedCommand{ game });
 	DebugIO::getCommandManager().registerCommand<MoveSpeedCommand>(MoveSpeedCommand{ game });
-	DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
+	//DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
 	DebugIO::getCommandManager().registerCommand<KillCommand>();
 
 	bool doFBF{ false };
@@ -319,12 +317,14 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
+					/*
 					if (EntitySystem::Contains<ZombieLC>()) {
 						for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
 							zombie.searchForTarget<PlayerLC>();
 							zombie.runLogic();
 						}
 					}
+					*/
 
 					//game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
 
@@ -410,11 +410,13 @@ int main(int argc, char* argv[]) {
 					}
 				}
 
+				/*
 				if (EntitySystem::Contains<ZombieGC>()) {
 					for (auto & comp : EntitySystem::GetPool<ZombieGC>()) {
 						comp.updateState(gfxDelay);
 					}
 				}
+				*/
 
 				if (EntitySystem::Contains<HealthPickupGC>()) {
 					for (auto & comp : EntitySystem::GetPool<HealthPickupGC>()) {

@@ -161,8 +161,6 @@ private:
 
 	static const std::string Folder;
 	static ParticleSystem particleSystem;
-	
-	//look in suqua, incomplete
 };
 
 /*

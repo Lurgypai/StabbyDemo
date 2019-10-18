@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -90,7 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -160,6 +160,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Attack.h" />
+    <ClInclude Include="BehaviourNode.h" />
+    <ClInclude Include="BehaviourTree.h" />
     <ClInclude Include="CombatComponent.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="ComputeShader.h" />

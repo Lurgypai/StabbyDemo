@@ -50,7 +50,7 @@ Vec2<T> operator-(Vec2<T> us) {
 }
 
 template<typename T>
-Vec2<T>::Vec2() {}
+Vec2<T>::Vec2() : x{}, y{} {}
 
 template<typename T>
 Vec2<T>::Vec2(T x_, T y_) :

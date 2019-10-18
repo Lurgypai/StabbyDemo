@@ -16,13 +16,14 @@ ZombieGC::ZombieGC(EntityId id_) :
 void ZombieGC::loadAnimations() {
 	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
 	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
 	//keep in mind graphics gale starts at frame 1, not 0
 	animSprite.addAnimation(0, 0, 11);
 	animSprite.addAnimation(1, 12, 23);
 	animSprite.setAnimation(1);
 
-	Vec2f res = { 4.0f, 20.0f };
+	Vec2f res = physics->getRes();
 	render->offset = Vec2f{ (animSprite.getObjRes().abs().x - res.x) / 2, (animSprite.getObjRes().abs().y - res.y) };
 }
 

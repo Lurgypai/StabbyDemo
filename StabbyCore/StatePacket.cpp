@@ -3,7 +3,7 @@
 
 void StatePacket::serialize() {
 	id = htonll(id);
-	when = htonll(id);
+	when = htonll(when);
 	state.when = htonll(state.when);
 	state.rollFrame = htonl(state.rollFrame);
 	state.activeAttack = htonl(state.activeAttack);
@@ -26,7 +26,7 @@ void StatePacket::serialize() {
 
 void StatePacket::unserialize() {
 	id = ntohll(id);
-	when = ntohll(id);
+	when = ntohll(when);
 	state.when = ntohll(state.when);
 	state.rollFrame = ntohl(state.rollFrame);
 	state.activeAttack = ntohl(state.activeAttack);

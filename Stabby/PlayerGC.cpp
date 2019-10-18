@@ -15,8 +15,14 @@ PlayerGC::PlayerGC(EntityId id_) :
 	prevXVel{0},
 	prevAttack{0}
 {
-	if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<RenderComponent>(1, &id);
+	if (id != 0) {
+		if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<RenderComponent>(1, &id);
+		}
+		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<DirectionComponent>(1, &id);
+			EntitySystem::GetComp<DirectionComponent>(id)->dir = 1;
+		}
 	}
 }
 

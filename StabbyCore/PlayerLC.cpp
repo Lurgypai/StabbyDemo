@@ -63,7 +63,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 	PlayerState& state = playerState->playerState;
 	Attack & attack = combat->attack;
-
+	
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
 	if (prevButton2 != currButton2) {
@@ -117,6 +117,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 				vel.x = (rollVel * state.moveSpeed * direction->dir) + (dir * 80 * state.moveSpeed);
 			}
 			else {
+				combat->invulnerable = false;
 				state.rollFrame = 0;
 				vel.x = storedVel;
 				state.state = State::free;
@@ -147,9 +148,13 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 		}
 	}
 
+	if (combat->health <= 0)
+		state.state = State::dead;
+
 	state.pos = comp->getPos();
 	state.vel = comp->vel;
 	state.facing = direction->dir;
+	state.health = combat->health;
 
 	//DebugIO::setLine(6, std::to_string(state.health));
 }
@@ -172,14 +177,15 @@ void PlayerLC::respawn() {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerState & state = playerState->playerState;
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+
+	combat->health = 100;
 
 	state.state = State::free;
-	state.health = 100;
 	state.activeAttack = 0;
 	state.attackFrame = 0;
 
-	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
-	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
+	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);\
 	Attack & attack = combat->attack;
 
 	position->pos = Vec2f{static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
@@ -223,6 +229,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 			prevButton3 = currButton3;
 			if (currButton3) {
 				state.state = State::rolling;
+				combat->invulnerable = true;
 				storedVel = vel.x;
 				vel.x = direction->dir * rollVel;
 			}

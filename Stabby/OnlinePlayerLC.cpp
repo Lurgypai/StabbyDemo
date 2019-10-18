@@ -4,19 +4,22 @@
 #include "SDL.h"
 #include "ServerClientData.h"
 #include "PositionComponent.h"
+#include "DirectionComponent.h"
 
 OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 	id{ id_ },
 	netId{ 0 },
-	previousPos{},
+	previousPos{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
 	whens{}
 {
-	if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<PositionComponent>(1, &id);
-	}
-	if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
-		EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
-		EntitySystem::GetComp<PlayerStateComponent>(id)->playerState.facing = 1;
+	if (id != 0) {
+		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		}
+		if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
+			EntitySystem::GetComp<PlayerStateComponent>(id)->playerState.facing = 1;
+		}
 	}
 }
 
@@ -35,14 +38,10 @@ EntityId OnlinePlayerLC::getId() const {
 void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent *playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	DirectionComponent * dir = EntitySystem::GetComp<DirectionComponent>(id);
 	PlayerState & state = playerState->playerState;
 
 	state = st;
-
-	if (state.vel.x < 0)
-		state.facing = -1;
-	else if(state.vel.x > 0)
-		state.facing = 1;
 
 	previousPos[0] = previousPos[1];
 	previousPos[1] = previousPos[2];
@@ -54,6 +53,7 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 
 	state.pos = previousPos[1];
 	position->pos = previousPos[1] - Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH) / 2, static_cast<float>(PlayerLC::PLAYER_HEIGHT)};
+	dir->dir = state.facing;
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {

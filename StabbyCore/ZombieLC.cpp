@@ -27,7 +27,7 @@ ZombieLC::ZombieLC(EntityId id_) :
 		if (!EntitySystem::Contains<CombatComponent>() || EntitySystem::GetComp<CombatComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<PhysicsComponent>(1, &id);
 			CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
-
+			
 		}
 	}
 }
@@ -83,7 +83,7 @@ void ZombieLC::runLogic() {
 			physics->accelerate((75 * zombieState.facing) - 90, 300);
 			zombieState.state = State::attacking;
 			zombieState.attackChanged = true;
-			combat->attack.startAttacking();
+			//combat->attack.startAttacking();
 		}
 		break;
 	case State::attacking:

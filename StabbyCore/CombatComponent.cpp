@@ -6,7 +6,10 @@
 #include "DirectionComponent.h"
 #include "PositionComponent.h"
 
-CombatComponent::CombatComponent(EntityId id_) : id{id_}
+CombatComponent::CombatComponent(EntityId id_) :
+	id{id_},
+	invulnerable{false},
+	stats{}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
@@ -33,7 +36,7 @@ AABB CombatComponent::getBoundingBox() {
 	}
 
 	pos = min;
-	res = min - max;
+	res = max - min;
 
 	return AABB(pos, res);
 }

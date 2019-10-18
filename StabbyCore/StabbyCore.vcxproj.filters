@@ -82,6 +82,9 @@
     <Filter Include="Header Files\Game\Network\Packets">
       <UniqueIdentifier>{71f859cb-707f-404b-ac00-4c171c0169ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Engine\Behavior">
+      <UniqueIdentifier>{e18d6021-2624-4dbc-b23e-ef25a1295419}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -257,6 +260,12 @@
     </ClInclude>
     <ClInclude Include="AttackManager.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="BehaviourTree.h">
+      <Filter>Header Files\Engine\Behavior</Filter>
+    </ClInclude>
+    <ClInclude Include="BehaviourNode.h">
+      <Filter>Header Files\Engine\Behavior</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
