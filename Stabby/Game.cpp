@@ -46,6 +46,7 @@ void Game::startOnlineGame(const std::string & address, int port) {
 	EntitySystem::GenEntities(1, &playerId);
 	EntitySystem::MakeComps<ClientPlayerLC>(1, &playerId);
 	EntitySystem::GetComp<ClientPlayerLC>(playerId)->setPhysics(physics);
+	EntitySystem::GetComp<ClientPlayerLC>(playerId)->setCombat(combat);
 	EntitySystem::GetComp<CombatComponent>(playerId)->attack = attacks.cloneAttack("player_sword");
 	EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 	EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;

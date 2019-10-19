@@ -279,6 +279,8 @@ void Client::receive(ENetEvent & e) {
 		EntitySystem::GenEntities(ids.size(), &entities[0]);
 		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), &entities[0]);
 		EntitySystem::MakeComps<PlayerGC>(entities.size(), &entities[0]);
+		EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
+		EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
 
 		for (int i = 0; i != ids.size(); ++i) {
 			EntityId entity = entities[i];
@@ -286,6 +288,8 @@ void Client::receive(ENetEvent & e) {
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
 			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
+			EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
+			EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
 		}
 	}
 }

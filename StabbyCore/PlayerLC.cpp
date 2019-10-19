@@ -15,8 +15,6 @@ PlayerLC::PlayerLC(EntityId id_) :
 	rollVel{220},
 	storedVel{0},
 	rollFrameMax{68},
-	stunFrameMax{80},
-	stunSlideSpeed{10},
 	deathFrame{0},
 	deathFrameMax{200},
 	attackFreezeFrameMax{17},
@@ -82,15 +80,10 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	if (!comp->frozen) {
 		switch (state.state) {
 		case State::stunned:
-			if (state.stunFrame == 0) {
+			if (combat->isStunned()) {
 				vel.x = 0;
-				++state.stunFrame;
-			}
-			else if (state.stunFrame != stunFrameMax) {
-				++state.stunFrame;
 			}
 			else {
-				state.stunFrame = 0;
 				state.state = State::free;
 			}
 			break;
@@ -99,8 +92,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 			if (attack.getActiveId() == 0)
 				state.state = State::free;
 
-			state.activeAttack = attack.getActiveId();
-			state.attackFrame = attack.getCurrFrame();
 			break;
 		case State::rolling:
 			if (state.rollFrame != rollFrameMax) {
@@ -151,10 +142,17 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	if (combat->health <= 0)
 		state.state = State::dead;
 
+	else if (combat->isStunned())
+		state.state = State::stunned;
+
 	state.pos = comp->getPos();
 	state.vel = comp->vel;
 	state.facing = direction->dir;
 	state.health = combat->health;
+	state.stunFrame = combat->stunFrame;
+
+	state.activeAttack = attack.getActiveId();
+	state.attackFrame = attack.getCurrFrame();
 
 	//DebugIO::setLine(6, std::to_string(state.health));
 }
@@ -180,6 +178,7 @@ void PlayerLC::respawn() {
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 
 	combat->health = 100;
+	combat->stunFrame = 0;
 
 	state.state = State::free;
 	state.activeAttack = 0;
@@ -222,7 +221,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		}
 	}
 
-	//try to start attack
+	//try to start rolling
 	if (state.state != State::attacking) {
 		bool currButton3 = controller[ControllerBits::BUTTON_3];
 		if (prevButton3 != currButton3) {

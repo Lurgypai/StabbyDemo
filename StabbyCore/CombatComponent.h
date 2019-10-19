@@ -33,9 +33,12 @@ public:
 
 	AABB getBoundingBox();
 	const Hitbox * getActiveHitbox() const;
+	unsigned int getStun();
+	bool isStunned();
 
-	void damage(int i);
-	void heal(int i);
+	void damage(unsigned int i);
+	void heal(unsigned int i);
+	void stun(unsigned int i);
 
 	//runs damage calculations and returns the result
 	int rollDamage();
@@ -44,17 +47,20 @@ public:
 	CombatStats stats;
 	int health;
 	unsigned int teamId;
+	unsigned int stunFrame;
 	bool invulnerable;
 	std::vector<Hurtbox> hurtboxes;
 private:
+	void updateStun();
 	void updateHurtboxes();
 
 	//effects triggers
 	void onAttackLand();
 	void onKill();
 	void onDeath();
-	void onHeal(int amount);
-	void onDamage(int amount);
+	void onHeal(unsigned int amount);
+	void onDamage(unsigned int amount);
+	void onStun(unsigned int amount);
 
 	bool attackChanged;
 	EntityId id;

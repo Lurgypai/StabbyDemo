@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -29,8 +30,9 @@ void AttackManager::loadAttacks(const std::string & attackDir) {
 				unsigned int startup = hitbox["startup"];
 				unsigned int active = hitbox["active"];
 				unsigned int ending = hitbox["ending"];
+				unsigned int stun = hitbox["stun"];
 
-				attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending });
+				attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stun});
 			}
 
 			attacks.insert(std::pair{ file.path().stem().string(), attack });

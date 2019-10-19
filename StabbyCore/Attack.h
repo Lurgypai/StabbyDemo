@@ -9,6 +9,7 @@ struct Hitbox {
 	unsigned int startup;
 	unsigned int active;
 	unsigned int ending;
+	unsigned int stun;
 };
 
 class Attack {

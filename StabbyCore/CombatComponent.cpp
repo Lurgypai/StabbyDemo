@@ -9,7 +9,8 @@
 CombatComponent::CombatComponent(EntityId id_) :
 	id{id_},
 	invulnerable{false},
-	stats{}
+	stats{},
+	stunFrame{0}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
@@ -67,27 +68,51 @@ void CombatComponent::onDeath()
 {
 }
 
-void CombatComponent::onHeal(int amount)
+void CombatComponent::onHeal(unsigned int amount)
 {
 }
 
-void CombatComponent::onDamage(int amount)
+void CombatComponent::onDamage(unsigned int amount)
 {
+}
+
+void CombatComponent::onStun(unsigned int amount) {
 }
 
 const Hitbox * CombatComponent::getActiveHitbox() const {
 	return attack.getActive();
 }
 
-void CombatComponent::damage(int i) {
+unsigned int CombatComponent::getStun() {
+	auto activeAttack = attack.getActive();
+	return activeAttack == nullptr ? 0 : activeAttack->stun;
+}
+
+bool CombatComponent::isStunned() {
+	return stunFrame != 0;
+}
+
+void CombatComponent::updateStun() {
+	if (stunFrame > 0)
+		--stunFrame;
+	else
+		stunFrame = 0;
+}
+
+void CombatComponent::damage(unsigned int i) {
 	if (!invulnerable)
 		health -= i;
 	onDamage(i);
 }
 
-void CombatComponent::heal(int i) {
+void CombatComponent::heal(unsigned int i) {
 	health += i;
 	onHeal(i);
+}
+
+void CombatComponent::stun(unsigned int i) {
+	stunFrame = i;
+	onStun(i);
 }
 
 int CombatComponent::rollDamage() {

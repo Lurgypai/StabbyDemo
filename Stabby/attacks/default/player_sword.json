@@ -8,7 +8,8 @@
             "offset_y": -21,
             "startup": 8,
             "active": 12,
-            "ending": 16
+            "ending": 16,
+            "stun": 40
         },
         {
             "width": 20,
@@ -17,7 +18,8 @@
             "offset_y": -21,
             "startup": 8,
             "active": 20,
-            "ending": 16
+            "ending": 16,
+            "stun": 40
         },
         {
             "width": 30,
@@ -26,7 +28,8 @@
             "offset_y": -25,
             "startup": 8,
             "active": 32,
-            "ending": 8
+            "ending": 8,
+            "stun": 40
         }
     ]
 }

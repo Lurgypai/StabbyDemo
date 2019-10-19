@@ -41,8 +41,6 @@ protected:
 	float storedVel;
 	int rollFrameMax;
 
-	float stunSlideSpeed;
-	int stunFrameMax;
 	int attackFreezeFrameMax;
 
 	int deathFrame;

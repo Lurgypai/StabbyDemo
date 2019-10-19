@@ -44,8 +44,8 @@
 #include "AttackSpeedCommand.h"
 #include "MoveSpeedCommand.h"
 
-const int windowWidth = 1920;
-const int windowHeight = 1080;
+const int windowWidth = 1920 / 2;
+const int windowHeight = 1080 / 2;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -256,8 +256,6 @@ int main(int argc, char* argv[]) {
 
 				if (client.getConnected()) {
 
-					game.combat.runAttackCheck(CLIENT_TIME_STEP);
-
 					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
 
@@ -327,11 +325,10 @@ int main(int argc, char* argv[]) {
 					*/
 
 					//game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
-
-					game.combat.runAttackCheck(CLIENT_TIME_STEP);
 				}
 
 				physics.runPhysics(CLIENT_TIME_STEP);
+				game.combat.runAttackCheck(CLIENT_TIME_STEP);
 
 
 				if (EntitySystem::Contains<HeadParticleLC>()) {

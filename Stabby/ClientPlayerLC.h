@@ -18,6 +18,7 @@ public:
 	//Repredict current loc using correct position at time when.
 	void repredict(const PlayerState & state);
 	void setPhysics(PhysicsSystem & physics);
+	void setCombat(CombatSystem & combat);
 	std::string getHeadPath();
 	Vec2f getCenter();
 private:
@@ -25,4 +26,5 @@ private:
 	Time_t last;
 	std::deque<TotalPlayerState> states;
 	PhysicsSystem * physicsSystem;
+	CombatSystem * combatSystem;
 };

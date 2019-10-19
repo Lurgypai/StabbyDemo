@@ -5,6 +5,7 @@
 #include "ServerClientData.h"
 #include "PositionComponent.h"
 #include "DirectionComponent.h"
+#include "CombatComponent.h"
 
 OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 	id{ id_ },
@@ -19,6 +20,9 @@ OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 		if (!EntitySystem::Contains<PlayerStateComponent>() || EntitySystem::GetComp<PlayerStateComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<PlayerStateComponent>(1, &id);
 			EntitySystem::GetComp<PlayerStateComponent>(id)->playerState.facing = 1;
+		}
+		if (!EntitySystem::Contains<CombatComponent>() || EntitySystem::GetComp<CombatComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<CombatComponent>(1, &id);
 		}
 	}
 }
@@ -51,23 +55,17 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	whens[1] = whens[2];
 	whens[2] = when;
 
-	state.pos = previousPos[1];
-	position->pos = previousPos[1] - Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH) / 2, static_cast<float>(PlayerLC::PLAYER_HEIGHT)};
+	state.pos = previousPos[0];
+	position->pos = previousPos[0] - Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH) / 2, static_cast<float>(PlayerLC::PLAYER_HEIGHT)};
 	dir->dir = state.facing;
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-	//switch to server ticks
-	//this is how long we want to tak to get from where we are to where we are going
-	int front = 2;
-	if (gameTime > whens[front] && (gameTime - whens[front]) * GAME_TIME_STEP < 0.1)
-		front = 1;
 
-
-	double delta = static_cast<double>(whens[front] - whens[front - 1]) * GAME_TIME_STEP;
 	//this is how long it is between each update.
+	double delta = static_cast<double>(whens[1] - whens[0]) * GAME_TIME_STEP;
 
-	Vec2f moveDistance = (previousPos[front] - previousPos[front - 1]) * static_cast<float>(CLIENT_TIME_STEP / delta);
+	Vec2f moveDistance = (previousPos[1] - previousPos[0]) * static_cast<float>(CLIENT_TIME_STEP / delta);
 	position->pos += moveDistance;
 }

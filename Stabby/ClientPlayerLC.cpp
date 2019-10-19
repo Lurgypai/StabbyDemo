@@ -34,7 +34,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 				auto backup = states;
 				states.erase(states.begin(), states.begin() + i + 1);
 				if (tstate.plr != state) {
-					std::cout << "Prediction failed, re-predicting at time:" << state.when << '\n';
+					std::cout << "Prediction failed, re-predicting at time: " << state.when << '\n';
 					if (state.state != tstate.plr.state)
 						std::cout << "state: " << static_cast<int>(tstate.plr.state) << ", " << static_cast<int>(state.state) << '\n';
 					if (state.rollFrame != tstate.plr.rollFrame)
@@ -72,6 +72,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 					attack.setActive(state.activeAttack);
 					attack.setFrame(state.attackFrame);
 					combat->health = state.health;
+					combat->stunFrame = state.stunFrame;
 
 					//move our remaining values out, and then clear
 					std::deque<TotalPlayerState> toUpdate{ std::move(states) };
@@ -79,8 +80,10 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 
 					//now reevaulate, this will refill states
 					for (auto& updateState : toUpdate) {
+						combatSystem->runAttackCheck(CLIENT_TIME_STEP, id);
 						physicsSystem->runPhysics(CLIENT_TIME_STEP, id);
 						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in});
+						//add combat updates to this
 					}
 				}
 				last = state.when;
@@ -118,6 +121,10 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 
 void ClientPlayerLC::setPhysics(PhysicsSystem & physics_) {
 	physicsSystem = &physics_;
+}
+
+void ClientPlayerLC::setCombat(CombatSystem& combat) {
+	combatSystem = &combat;
 }
 
 std::string ClientPlayerLC::getHeadPath() {
