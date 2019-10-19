@@ -8,7 +8,7 @@ Alter the port value in the 'settings' file to change hosted ported. This port n
 'disconectDelay' represents the amount of seconds a server will wait between receiving packets from the client before disconnecting them.
 'forceDisconnectDelay' if by this time in seconds a server has not received a disconnection from the client, it will force close the connection.
 
-#Runing the Client
+# Runing the Client
 In order to start playing the game, the "startgame" command must be used.
 Open the console by pressing the '~/\`' key located in the top left of your keyboard. Type the following (without quotes) to play offline
 "/startgame false"
