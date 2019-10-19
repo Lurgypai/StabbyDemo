@@ -150,16 +150,17 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\Stabby;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\JSON Api\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\Stabby;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyCore\SuquaEng0.1\header;C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\StabbyCore;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\include;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\Stabby\x64\Release;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\src;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\lib;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Tinde\Desktop\Lurgypai\CPP\Projects\StabbyDemo\x64\Release;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\glad\src;C:\Users\Tinde\Desktop\Lurgypai\CPP\mediasrc\SDL\lib;C:\Users\Tinde\Desktop\Lurgypai\CPP\enet-1.3.14.tar\enet-1.3.14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>StabbyCore.lib;enet64.lib;SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

@@ -8,6 +8,11 @@ Alter the port value in the 'settings' file to change hosted ported. This port n
 'disconectDelay' represents the amount of seconds a server will wait between receiving packets from the client before disconnecting them.
 'forceDisconnectDelay' if by this time in seconds a server has not received a disconnection from the client, it will force close the connection.
 
-# Connectiong to a Server
-Press the '~' key in the top left corner of your keyboard to open the console.
-Use the command "/connect ip_address port" where the "ip_adress" is the server ip (in the form of numbers separated by periods) and "port" is a port number.
+#Runing the Client
+In order to start playing the game, the "startgame" command must be used.
+Open the console by pressing the '~/\`' key located in the top left of your keyboard. Type the following (without quotes) to play offline
+"/startgame false"
+
+To play online type the following (without quotes)
+"/startgame true ip_address port"
+Where ip_address is the ip of the server in the form "0.0.0.0", and port is the port number.

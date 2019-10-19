@@ -63,11 +63,11 @@ void MessageCallback(GLenum source,
 		type, severity, message);
 }
 
-/*
+
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
-*/
+
 
 Game game{};
 
