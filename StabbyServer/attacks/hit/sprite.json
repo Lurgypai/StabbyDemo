@@ -1,0 +1,15 @@
+{
+    "restartDelay": 10,
+    "hitboxes": [
+        {
+            "width": 64,
+            "height": 32,
+            "offset_x": -32,
+            "offset_y": -32,
+            "startup": 4,
+            "active": 32,
+            "ending": 4,
+            "stun": 40
+        }
+    ]
+}

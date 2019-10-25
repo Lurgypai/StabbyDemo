@@ -23,6 +23,9 @@ public:
 	template<typename T, typename U>
 	void setSprite(U&& u);
 	
+	template<typename U>
+	void setSprite(std::unique_ptr<U> u);
+
 	Sprite * getSprite();
 
 	Vec2f getImgRes() const;

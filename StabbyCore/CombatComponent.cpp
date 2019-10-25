@@ -130,3 +130,7 @@ int CombatComponent::rollDamage() {
 
 	return totalDamage;
 }
+
+EntityId CombatComponent::getLastAttacker() {
+	return lastAttacker;
+}

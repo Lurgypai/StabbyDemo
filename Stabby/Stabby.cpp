@@ -43,6 +43,7 @@
 #include "FrameByFrameCommand.h"
 #include "AttackSpeedCommand.h"
 #include "MoveSpeedCommand.h"
+#include "WeaponCommand.h"
 
 const int windowWidth = 1920 / 2;
 const int windowHeight = 1080 / 2;
@@ -67,6 +68,7 @@ void MessageCallback(GLenum source,
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
+
 
 
 Game game{};
@@ -111,10 +113,13 @@ int main(int argc, char* argv[]) {
 	GLRenderer::getCamera(playerCamId).pos = { -titleRender->getImgRes().x / 2 , -300 };
 
 	
+	/*
 	EntityId testComp;
 	EntitySystem::GenEntities(1, &testComp);
 	EntitySystem::MakeComps<RenderComponent>(1, &testComp);
-	EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/redpixel.png");
+	EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/reddot.png");
+	EntitySystem::GetComp<RenderComponent>(testComp)->setObjRes({ 0, 0 });
+	*/
 
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
@@ -127,12 +132,14 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<MoveSpeedCommand>(MoveSpeedCommand{ game });
 	//DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
 	DebugIO::getCommandManager().registerCommand<KillCommand>();
+	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
 
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
 	Controller controller;
 
-	game.attacks.loadAttacks("attacks/default");
+	game.weapons.loadAttacks("attacks/hit");
+	game.weapons.loadAnimations("attacks/asset");
 
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer fb{};

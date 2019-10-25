@@ -216,6 +216,8 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TimestampPacket.h" />
     <ClInclude Include="AttackManager.h" />
+    <ClInclude Include="WeaponChangePacket.h" />
+    <ClInclude Include="WeaponManager.h" />
     <ClInclude Include="WelcomePacket.h" />
     <ClInclude Include="ZombieLC.h" />
     <ClInclude Include="ZombiePacket.h" />
@@ -273,6 +275,8 @@
     <ClCompile Include="SuquaEng0.1\src\TypeData.cpp" />
     <ClCompile Include="TimestampPacket.cpp" />
     <ClCompile Include="AttackManager.cpp" />
+    <ClCompile Include="WeaponChangePacket.cpp" />
+    <ClCompile Include="WeaponManager.cpp" />
     <ClCompile Include="WelcomePacket.cpp" />
     <ClCompile Include="ZombieLC.cpp" />
     <ClCompile Include="ZombiePacket.cpp" />

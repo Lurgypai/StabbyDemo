@@ -183,6 +183,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="SpawnZombieCommand.h" />
     <ClInclude Include="StartCommand.h" />
+    <ClInclude Include="WeaponCommand.h" />
     <ClInclude Include="ZombieGC.h" />
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +211,7 @@
     <ClCompile Include="SpawnZombieCommand.cpp" />
     <ClCompile Include="Stabby.cpp" />
     <ClCompile Include="StartCommand.cpp" />
+    <ClCompile Include="WeaponCommand.cpp" />
     <ClCompile Include="ZombieGC.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

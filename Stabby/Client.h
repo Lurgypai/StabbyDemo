@@ -5,6 +5,7 @@
 #include "EntitySystem.h"
 #include "Stage.h"
 #include "Host.h"
+#include "WeaponManager.h"
 #include <deque>
 
 #define PING_COUNT 10
@@ -19,6 +20,8 @@ public:
 
 	template<typename Packet>
 	void send(Packet p);
+
+	void send(size_t size, void* data);
 
 	void service(Time_t now_);
 
@@ -39,6 +42,8 @@ public:
 	bool isBehindServer();
 	//once we've told the server the time, and what we're doing, this is done to reset that we are behind.
 	void resetBehindServer();
+
+	void setWeaponManager(WeaponManager& weapons_);
 private:
 	void receive(ENetEvent & e);
 
@@ -60,6 +65,7 @@ private:
 	bool behindServer;
 	Pool<EntityId> idTable;
 	Host client;
+	WeaponManager* weapons;
 };
 
 template<typename Packet>

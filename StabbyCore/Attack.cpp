@@ -4,26 +4,27 @@
 #include <iostream>
 
 Attack::Attack() :
-	hitboxes{
-		Hitbox{AABB{Vec2f{0, 0}, Vec2f{14, 13}},
-			Vec2f{2, -1}, 8, 12, 16},
-		Hitbox{AABB{Vec2f{0, 0}, Vec2f{20, 20}},
-			Vec2f{2, -1}, 8, 20, 16},
-		Hitbox{AABB{Vec2f{0, 0}, Vec2f{30, 25}},
-			Vec2f{-1, -5}, 8, 32, 8}
-	},
-	currFrame{0},
-	nextIsBuffered{false},
-	active{0},
-	restartDelay{0},
-	restartDelayMax{40},
-	frameDelay{1.0 / 120},
-	speed{1.0}
+	restartDelayMax{ 0 },
+	frameDelay{ 0 },
+	id{ "" },
+
+	attackChanged{ false },
+	elapsedTime{ 0.0 },
+
+	currFrame{ 0 },
+	nextIsBuffered{ false },
+	active{ 0 },
+	restartDelay{ 0 },
+	speed{ 0.0 }
 {}
 
-Attack::Attack(int restartDelayMax_, double frameDelay_) :
+Attack::Attack(const std::string& id_, int restartDelayMax_, double frameDelay_) :
 	restartDelayMax{ restartDelayMax_ },
 	frameDelay{ frameDelay_ },
+	id{ id_ },
+
+	attackChanged{ false },
+	elapsedTime{ 0.0 },
 
 	currFrame{ 0 },
 	nextIsBuffered{ false },
@@ -139,4 +140,8 @@ bool Attack::pollAttackChange() {
 		return true;
 	}
 	return false;
+}
+
+std::string Attack::getId() {
+	return id;
 }

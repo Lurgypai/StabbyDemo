@@ -25,7 +25,7 @@
 #include "CombatSystem.h"
 #include "EntityBaseComponent.h"
 #include "Host.h"
-#include "AttackManager.h"
+#include "WeaponManager.h"
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
@@ -116,8 +116,8 @@ int main(int argv, char* argc[])
 	PhysicsSystem physics{};
 	physics.setStage(&stage);
 	CombatSystem combat{};
-	AttackManager attacks{};
-	attacks.loadAttacks("attacks/default");
+	WeaponManager weapons{};
+	weapons.loadAttacks("attacks/hit");
 
 	NetworkId clientId = 0;
 
@@ -155,7 +155,7 @@ int main(int argv, char* argc[])
 					}
 
 					users.emplace_back(std::make_unique<User>(User{clientId, std::make_unique<Connection>(*event.peer, clientId, currentTick) }));
-					users.back()->getCombat().attack = attacks.cloneAttack("player_sword");
+					users.back()->getCombat().attack = weapons.cloneAttack("player_sword");
 					users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 					users.back()->getCombat().teamId = users.back()->getNetId();
 					users.back()->getCombat().health = 100;
@@ -202,6 +202,47 @@ int main(int argv, char* argc[])
 							for (auto& user : users) {
 								if (user->getNetId() == time.id) {
 									user->getPlayer().clientTime = time.clientTime - 1;
+								}
+							}
+						}
+						else if (key == WEAPON_KEY) {
+							WeaponChangePacket p{};
+							PacketUtil::readInto<WeaponChangePacket>(p, event.packet);
+							p.unserialize();
+							std::string attackId{};
+							attackId.resize(p.size);
+
+							std::memcpy(attackId.data(), (event.packet->data) + sizeof(WeaponChangePacket), p.size);
+							bool hasWeapon = weapons.hasWeapon(attackId);
+							for (auto& user : users) {
+								if (hasWeapon) {
+									WeaponChangePacket ret;
+									ret.size = attackId.size();
+									ret.id = p.id;
+									ret.serialize();
+									char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
+									memcpy(data, &ret, sizeof(WeaponChangePacket));
+									memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
+									server.sendData(user->getConnection()->getPeer(), 0, data, sizeof(WeaponChangePacket) + attackId.size());
+									free(data);
+
+									if (user->getNetId() == p.id) {
+										user->getCombat().attack = weapons.cloneAttack(attackId);
+									}
+								}
+								else {
+									if (user->getNetId() == p.id) {
+										attackId = user->getCombat().attack.getId();;
+										WeaponChangePacket ret;
+										ret.size = attackId.size();
+										ret.id = p.id;
+										ret.serialize();
+										char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
+										memcpy(data, &ret, sizeof(WeaponChangePacket));
+										memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
+										server.sendData(user->getConnection()->getPeer(), 0, data, sizeof(WeaponChangePacket) + attackId.size());
+										free(data);
+									}
 								}
 							}
 						}

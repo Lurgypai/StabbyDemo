@@ -82,6 +82,10 @@ void Client::connect(Time_t now, const std::string & ip, int port) {
 	}
 }
 
+void Client::send(size_t size, void* data) {
+	client.sendData(serverId, 0, data, size);
+}
+
 void Client::service(Time_t now_) {
 	now = now_;
 	if (connected) {
@@ -147,6 +151,10 @@ bool Client::isBehindServer() {
 
 void Client::resetBehindServer() {
 	behindServer = false;
+}
+
+void Client::setWeaponManager(WeaponManager& weapons_) {
+	weapons = &weapons_;
 }
 
 void Client::receive(ENetEvent & e) {
@@ -272,6 +280,36 @@ void Client::receive(ENetEvent & e) {
 		//kinda maybe synchronized
 		networkTime = p.gameTime + (((static_cast<double>(currentPing) / 2) * CLIENT_TIME_STEP) / GAME_TIME_STEP);
 	}
+	else if (packetKey == WEAPON_KEY) {
+		WeaponChangePacket p{};
+		PacketUtil::readInto<WeaponChangePacket>(p, e.packet);
+		p.unserialize();
+		std::string attackId{};
+		attackId.resize(p.size);
+		std::memcpy(attackId.data(), e.packet->data + sizeof(WeaponChangePacket), p.size);
+
+		if (EntitySystem::Contains<ClientPlayerLC>()) {
+			if (id == p.id) {
+				CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
+				combat->attack = weapons->cloneAttack(attackId);
+
+				PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
+				graphics->attackSprite = weapons->cloneAnimation(attackId);
+			}
+		}
+		if (EntitySystem::Contains<OnlinePlayerLC>()) {
+			Pool<OnlinePlayerLC>& onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
+			for (auto& onlinePlayer : onlinePlayers) {
+				if (onlinePlayer.getNetId() == p.id) {
+					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(onlinePlayer.getId());
+					combat->attack = weapons->cloneAttack(attackId);
+
+					PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(onlinePlayer.getId());
+					graphics->attackSprite = weapons->cloneAnimation(attackId);
+				}
+			}
+		}
+	}
 
 	if (!ids.empty()) {
 		std::vector<EntityId> entities;
@@ -279,8 +317,6 @@ void Client::receive(ENetEvent & e) {
 		EntitySystem::GenEntities(ids.size(), &entities[0]);
 		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), &entities[0]);
 		EntitySystem::MakeComps<PlayerGC>(entities.size(), &entities[0]);
-		EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
-		EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
 
 		for (int i = 0; i != ids.size(); ++i) {
 			EntityId entity = entities[i];
@@ -288,8 +324,10 @@ void Client::receive(ENetEvent & e) {
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
 			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
-			EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
-			EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
+			EntitySystem::GetComp<PlayerGC>(entity)->attackSprite = weapons->cloneAnimation("player_sword");
+			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
+			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
+			EntitySystem::GetComp<CombatComponent>(entity)->attack = weapons->cloneAttack("player_sword");
 		}
 	}
 }

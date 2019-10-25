@@ -53,6 +53,7 @@ public:
 	EntityId getId() const;
 
 	PlayerState playerState;
+	std::string attackId;
 private:
 	EntityId id;
 };

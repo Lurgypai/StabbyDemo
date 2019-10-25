@@ -79,6 +79,7 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 							if (std::find(hitIds.begin(), hitIds.end(), defenderId) == hitIds.end()) {
 								defender.damage(attacker.rollDamage());
 								defender.stun(attacker.getStun());
+								defender.lastAttacker = attackerId;
 								attacker.onAttackLand();
 
 								hitIds.emplace_back(defenderId);

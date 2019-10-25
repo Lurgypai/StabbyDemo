@@ -42,6 +42,7 @@ public:
 
 	//runs damage calculations and returns the result
 	int rollDamage();
+	EntityId getLastAttacker();
 
 	Attack attack;
 	CombatStats stats;
@@ -64,4 +65,5 @@ private:
 
 	bool attackChanged;
 	EntityId id;
+	EntityId lastAttacker;
 };

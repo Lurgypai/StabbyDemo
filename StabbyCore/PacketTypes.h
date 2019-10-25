@@ -6,3 +6,4 @@
 #include "WelcomePacket.h"
 #include "ZombiePacket.h"
 #include "ControllerPacket.h"
+#include "WeaponChangePacket.h"

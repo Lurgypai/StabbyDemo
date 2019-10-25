@@ -25,6 +25,8 @@ public:
 	void updateState(double timeDelta);
 
 	EntityId getId() const;
+	AnimatedSprite animSprite;
+	AnimatedSprite attackSprite;
 private:
 	EntityId id;
 

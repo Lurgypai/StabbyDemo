@@ -15,7 +15,7 @@ struct Hitbox {
 class Attack {
 public:
 	Attack();
-	Attack(int restartDelayMax_, double frameDelay_ = 1.0/120);
+	Attack(const std::string & id, int restartDelayMax_, double frameDelay_ = 1.0/120);
 	void setActive(int i);
 	void setFrame(int frame);
 	void setSpeed(double newSpeed);
@@ -30,6 +30,7 @@ public:
 	void update(double timeDelta, Vec2f pos, int facing);
 	void addHitbox(Hitbox && hitbox);
 	bool pollAttackChange();
+	std::string getId();
 private:
 	std::vector<Hitbox> hitboxes;
 	int active = 0;
@@ -44,4 +45,6 @@ private:
 	double frameDelay;
 	double elapsedTime;
 	double speed;
+
+	std::string id;
 };

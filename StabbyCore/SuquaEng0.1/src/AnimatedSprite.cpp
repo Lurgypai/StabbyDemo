@@ -2,6 +2,9 @@
 #include "AnimatedSprite.h"
 #include "DebugIO.h"
 
+AnimatedSprite::AnimatedSprite() : Sprite{"images/none.png"} {
+}
+
 AnimatedSprite::AnimatedSprite(const std::string &filePath, Vec2f objRes_,
 	int columns_, float frameDelay_,
 	Vec2f pos_, Vec2f origin_, Vec2f scale_, Vec2f imgOffset_) :
