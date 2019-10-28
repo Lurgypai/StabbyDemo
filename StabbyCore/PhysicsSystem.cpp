@@ -21,7 +21,8 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 
 				if (!comp->frozen) {
 					//accelerate downwards, gravity
-					comp->accelerate({ 0, comp->weight });
+					if(!comp->weightless)
+						comp->accelerate({ 0, comp->weight });
 
 					comp->grounded = false;
 					Vec2f currPos = position->pos;

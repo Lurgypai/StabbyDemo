@@ -9,7 +9,8 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 	weight{weight_},
 	vel{vel_},
 	grounded{false},
-	frozen{false}
+	frozen{false},
+	weightless{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {

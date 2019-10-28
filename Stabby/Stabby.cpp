@@ -44,6 +44,7 @@
 #include "AttackSpeedCommand.h"
 #include "MoveSpeedCommand.h"
 #include "WeaponCommand.h"
+#include "ClimbableComponent.h"
 
 const int windowWidth = 1920 / 2;
 const int windowHeight = 1080 / 2;
@@ -69,11 +70,9 @@ extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-
-
-Game game{};
-
 int main(int argc, char* argv[]) {
+	Game game{};
+
 	SDL_Init(SDL_INIT_VIDEO);
 
 	SDL_Window* window = NULL;
@@ -112,15 +111,6 @@ int main(int argc, char* argv[]) {
 
 	GLRenderer::getCamera(playerCamId).pos = { -titleRender->getImgRes().x / 2 , -300 };
 
-	
-	/*
-	EntityId testComp;
-	EntitySystem::GenEntities(1, &testComp);
-	EntitySystem::MakeComps<RenderComponent>(1, &testComp);
-	EntitySystem::GetComp<RenderComponent>(testComp)->loadSprite<Sprite>("images/reddot.png");
-	EntitySystem::GetComp<RenderComponent>(testComp)->setObjRes({ 0, 0 });
-	*/
-
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
 
@@ -141,6 +131,8 @@ int main(int argc, char* argv[]) {
 	game.weapons.loadAttacks("attacks/hit");
 	game.weapons.loadAnimations("attacks/asset");
 
+	game.climbables.updateClimbables();
+
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer fb{};
 	unsigned int screenTex;
@@ -155,6 +147,14 @@ int main(int argc, char* argv[]) {
 	occlusionTex = occlusionMap.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
 	occlusionMap.finalizeFramebuffer();
 	Framebuffer::unbind();
+
+	Framebuffer outlineMap{};
+	unsigned int outlineTex;
+	outlineMap.bind();
+	outlineTex = outlineMap .addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	outlineMap.finalizeFramebuffer();
+	Framebuffer::unbind();
+
 
 
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
@@ -439,6 +439,7 @@ int main(int argc, char* argv[]) {
 					GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 					GLRenderer::Draw(GLRenderer::include, 1, &stageRenderBuffer);
 				}
+
 				fb.bind();
 
 				glActiveTexture(GL_TEXTURE0);

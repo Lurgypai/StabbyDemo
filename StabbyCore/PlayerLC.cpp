@@ -3,6 +3,7 @@
 #include "PositionComponent.h"
 #include "DirectionComponent.h"
 #include "DebugIO.h"
+#include "ClimbableComponent.h"
 
 #include <iostream>
 
@@ -18,7 +19,10 @@ PlayerLC::PlayerLC(EntityId id_) :
 	deathFrame{0},
 	deathFrameMax{200},
 	attackFreezeFrameMax{17},
-	stepDistance{50}
+	healFrameMax{60},
+	healDelayMax{120},
+	stepDistance{50},
+	climbDistance{35}
 {
 	//do not default construct
 	if (id != 0) {
@@ -62,10 +66,11 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	PlayerState& state = playerState->playerState;
 	Attack & attack = combat->attack;
 	
+
+
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
 	if (prevButton2 != currButton2) {
-		prevButton2 = currButton2;
 		if (currButton2) {
 			attackToggledDown = true;
 			if (state.state == State::attacking && !attack.getNextIsBuffered()) {
@@ -76,6 +81,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	}
 
 	Vec2f & vel = comp->vel;
+	comp->weightless = false;
 
 	if (!comp->frozen) {
 		switch (state.state) {
@@ -125,6 +131,59 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 				respawn();
 			}
 			break;
+		case State::healing:
+		{
+			vel.x = 0;
+			if (state.healDelay == healDelayMax) {
+				state.healFrame++;
+				if (state.healFrame == healFrameMax) {
+					state.healFrame = 0;
+					combat->heal(2);
+				}
+
+				bool currButton1 = controller[ControllerBits::BUTTON_1];
+				if (currButton1 != prevButton1 && currButton1) {
+					state.state = State::free;
+				}
+			}
+			else {
+				++state.healDelay;
+			}
+			break;
+		}
+		case State::climbing:
+
+			bool overlaps{false};
+			for (auto& climbable : EntitySystem::GetPool<ClimbableComponent>()) {
+				if (comp->intersects(climbable.collider)) {
+					overlaps = true;
+					break;
+				}
+			}
+
+			comp->weightless = true;
+
+			if (!overlaps) {
+				state.state = State::free;
+				break;
+			}
+
+			Vec2f dir{ 0, 0 };
+			if (controller[ControllerBits::LEFT]) {
+				--dir.x;
+			}
+			if (controller[ControllerBits::RIGHT]) {
+				++dir.x;
+			}
+			if (controller[ControllerBits::UP]) {
+				--dir.y;
+			}
+			if (controller[ControllerBits::DOWN]) {
+				++dir.y;
+			}
+
+			vel = dir * static_cast<float>(climbDistance * state.moveSpeed);
+			break;
 		}
 
 		if (position->pos.y > 1000) {
@@ -154,7 +213,11 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 	state.activeAttack = attack.getActiveId();
 	state.attackFrame = attack.getCurrFrame();
 
-	//DebugIO::setLine(6, std::to_string(state.health));
+	prevButton1 = controller[ControllerBits::BUTTON_1];
+	prevButton2 = controller[ControllerBits::BUTTON_2];
+	prevButton3 = controller[ControllerBits::BUTTON_3];
+
+	DebugIO::setLine(6, std::to_string(state.health));
 }
 
 PhysicsComponent * PlayerLC::getPhysics() {
@@ -225,7 +288,6 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	if (state.state != State::attacking) {
 		bool currButton3 = controller[ControllerBits::BUTTON_3];
 		if (prevButton3 != currButton3) {
-			prevButton3 = currButton3;
 			if (currButton3) {
 				state.state = State::rolling;
 				combat->invulnerable = true;
@@ -233,6 +295,22 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 				vel.x = direction->dir * rollVel;
 			}
 		}
+	}
+
+	if (EntitySystem::Contains<ClimbableComponent>()) {
+		for (auto& climable : EntitySystem::GetPool<ClimbableComponent>()) {
+			if (comp->intersects(climable.collider) && controller[ControllerBits::UP]) {
+				state.state = State::climbing;
+				comp->weightless = true;
+			}
+		}
+	}
+
+	bool currButton1 = controller[ControllerBits::BUTTON_1];
+	if (currButton1 != prevButton1 && currButton1) {
+		state.state = State::healing;
+		state.healDelay = 0;
+		state.healFrame = 0;
 	}
 
 	if (state.state == State::free) {

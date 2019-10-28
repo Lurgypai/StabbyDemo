@@ -37,6 +37,8 @@ void PlayerGC::loadAnimations() {
 	animSprite_.addAnimation(roll, 30, 39);
 	animSprite_.addAnimation(stun, 39, 40);
 	animSprite_.addAnimation(dead, 40, 52);
+	animSprite_.addAnimation(climb, 52, 54);
+	animSprite_.addAnimation(heal, 54, 64);
 
 	//ClientPlayerLC* playerLogic = EntitySystem::GetComp<ClientPlayerLC>(id);
 	//Vec2f res = playerLogic->getRes();
@@ -83,11 +85,14 @@ void PlayerGC::updateState(double timeDelta) {
 			if (plrState == State::attacking) {
 				if (prevState != State::attacking) {
 					render->setSprite<AnimatedSprite>(attackSprite);
+					
 				}
 				AnimatedSprite& sprite = static_cast<AnimatedSprite&>(*render->getSprite());
 				int width = sprite.getObjRes().abs().x;
 				int height = sprite.getObjRes().abs().y;
 				sprite.setObjRes(Vec2i{ direction->dir * width, height });
+
+				sprite.frameDelay = defaultFrameDelay / state.attackSpeed;
 
 				sprite.looping = false;
 
@@ -108,6 +113,7 @@ void PlayerGC::updateState(double timeDelta) {
 				if (prevState != plrState) {
 
 					sprite.looping = false;
+					sprite.frameDelay = defaultFrameDelay;
 
 					switch (plrState) {
 					case State::dead:
@@ -120,17 +126,32 @@ void PlayerGC::updateState(double timeDelta) {
 					case State::stunned:
 						sprite.setAnimation(stun);
 						break;
+					case State::climbing:
+						sprite.setAnimation(climb);
+						break;
+					case State::healing:
+						sprite.setAnimation(heal);
+						break;
 					}
 				}
+
+				if (plrState == State::climbing) {
+					sprite.frameDelay = defaultFrameDelay / state.moveSpeed * 3;
+					sprite.looping = true;
+				}
+
 				if (plrState == State::free) {
+					sprite.frameDelay = defaultFrameDelay / state.moveSpeed;
 					sprite.looping = true;
 					if (state.vel.x == 0)
 						sprite.setAnimation(idle);
-					else if ((prevState != State::free || prevXVel == 0) && prevXVel != state.vel.x)
+					else if (prevState != State::free || prevXVel == 0)
 						sprite.setAnimation(walking);
 					
 				}
-				sprite.forward(timeDelta);
+
+				if(plrState != State::climbing || state.vel.x != 0 || state.vel.y != 0)
+					sprite.forward(timeDelta);
 			}
 
 			prevXVel = state.vel.x;

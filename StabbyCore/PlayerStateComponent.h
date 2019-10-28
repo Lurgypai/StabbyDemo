@@ -9,7 +9,9 @@ enum class State : uint8_t {
 	attacking,
 	rolling,
 	stunned,
-	dead
+	dead,
+	climbing,
+	healing
 };
 
 struct PlayerState {
@@ -18,7 +20,7 @@ struct PlayerState {
 			rollFrame == other.rollFrame && activeAttack == other.activeAttack && attackFrame == other.attackFrame &&
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
-			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed;
+			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay;
 	}
 
 
@@ -34,6 +36,8 @@ struct PlayerState {
 	uint32_t attackFrame;
 	int32_t health;
 	uint32_t stunFrame;
+	uint32_t healFrame;
+	uint32_t healDelay;
 	int32_t facing;
 	Vec2f spawnPoint;
 	int32_t attackFreezeFrame;

@@ -31,8 +31,10 @@ protected:
 	//for only getting hit once per slash
 	bool isBeingHit;
 	double stepDistance;
+	double climbDistance;
 	bool attackBuffered;
 
+	bool prevButton1;
 	bool prevButton2;
 	bool prevButton3;
 	bool attackChange;
@@ -42,6 +44,8 @@ protected:
 	int rollFrameMax;
 
 	int attackFreezeFrameMax;
+	int healFrameMax;
+	int healDelayMax;
 
 	int deathFrame;
 	int deathFrameMax;

@@ -31,6 +31,7 @@ public:
 	Vec2f vel;
 	bool grounded;
 	bool frozen;
+	bool weightless;
 protected:
 	AABB collider;
 	EntityId id;

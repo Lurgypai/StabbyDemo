@@ -26,6 +26,7 @@
 #include "EntityBaseComponent.h"
 #include "Host.h"
 #include "WeaponManager.h"
+#include "ClimbableSystem.h"
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
@@ -100,7 +101,7 @@ int main(int argv, char* argc[])
 
 	Uint64 prev = SDL_GetPerformanceCounter();
 
-	ENetPacket * packet;
+	ENetPacket* packet;
 	WelcomePacket welcomePacket;
 
 	//current tick in server time
@@ -117,7 +118,10 @@ int main(int argv, char* argc[])
 	physics.setStage(&stage);
 	CombatSystem combat{};
 	WeaponManager weapons{};
+	ClimbableSystem climbables{};
+
 	weapons.loadAttacks("attacks/hit");
+	climbables.updateClimbables();
 
 	NetworkId clientId = 0;
 

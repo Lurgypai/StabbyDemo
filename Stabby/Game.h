@@ -6,6 +6,7 @@
 #include "CombatSystem.h"
 #include "PickupSystem.h"
 #include "WeaponManager.h"
+#include "ClimbableSystem.h"
 
 class Game {
 public:
@@ -20,6 +21,7 @@ public:
 	PickupSystem pickups;
 	WeaponManager weapons;
 	Stage stage;
+	ClimbableSystem climbables;
 
 	EntityId getPlayerId();
 

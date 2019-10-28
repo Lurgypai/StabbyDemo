@@ -322,7 +322,7 @@ void Client::receive(ENetEvent & e) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
-			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
+			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
 			EntitySystem::GetComp<PlayerGC>(entity)->attackSprite = weapons->cloneAnimation("player_sword");
 			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });

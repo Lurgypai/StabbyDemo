@@ -19,4 +19,5 @@ private:
 	std::vector<AABB> colliders;
 	Vec2f pos;
 	EntityId id;
+	EntityId ladder;
 };

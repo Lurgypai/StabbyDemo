@@ -10,12 +10,11 @@ public:
 	enum Animation {
 		idle,
 		walking,
-		slash1,
-		slash2,
-		slash3,
 		roll,
 		stun,
-		dead
+		dead,
+		climb,
+		heal
 	};
 
 	PlayerGC(EntityId id_ = 0);

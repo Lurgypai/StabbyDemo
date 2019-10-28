@@ -12,6 +12,8 @@ void StatePacket::serialize() {
 	state.stunFrame = htonl(state.stunFrame);
 	state.facing = htonl(state.facing);
 	state.attackFreezeFrame = htonl(state.attackFreezeFrame);
+	state.healFrame = htonl(state.healFrame);
+	state.healDelay = htonl(state.healDelay);
 
 	pos.x = htonf(state.pos.x);
 	pos.y = htonf(state.pos.y);
@@ -35,6 +37,8 @@ void StatePacket::unserialize() {
 	state.stunFrame = ntohl(state.stunFrame);
 	state.facing = ntohl(state.facing);
 	state.attackFreezeFrame = ntohl(state.attackFreezeFrame);
+	state.healFrame = ntohl(state.healFrame);
+	state.healDelay = ntohl(state.healDelay);
 
 	state.pos.x = ntohf(pos.x);
 	state.pos.y = ntohf(pos.y);

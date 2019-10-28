@@ -53,6 +53,8 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 						std::cout << "spawnPoint: " << tstate.plr.spawnPoint << ", " << state.spawnPoint << '\n';
 					if (state.attackFreezeFrame != tstate.plr.attackFreezeFrame)
 						std::cout << "attackFreezeFrame: " << tstate.plr.attackFreezeFrame << ", " << state.attackFreezeFrame << '\n';
+					if (state.healFrame != tstate.plr.healFrame)
+						std::cout << "healFrame" << tstate.plr.healFrame << ", " << state.healFrame << '\n';
 					if (state.pos != tstate.plr.pos)
 						std::cout << "pos: " << tstate.plr.pos << ", " << state.pos << '\n';
 					if (state.vel != tstate.plr.vel)

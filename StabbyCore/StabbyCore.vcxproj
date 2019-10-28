@@ -162,6 +162,8 @@
     <ClInclude Include="Attack.h" />
     <ClInclude Include="BehaviourNode.h" />
     <ClInclude Include="BehaviourTree.h" />
+    <ClInclude Include="ClimbableComponent.h" />
+    <ClInclude Include="ClimbableSystem.h" />
     <ClInclude Include="CombatComponent.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="ComputeShader.h" />
@@ -224,6 +226,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Attack.cpp" />
+    <ClCompile Include="ClimbableComponent.cpp" />
+    <ClCompile Include="ClimbableSystem.cpp" />
     <ClCompile Include="CombatComponent.cpp" />
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="ComputeShader.cpp" />

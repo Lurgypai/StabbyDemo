@@ -23,7 +23,7 @@ void Game::startOfflineGame() {
 	EntitySystem::GetComp<CombatComponent>(playerId)->stats = CombatStats{ 100, 0, 0, 20, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
-	EntitySystem::GetComp<RenderComponent>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
+	EntitySystem::GetComp<RenderComponent>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
@@ -55,7 +55,7 @@ void Game::startOnlineGame(const std::string & address, int port) {
 	EntitySystem::GetComp<CombatComponent>(playerId)->stats = CombatStats{ 100, 0, 0, 20, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
-	EntitySystem::GetComp<RenderComponent>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman_with_hilt.png", Vec2i{ 64, 64 });
+	EntitySystem::GetComp<RenderComponent>(playerId)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
