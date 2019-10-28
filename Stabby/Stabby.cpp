@@ -46,8 +46,8 @@
 #include "WeaponCommand.h"
 #include "ClimbableComponent.h"
 
-const int windowWidth = 1920;
-const int windowHeight = 1080;
+const int windowWidth = 1920 /2;
+const int windowHeight = 1080 /2;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
 					player->update(CLIENT_TIME_STEP, controller);
 				}
 
-
+				/*
 				if (EntitySystem::Contains<CombatComponent>()) {
 					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(game.getPlayerId());
 					PositionComponent* position  = EntitySystem::GetComp<PositionComponent>(reddot);
@@ -279,6 +279,7 @@ int main(int argc, char* argv[]) {
 
 					}
 				}
+				*/
 
 				if (client.getConnected()) {
 
