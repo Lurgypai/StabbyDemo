@@ -46,8 +46,8 @@
 #include "WeaponCommand.h"
 #include "ClimbableComponent.h"
 
-const int windowWidth = 1920 / 2;
-const int windowHeight = 1080 / 2;
+const int windowWidth = 1920;
+const int windowHeight = 1080;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -110,6 +110,12 @@ int main(int argc, char* argv[]) {
 	EntitySystem::GetComp<PositionComponent>(title)->pos = {-titleRender->getImgRes().x / 2 , -300 };
 
 	GLRenderer::getCamera(playerCamId).pos = { -titleRender->getImgRes().x / 2 , -300 };
+
+	EntityId reddot;
+	EntitySystem::GenEntities(1, &reddot);
+	EntitySystem::MakeComps<RenderComponent>(1, &reddot);
+	RenderComponent* reddotSprite = EntitySystem::GetComp<RenderComponent>(reddot);
+	reddotSprite->loadSprite<Sprite>("images/redpixel.png");
 
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
@@ -259,6 +265,19 @@ int main(int argc, char* argv[]) {
 				if (EntitySystem::Contains<PlayerLC>()) {
 					PlayerLC * player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
 					player->update(CLIENT_TIME_STEP, controller);
+				}
+
+
+				if (EntitySystem::Contains<CombatComponent>()) {
+					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(game.getPlayerId());
+					PositionComponent* position  = EntitySystem::GetComp<PositionComponent>(reddot);
+					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(reddot);
+					const Hitbox* hitbox = combat->getActiveHitbox();
+					if (hitbox != nullptr) {
+						render->setObjRes(hitbox->hit.res);
+						position->pos = hitbox->hit.pos;
+
+					}
 				}
 
 				if (client.getConnected()) {

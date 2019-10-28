@@ -46,13 +46,10 @@ void CombatComponent::updateHurtboxes() {
 	DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 
+
+
 	for (auto& hurtbox : hurtboxes) {
-		if (direction->dir > -1) {
-			hurtbox.box.pos = position->pos + hurtbox.offset;
-		} else {
-			hurtbox.box.pos.y = position->pos.y + hurtbox.offset.y;
-			hurtbox.box.pos.x = position->pos.x + hurtbox.offset.x - hurtbox.box.res.x;
-		}
+		hurtbox.box.pos = position->pos + hurtbox.offset;
 	}
 }
 
