@@ -14,7 +14,7 @@ public:
 	void startOnlineGame(const std::string & address, int port);
 
 	//client side time
-	Time_t time;
+	Time_t tick;
 	Client client;
 	PhysicsSystem physics;
 	CombatSystem combat;

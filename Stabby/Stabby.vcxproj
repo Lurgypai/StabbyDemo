@@ -183,6 +183,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="SpawnZombieCommand.h" />
     <ClInclude Include="StartCommand.h" />
+    <ClInclude Include="VelocityCommand.h" />
     <ClInclude Include="WeaponCommand.h" />
     <ClInclude Include="ZombieGC.h" />
   </ItemGroup>
@@ -211,6 +212,7 @@
     <ClCompile Include="SpawnZombieCommand.cpp" />
     <ClCompile Include="Stabby.cpp" />
     <ClCompile Include="StartCommand.cpp" />
+    <ClCompile Include="VelocityCommand.cpp" />
     <ClCompile Include="WeaponCommand.cpp" />
     <ClCompile Include="ZombieGC.cpp" />
   </ItemGroup>

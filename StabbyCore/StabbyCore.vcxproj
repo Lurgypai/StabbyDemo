@@ -168,6 +168,7 @@
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="ControllerPacket.h" />
+    <ClInclude Include="DebugFIO.h" />
     <ClInclude Include="DirectionComponent.h" />
     <ClInclude Include="EntityBaseComponent.h" />
     <ClInclude Include="HealthPickupLC.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="ControllerPacket.cpp" />
+    <ClCompile Include="DebugFIO.cpp" />
     <ClCompile Include="DirectionComponent.cpp" />
     <ClCompile Include="EntityBaseComponent.cpp" />
     <ClCompile Include="HealthPickupLC.cpp" />

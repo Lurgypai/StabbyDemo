@@ -9,22 +9,23 @@
 
 struct ClientCommand {
 	Controller controllerState;
-	Time_t when;
+	Time_t clientTime;
+	Time_t gameTime;
 };
 
 class ServerPlayerLC : public PlayerLC {
 public:
 	ServerPlayerLC( EntityId id_ = 0 );
-	ServerPlayerLC(const ServerPlayerLC & other);
 	PlayerState getStateAt(Time_t gameTime);
+	PlayerState getLatestState();
 	void bufferInput(ClientCommand c);
 	void update(Time_t gameTime);
-	//when the most recent server update happened client side (it already happened on the client)
-	Time_t clientTime;
-
 private:
 	ClientCommand activeCommand;
 	Time_t latestTime;
+	Time_t clientTime;
+	bool clientTimeUpToDate;
 	std::deque<ClientCommand> commands;
 	std::deque<PlayerState> prevStates;
+
 };

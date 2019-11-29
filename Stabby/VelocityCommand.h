@@ -1,12 +1,8 @@
 #pragma once
 #include "Command.h"
-#include "Client.h"
-class ConnectCommand : public Command {
-public:
+
+class VelocityCommand : public Command {
 	// Inherited via Command
-	ConnectCommand(Client& client);
 	virtual std::string getTag() const override;
 	virtual void onCommand(const std::vector<std::string>& args) override;
-private:
-	Client * client;
 };

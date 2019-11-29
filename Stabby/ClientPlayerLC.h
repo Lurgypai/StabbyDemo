@@ -14,9 +14,9 @@ struct TotalPlayerState {
 class ClientPlayerLC : public PlayerLC {
 public:
 	ClientPlayerLC(EntityId id_ = 0);
-	void update(Time_t now, double timeDelta, const Controller & controller);
+	void update(Time_t clientTime, Time_t gameTime, double timeDelta, const Controller & controller);
 	//Repredict current loc using correct position at time when.
-	void repredict(const PlayerState & state);
+	bool repredict(const PlayerState & state);
 	void setPhysics(PhysicsSystem & physics);
 	void setCombat(CombatSystem & combat);
 	std::string getHeadPath();

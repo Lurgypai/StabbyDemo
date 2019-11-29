@@ -21,6 +21,7 @@ PlayerLC::PlayerLC(EntityId id_) :
 	attackFreezeFrameMax{17},
 	healFrameMax{60},
 	healDelayMax{120},
+	horizontalAccel{10.0},
 	stepDistance{50},
 	climbDistance{35}
 {
@@ -329,6 +330,17 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		//otherwise do
 		if (dir != 0)
 			direction->dir = dir;
-		vel.x = dir * state.moveSpeed * stepDistance;
+
+		float targetVel = dir * state.moveSpeed * stepDistance;
+		float accel = state.moveSpeed * horizontalAccel;
+		if (vel.x < targetVel - accel) {
+			vel.x += accel;
+		}
+		else if (vel.x > targetVel + accel) {
+			vel.x -= accel;
+		}
+		else {
+			vel.x = targetVel;
+		}
 	}
 }

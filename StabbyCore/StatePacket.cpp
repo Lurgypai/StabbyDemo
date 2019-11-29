@@ -4,7 +4,8 @@
 void StatePacket::serialize() {
 	id = htonll(id);
 	when = htonll(when);
-	state.when = htonll(state.when);
+	state.gameTime = htonll(state.gameTime);
+	state.clientTime = htonll(state.clientTime);
 	state.rollFrame = htonl(state.rollFrame);
 	state.activeAttack = htonl(state.activeAttack);
 	state.attackFrame = htonl(state.attackFrame);
@@ -29,7 +30,8 @@ void StatePacket::serialize() {
 void StatePacket::unserialize() {
 	id = ntohll(id);
 	when = ntohll(when);
-	state.when = ntohll(state.when);
+	state.gameTime = ntohll(state.gameTime);
+	state.clientTime = ntohll(state.clientTime);
 	state.rollFrame = ntohl(state.rollFrame);
 	state.activeAttack = ntohl(state.activeAttack);
 	state.attackFrame = ntohl(state.attackFrame);

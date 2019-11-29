@@ -3,12 +3,12 @@
 
 void ControllerPacket::serialize() {
 	netId = htonll(netId);
-	time = htonll(time);
+	clientTime = htonll(clientTime);
 	when = htonll(when);
 }
 
 void ControllerPacket::unserialize() {
 	netId = ntohll(netId);
-	time = ntohll(time);
+	clientTime = ntohll(clientTime);
 	when = ntohll(when);
 }

@@ -45,9 +45,11 @@
 #include "MoveSpeedCommand.h"
 #include "WeaponCommand.h"
 #include "ClimbableComponent.h"
+#include "VelocityCommand.h"
+#include "DebugFIO.h"
 
-const int windowWidth = 1920 /2;
-const int windowHeight = 1080 /2;
+const int windowWidth = 1920 / 2;
+const int windowHeight = 1080 / 2;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -65,12 +67,14 @@ void MessageCallback(GLenum source,
 		type, severity, message);
 }
 
-
+/*
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
+*/
 
 int main(int argc, char* argv[]) {
+
 	Game game{};
 
 	SDL_Init(SDL_INIT_VIDEO);
@@ -88,6 +92,7 @@ int main(int argc, char* argv[]) {
 	RenderSystem render;
 
 	DebugIO::startDebug("SuquaEng0.1/fonts/consolas_0.png", "SuquaEng0.1/fonts/consolas.fnt");
+	DebugFIO::AddFOut("c_out.txt");
 	int debugCamId;
 	debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 
@@ -129,6 +134,7 @@ int main(int argc, char* argv[]) {
 	//DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
 	DebugIO::getCommandManager().registerCommand<KillCommand>();
 	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
+	DebugIO::getCommandManager().registerCommand<VelocityCommand>();
 
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
@@ -161,8 +167,6 @@ int main(int argc, char* argv[]) {
 	outlineMap.finalizeFramebuffer();
 	Framebuffer::unbind();
 
-
-
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
 
 	unsigned int frame{};
@@ -171,330 +175,29 @@ int main(int argc, char* argv[]) {
 	double gfxDelay{ 1.0 / 60 };
 	Uint64 currentLog = SDL_GetPerformanceCounter();
 	Uint64 currentGfx = SDL_GetPerformanceCounter();
+	Uint64 leftover{ 0 };
 
-	bool lockFPS{ true }, lockUPS{ true };
+	bool lockFPS{ false };
 
 	bool canProgressFrame = true;
 
 	bool running{ true };
 	while (running) {
-		if (canProgressFrame) {
-			Uint64 now = SDL_GetPerformanceCounter();
-			//logic
-			Time_t elapsedTime = now - currentLog;
-			bool updateLogic{ false };
-			if (!doFBF) {
-				if (lockUPS)
-					updateLogic = static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency() >= CLIENT_TIME_STEP;
-				else
-					updateLogic = true;
+		Uint64 now = SDL_GetPerformanceCounter();
+		//logic
+		Time_t elapsedTime = now - currentLog;
+		currentLog = now;
+		Time_t delta = CLIENT_TIME_STEP * SDL_GetPerformanceFrequency();
 
-			}
-			else {
-				updateLogic = true;
-			}
-			if (updateLogic) {
+		double updates{ 0.0 };
+		Time_t elapsedTime_ = elapsedTime + leftover;
+		for (; elapsedTime_ >= delta; elapsedTime_ -= delta) {
+			++updates;
+			tick++;
+			game.tick++;
+			client.clientTime++;
 
-				tick++;
-				game.time++;
-				double ups = 1.0 / (static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency());
-				DebugIO::setLine(0, "UPS: " + std::to_string(int(round(ups))));
-
-				currentLog = now;
-
-				/*--------------------------- Handle Input ----------------------------*/
-
-				int mouseScroll{ 0 };
-				//wait till after polling events to toggle debug, so we don't output the opening char
-				bool toggleDebug{ false };
-				SDL_Event e;
-				while (SDL_PollEvent(&e)) {
-					switch (e.type) {
-					case SDL_WINDOWEVENT:
-						if (e.window.event == SDL_WINDOWEVENT_CLOSE)
-							running = false;
-						break;
-					case SDL_MOUSEWHEEL:
-						if (e.wheel.y > 0)
-							++mouseScroll;
-						else if (e.wheel.y < 0)
-							--mouseScroll;
-						break;
-					case SDL_TEXTINPUT:
-						if (DebugIO::getOpen())
-							DebugIO::addInput(e.text.text);
-						break;
-					case SDL_KEYDOWN:
-						if (e.key.keysym.sym == SDLK_BACKQUOTE)
-							toggleDebug = true;
-						else if (e.key.keysym.sym == SDLK_BACKSPACE)
-							DebugIO::backspace();
-						else if (e.key.keysym.sym == SDLK_RETURN)
-							DebugIO::enterInput();
-						break;
-					}
-				}
-				if (toggleDebug)
-					DebugIO::toggleDebug();
-
-				//reset / set scroll
-				controller.setMouseScroll(mouseScroll);
-
-				const Uint8 *state = SDL_GetKeyboardState(NULL);
-
-				if (!DebugIO::getOpen()) {
-					//update controllers
-
-					controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
-					controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
-					controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
-					controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
-					controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
-					controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
-					controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
-				}
-				else {
-					controller.off(ControllerBits::ALL);
-				}
-
-				if (EntitySystem::Contains<ClientPlayerLC>()) {
-					ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(game.getPlayerId());
-					player->update(game.time, CLIENT_TIME_STEP, controller);
-				}
-
-				if (EntitySystem::Contains<PlayerLC>()) {
-					PlayerLC * player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
-					player->update(CLIENT_TIME_STEP, controller);
-				}
-
-				/*
-				if (EntitySystem::Contains<CombatComponent>()) {
-					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(game.getPlayerId());
-					PositionComponent* position  = EntitySystem::GetComp<PositionComponent>(reddot);
-					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(reddot);
-					const Hitbox* hitbox = combat->getActiveHitbox();
-					if (hitbox != nullptr) {
-						render->setObjRes(hitbox->hit.res);
-						position->pos = hitbox->hit.pos;
-
-					}
-				}
-				*/
-
-				if (client.getConnected()) {
-
-					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
-					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
-
-					static ControllerPacket lastSent{};
-
-					ControllerPacket state{};
-					state.time = game.time;
-					state.state = controller.getState();
-					state.netId = client.getNetId();
-					state.when = client.getTime();
-
-					lastSent.when = client.getTime();
-					lastSent.time = game.time;
-
-					//the sent state is the controller state from after the timestamped update has run
-					if (lastSent != state) {
-						lastSent = state;
-						client.send(state);
-						//std::cout << "Sending update for time: " << lastSent.when << '\n';
-					}
-
-					client.service(game.time);
-
-					if (client.isBehindServer()) {
-						std::cout << "We're behind the server, pinging our time.\n";
-						client.ping(game.time);
-						client.resetBehindServer();
-					}
-
-					if (EntitySystem::Contains<OnlinePlayerLC>()) {
-						for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
-							onlinePlayer.update(client.getTime());
-						}
-					}
-
-					static int pingDelay = 0;
-					//half a second
-					int pingDelayMax = 60;
-
-					if (pingDelay != pingDelayMax) {
-						pingDelay++;
-					}
-					else {
-						pingDelay = 0;
-						client.ping(game.time);
-					}
-
-					DebugIO::setLine(3, "NetId: " + std::to_string(client.getNetId()));
-					DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
-				}
-				else {
-					//singleplayer physics / combat
-
-					if (EntitySystem::Contains<HealthPickupLC>()) {
-						for (auto & health : EntitySystem::GetPool<HealthPickupLC>()) {
-							health.update(game.time, CLIENT_TIME_STEP);
-						}
-					}
-
-					/*
-					if (EntitySystem::Contains<ZombieLC>()) {
-						for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
-							zombie.searchForTarget<PlayerLC>();
-							zombie.runLogic();
-						}
-					}
-					*/
-
-					//game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
-				}
-
-				physics.runPhysics(CLIENT_TIME_STEP);
-				game.combat.runAttackCheck(CLIENT_TIME_STEP);
-
-
-				if (EntitySystem::Contains<HeadParticleLC>()) {
-					Pool<HeadParticleLC> & heads = EntitySystem::GetPool<HeadParticleLC>();
-					for (auto& head : heads) {
-						head.update(CLIENT_TIME_STEP);
-					}
-				}
-			}
-
-			//gfx
-
-			bool updateGFX{ false };
-			if (!doFBF) {
-				if (lockFPS)
-					updateGFX = static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency() >= gfxDelay;
-				else
-					updateGFX = true;
-			}
-			else {
-				updateGFX = (tick % static_cast<int>(gfxDelay / CLIENT_TIME_STEP) == 0);
-			}
-			if (updateGFX) {
-				frame++;
-				double fps = 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency());
-
-				DebugIO::setLine(1, "FPS: " + std::to_string(int(round(fps))));
-				//std::cout << 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency()) << std::endl;
-				currentGfx = now;
-
-				fb.bind();
-
-				GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
-				GLRenderer::ClearRenderBufs(GLRenderer::all);
-
-				//update camera
-				const Uint8 *state = SDL_GetKeyboardState(NULL);
-
-				unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
-				GLRenderer::SetDefShader(ImageShader);
-				GLRenderer::setCamera(playerCamId);
-				static_cast<PlayerCam &>(GLRenderer::getCamera(playerCamId)).update(game.getPlayerId());
-
-				/*
-				RenderComponent * reddot = EntitySystem::GetComp<RenderComponent>(testComp);
-				PositionComponent * reddotposition = EntitySystem::GetComp<PositionComponent>(testComp);
-				if (EntitySystem::Contains<PlayerLC>()) {
-					PlayerLC & player = EntitySystem::GetPool<PlayerLC>().front();
-					const AABB * hitbox = player.getActiveHitbox();
-					if (hitbox != nullptr) {
-						reddot->setScale({ hitbox->res.x, hitbox->res.y });
-						reddotposition->pos = hitbox->pos;
-					}
-					else {
-						reddot->setScale({ 0, 0 });
-					}
-				}
-				*/
-
-				/*
-				if (EntitySystem::Contains<CombatComponent>()) {
-					for (auto & combat : EntitySystem::GetPool<CombatComponent>()) {
-						if (combat.getActiveHitbox() != nullptr) {
-							RenderComponent * renderComp = EntitySystem::GetComp<RenderComponent>(testComp);
-							PositionComponent * position = EntitySystem::GetComp<PositionComponent>(testComp);
-							renderComp->setObjRes(combat.getActiveHitbox()->hit.res);
-							position->pos = combat.getActiveHitbox()->hit.pos;
-						}
-					}
-				}
-				*/
-
-				if (EntitySystem::Contains<PlayerGC>()) {
-					for (auto & comp : EntitySystem::GetPool<PlayerGC>()) {
-						comp.updateState(gfxDelay);
-					}
-				}
-
-				/*
-				if (EntitySystem::Contains<ZombieGC>()) {
-					for (auto & comp : EntitySystem::GetPool<ZombieGC>()) {
-						comp.updateState(gfxDelay);
-					}
-				}
-				*/
-
-				if (EntitySystem::Contains<HealthPickupGC>()) {
-					for (auto & comp : EntitySystem::GetPool<HealthPickupGC>()) {
-						comp.updateState(gfxDelay);
-					}
-				}
-
-				render.drawAll();
-
-				GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
-
-				RenderComponent * stageRender = EntitySystem::GetComp<RenderComponent>(game.stage.getId());
-				if (stageRender != nullptr) {
-					unsigned int stageRenderBuffer = stageRender->getRenderBufferId();
-					occlusionMap.bind();
-					GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
-					GLRenderer::Draw(GLRenderer::include, 1, &stageRenderBuffer);
-				}
-
-				fb.bind();
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
-
-				GLRenderer::getComputeShader("blood").use();
-				GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(playerCamId).pos.x, GLRenderer::getCamera(playerCamId).pos.y);
-				GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(playerCamId).camScale);
-
-				GLRenderer::UpdateAndDrawParticles();
-
-				Framebuffer::unbind();
-				GLRenderer::SetDefShader(FullscreenShader);
-				GLRenderer::bindCurrShader();
-				GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
-
-				GLRenderer::DrawOverScreen(fb.getTexture(0).id);
-
-				GLRenderer::setCamera(debugCamId);
-				GLRenderer::SetDefShader(DebugShader);
-				DebugIO::drawLines();
-
-				GLRenderer::Swap();
-				GLRenderer::ReadErrors();
-
-				//after drawing clean up dead entities. This way everything gets a chance to be drawn.
-				EntitySystem::FreeDeadEntities();
-			}
-
-			if (doFBF)
-				canProgressFrame = false;
-		}
-		else {
-			DebugIO::setLine(3, "Tick: " + std::to_string(tick));
-			DebugIO::setLine(4, "Frame: " + std::to_string(frame));
+			/*--------------------------- Handle Input ----------------------------*/
 
 			int mouseScroll{ 0 };
 			//wait till after polling events to toggle debug, so we don't output the opening char
@@ -524,7 +227,7 @@ int main(int argc, char* argv[]) {
 					else if (e.key.keysym.sym == SDLK_RETURN)
 						DebugIO::enterInput();
 					else if (e.key.keysym.sym == SDLK_l)
-							canProgressFrame = true;
+						canProgressFrame = true;
 					else if (e.key.keysym.sym == SDLK_k) {
 						canProgressFrame = true;
 						doFBF = false;
@@ -537,7 +240,263 @@ int main(int argc, char* argv[]) {
 
 			//reset / set scroll
 			controller.setMouseScroll(mouseScroll);
+
+			const Uint8* state = SDL_GetKeyboardState(NULL);
+
+			if (!DebugIO::getOpen()) {
+				//update controllers
+
+				controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
+				controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
+				controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
+				controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
+				controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
+				controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
+				controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
+			}
+			else {
+				controller.off(ControllerBits::ALL);
+			}
+
+
+			if (canProgressFrame) {
+
+				if (EntitySystem::Contains<ClientPlayerLC>()) {
+					ClientPlayerLC* player = EntitySystem::GetComp<ClientPlayerLC>(game.getPlayerId());
+					player->update(client.clientTime, client.getTime(), CLIENT_TIME_STEP, controller);
+				}
+
+				if (EntitySystem::Contains<PlayerLC>()) {
+					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
+					player->update(CLIENT_TIME_STEP, controller);
+				}
+
+
+				if (EntitySystem::Contains<PlayerStateComponent>()) {
+					PlayerStateComponent* playerState = EntitySystem::GetComp<PlayerStateComponent>(game.getPlayerId());
+				}
+
+				physics.runPhysics(CLIENT_TIME_STEP);
+				game.combat.runAttackCheck(CLIENT_TIME_STEP);
+
+				/*
+				if (EntitySystem::Contains<CombatComponent>()) {
+					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(game.getPlayerId());
+					PositionComponent* position  = EntitySystem::GetComp<PositionComponent>(reddot);
+					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(reddot);
+					const Hitbox* hitbox = combat->getActiveHitbox();
+					if (hitbox != nullptr) {
+						render->setObjRes(hitbox->hit.res);
+						position->pos = hitbox->hit.pos;
+
+					}
+				}
+				*/
+
+				if (client.getConnected()) {
+
+					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
+					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
+
+					static ControllerPacket lastSent{};
+
+					ControllerPacket state{};
+					state.clientTime = client.clientTime;
+					state.state = controller.getState();
+					state.netId = client.getNetId();
+					state.when = client.getTime();
+
+					lastSent.when = client.getTime();
+					lastSent.clientTime = client.clientTime;
+
+					//the sent state is the controller state from after the timestamped update has run
+					if (lastSent != state) {
+						lastSent = state;
+						client.send(state);
+						DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << "for time " << client.clientTime << '\n';
+						//std::cout << "Sending update for time: " << lastSent.when << '\n';
+					}
+
+					client.service();
+
+					if (client.isBehindServer()) {
+						std::cout << "We're behind the server, pinging our time.\n";
+						client.ping();
+						client.resetBehindServer();
+					}
+
+					if (EntitySystem::Contains<OnlinePlayerLC>()) {
+						for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
+							onlinePlayer.update(client.getTime());
+						}
+					}
+
+					DebugIO::setLine(3, "NetId: " + std::to_string(client.getNetId()));
+					DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
+				}
+				else {
+					//singleplayer physics / combat
+
+					if (EntitySystem::Contains<HealthPickupLC>()) {
+						for (auto& health : EntitySystem::GetPool<HealthPickupLC>()) {
+							health.update(client.clientTime, CLIENT_TIME_STEP);
+						}
+					}
+
+					/*
+					if (EntitySystem::Contains<ZombieLC>()) {
+						for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
+							zombie.searchForTarget<PlayerLC>();
+							zombie.runLogic();
+						}
+					}
+					*/
+
+					//game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
+				}
+
+
+				if (EntitySystem::Contains<HeadParticleLC>()) {
+					Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
+					for (auto& head : heads) {
+						head.update(CLIENT_TIME_STEP);
+					}
+				}
+
+				canProgressFrame = true;
+			}
 		}
+
+		leftover = elapsedTime_;
+
+		double ups = updates / ((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()));
+		DebugIO::setLine(0, "UPS: " + std::to_string(int(round(ups))));
+
+		//gfx
+
+		bool updateGFX{ false };
+		if (!doFBF) {
+			if (lockFPS)
+				updateGFX = static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency() >= gfxDelay;
+			else
+				updateGFX = true;
+		}
+		else {
+			updateGFX = (tick % static_cast<int>(gfxDelay / CLIENT_TIME_STEP) == 0);
+		}
+		if (updateGFX) {
+			frame++;
+			double fps = 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency());
+
+			DebugIO::setLine(1, "FPS: " + std::to_string(int(round(fps))));
+			//std::cout << 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency()) << std::endl;
+			currentGfx = now;
+
+			fb.bind();
+
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::ClearRenderBufs(GLRenderer::all);
+
+			//update camera
+			const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
+			GLRenderer::SetDefShader(ImageShader);
+			GLRenderer::setCamera(playerCamId);
+			static_cast<PlayerCam &>(GLRenderer::getCamera(playerCamId)).update(game.getPlayerId());
+
+			/*
+			RenderComponent * reddot = EntitySystem::GetComp<RenderComponent>(testComp);
+			PositionComponent * reddotposition = EntitySystem::GetComp<PositionComponent>(testComp);
+			if (EntitySystem::Contains<PlayerLC>()) {
+				PlayerLC & player = EntitySystem::GetPool<PlayerLC>().front();
+				const AABB * hitbox = player.getActiveHitbox();
+				if (hitbox != nullptr) {
+					reddot->setScale({ hitbox->res.x, hitbox->res.y });
+					reddotposition->pos = hitbox->pos;
+				}
+				else {
+					reddot->setScale({ 0, 0 });
+				}
+			}
+			*/
+
+			/*
+			if (EntitySystem::Contains<CombatComponent>()) {
+				for (auto & combat : EntitySystem::GetPool<CombatComponent>()) {
+					if (combat.getActiveHitbox() != nullptr) {
+						RenderComponent * renderComp = EntitySystem::GetComp<RenderComponent>(testComp);
+						PositionComponent * position = EntitySystem::GetComp<PositionComponent>(testComp);
+						renderComp->setObjRes(combat.getActiveHitbox()->hit.res);
+						position->pos = combat.getActiveHitbox()->hit.pos;
+					}
+				}
+			}
+			*/
+
+			if (EntitySystem::Contains<PlayerGC>()) {
+				for (auto & comp : EntitySystem::GetPool<PlayerGC>()) {
+					comp.updateState(gfxDelay);
+				}
+			}
+
+			/*
+			if (EntitySystem::Contains<ZombieGC>()) {
+				for (auto & comp : EntitySystem::GetPool<ZombieGC>()) {
+					comp.updateState(gfxDelay);
+				}
+			}
+			*/
+
+			if (EntitySystem::Contains<HealthPickupGC>()) {
+				for (auto & comp : EntitySystem::GetPool<HealthPickupGC>()) {
+					comp.updateState(gfxDelay);
+				}
+			}
+
+			render.drawAll();
+
+			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
+
+			RenderComponent * stageRender = EntitySystem::GetComp<RenderComponent>(game.stage.getId());
+			if (stageRender != nullptr) {
+				unsigned int stageRenderBuffer = stageRender->getRenderBufferId();
+				occlusionMap.bind();
+				GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+				GLRenderer::Draw(GLRenderer::include, 1, &stageRenderBuffer);
+			}
+
+			fb.bind();
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
+
+			GLRenderer::getComputeShader("blood").use();
+			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(playerCamId).pos.x, GLRenderer::getCamera(playerCamId).pos.y);
+			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(playerCamId).camScale);
+
+			GLRenderer::UpdateAndDrawParticles();
+
+			Framebuffer::unbind();
+			GLRenderer::SetDefShader(FullscreenShader);
+			GLRenderer::bindCurrShader();
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+
+			GLRenderer::DrawOverScreen(fb.getTexture(0).id);
+
+			GLRenderer::setCamera(debugCamId);
+			GLRenderer::SetDefShader(DebugShader);
+			DebugIO::drawLines();
+
+			GLRenderer::Swap();
+			GLRenderer::ReadErrors();
+
+			//after drawing clean up dead entities. This way everything gets a chance to be drawn.
+			EntitySystem::FreeDeadEntities();
+		}
+
+		if (doFBF)
+			canProgressFrame = false;
 	}
 
 	DebugIO::stopDebug();

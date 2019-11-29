@@ -16,7 +16,7 @@ enum class State : uint8_t {
 
 struct PlayerState {
 	bool operator==(const PlayerState & other) {
-		return when == other.when && pos == other.pos && vel == other.vel && state == other.state &&
+		return clientTime == other.clientTime && gameTime == other.gameTime && pos == other.pos && vel == other.vel && state == other.state &&
 			rollFrame == other.rollFrame && activeAttack == other.activeAttack && attackFrame == other.attackFrame &&
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
@@ -28,7 +28,8 @@ struct PlayerState {
 		return !(*this == other);
 	}
 
-	Time_t when;
+	Time_t gameTime;
+	Time_t clientTime;
 
 	State state;
 	uint32_t rollFrame;

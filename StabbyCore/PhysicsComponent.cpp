@@ -55,8 +55,7 @@ void PhysicsComponent::move(float angle, float amount) {
 }
 
 void PhysicsComponent::accelerate(Vec2f amount) {
-	vel.x += amount.x;
-	vel.y += amount.y;
+	vel += amount;
 }
 
 void PhysicsComponent::accelerate(float angle, float amount) {

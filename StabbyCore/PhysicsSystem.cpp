@@ -112,7 +112,7 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 	if (currStage != nullptr) {
 		if (EntitySystem::Contains<PhysicsComponent>()) {
 			PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(entity);
-			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(comp->getId());
+			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(entity);
 
 			//refresh to make sure we're in the right place
 			comp->collider.pos = position->pos;

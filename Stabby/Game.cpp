@@ -40,7 +40,7 @@ void Game::startOfflineGame() {
 }
 
 void Game::startOnlineGame(const std::string & address, int port) {
-	client.connect(time, address, port);
+	client.connect(address, port);
 	
 	client.setWeaponManager(weapons);
 	Vec2f spawnPos = stage.getSpawnPos();

@@ -30,6 +30,7 @@ protected:
 	float jumpSpeed;
 	//for only getting hit once per slash
 	bool isBeingHit;
+	double horizontalAccel;
 	double stepDistance;
 	double climbDistance;
 	bool attackBuffered;

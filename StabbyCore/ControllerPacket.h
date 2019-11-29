@@ -8,7 +8,7 @@ public:
 	ControllerPacket() :
 		key{ CONT_KEY },
 		netId{ 0 },
-		time{ 0 },
+		clientTime{ 0 },
 		state{ 0 }
 	{}
 
@@ -16,13 +16,13 @@ public:
 
 	NetworkId netId;
 	//the client side time when the packet was sent
-	Time_t time;
+	Time_t clientTime;
 	//game time when the packet was sent
 	Time_t when;
 	enet_uint8 state;
 
 	bool operator!=(const ControllerPacket & other) {
-		return netId != other.netId || time != other.time || when != other.when || state != other.state;
+		return netId != other.netId || clientTime != other.clientTime || when != other.when || state != other.state;
 	}
 
 	// Inherited via Packet

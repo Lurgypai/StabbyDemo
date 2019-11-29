@@ -54,6 +54,25 @@ void Host::sendData(NetworkId id, enet_uint8 channel, void * data, size_t dataSi
 	enet_peer_send(peers[id], channel, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
 }
 
+void Host::bufferData(ENetPeer* peer, enet_uint8 channel, void* data, size_t dataSize) {
+	peerDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), peer, 0, channel });
+}
+
+void Host::bufferData(NetworkId id, enet_uint8 channel, void* data, size_t dataSize) {
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), nullptr, id, channel });
+}
+
+void Host::sendBuffered() {
+	for (auto& packet : peerDestinedPackets) {
+		enet_peer_send(packet.peer, packet.channel, packet.packet);
+	}
+	peerDestinedPackets.clear();
+	for (auto& packet : idDestinedPackets) {
+		enet_peer_send(peers[packet.id], packet.channel, packet.packet);
+	}
+	idDestinedPackets.clear();
+}
+
 int Host::service(ENetEvent * event, enet_uint32 timeout) {
 	return enet_host_service(host, event, timeout);
 }

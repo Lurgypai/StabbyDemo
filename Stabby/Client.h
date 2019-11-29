@@ -16,16 +16,16 @@ public:
 
 	~Client();
 
-	void connect(Time_t now, const std::string & ip, int port);
+	void connect(const std::string & ip, int port);
 
 	template<typename Packet>
 	void send(Packet p);
 
 	void send(size_t size, void* data);
 
-	void service(Time_t now_);
+	void service();
 
-	void ping(Time_t now);
+	void ping();
 	void recalculatePing(Time_t nextPing);
 
 	//returns ping in milliseconds
@@ -33,6 +33,7 @@ public:
 
 	bool getConnected();
 
+	//the GameTime synchronized across all clients and the server
 	Time_t getTime();
 	void progressTime(Time_t delta);
 
@@ -44,12 +45,10 @@ public:
 	void resetBehindServer();
 
 	void setWeaponManager(WeaponManager& weapons_);
+	//client time
+	Time_t clientTime;
 private:
 	void receive(ENetEvent & e);
-
-	
-	//client time
-	Time_t now;
 	//the last PING_COUT pings.
 	std::deque<Time_t> pings;
 	//average ping in local client time

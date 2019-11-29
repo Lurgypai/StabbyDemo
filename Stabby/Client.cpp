@@ -29,7 +29,7 @@ Client::~Client() {
 	enet_deinitialize();
 }
 
-void Client::connect(Time_t now, const std::string & ip, int port) {
+void Client::connect(const std::string & ip, int port) {
 	if (!connected) {
 		serverId = client.connect(ip, port, 3);
 
@@ -70,10 +70,7 @@ void Client::connect(Time_t now, const std::string & ip, int port) {
 			client.disconnect(serverId);
 		}
 		else {
-			TimestampPacket p;
-			p.clientTime = now;
-			p.id = id;
-			client.sendPacket(serverId, 0, p);
+			ping();
 			connected = true;
 		}
 	}
@@ -86,8 +83,7 @@ void Client::send(size_t size, void* data) {
 	client.sendData(serverId, 0, data, size);
 }
 
-void Client::service(Time_t now_) {
-	now = now_;
+void Client::service() {
 	if (connected) {
 		ENetEvent e;
 		while (client.service(&e, 0) > 0) {
@@ -106,10 +102,10 @@ void Client::service(Time_t now_) {
 
 
 
-void Client::ping(Time_t now) {
+void Client::ping() {
 	TimestampPacket p;
 	p.id = id;
-	p.clientTime = now;
+	p.clientTime = clientTime;
 	client.sendPacket(serverId, 0, p);
 }
 
@@ -190,9 +186,6 @@ void Client::receive(ENetEvent & e) {
 					ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
 					if (player != nullptr) {
 						player->repredict(p.state);
-						//if we're behind where the server is;
-						if(!behindServer)
-							behindServer = p.state.when > now;
 					}
 				}
 			}
@@ -209,7 +202,7 @@ void Client::receive(ENetEvent & e) {
 		when = ntohll(when);
 
 		if(!behindServer)
-			behindServer = when > now;
+			behindServer = when > clientTime;
 
 		//to be removed, in favor of a storing the "master sprite" inside the zombiegc
 		static AnimatedSprite sprite{ "images/zambo.png", Vec2i{32, 32} };
@@ -275,7 +268,7 @@ void Client::receive(ENetEvent & e) {
 		TimestampPacket p;
 		PacketUtil::readInto<TimestampPacket>(p, e.packet);
 		p.unserialize();
-		Time_t latestRtt = now - p.clientTime;
+		Time_t latestRtt = clientTime - p.clientTime;
 		recalculatePing(latestRtt);
 		//kinda maybe synchronized
 		networkTime = p.gameTime + (((static_cast<double>(currentPing) / 2) * CLIENT_TIME_STEP) / GAME_TIME_STEP);
