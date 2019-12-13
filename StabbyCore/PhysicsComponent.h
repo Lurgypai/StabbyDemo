@@ -6,7 +6,7 @@ class PhysicsComponent {
 	friend class PhysicsSystem;
 
 public:
-	PhysicsComponent(EntityId id_ = 0, AABB collider = AABB{ {0, 0}, {0, 0} }, float weight = 0, Vec2f vel = {0, 0});
+	PhysicsComponent(EntityId id_ = 0, AABB collider = AABB{ {0, 0}, {0, 0} }, float weight = 0, Vec2f vel = {0, 0}, bool collideable_ = false);
 	EntityId getId() const;
 	
 	const AABB & getCollider() const;
@@ -32,6 +32,7 @@ public:
 	bool grounded;
 	bool frozen;
 	bool weightless;
+	bool collideable;
 protected:
 	AABB collider;
 	EntityId id;

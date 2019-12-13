@@ -6,11 +6,7 @@
 class PhysicsSystem {
 public:
 	PhysicsSystem();
-
-	void setStage(Stage * stage);
+	
 	void runPhysics(double timeDelta);
 	void runPhysics(double timeDelta, EntityId entity);
-private:
-	Stage * currStage;
-	std::vector<EntityId> physicsEntities;
 };

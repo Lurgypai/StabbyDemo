@@ -1,12 +1,12 @@
 #pragma once
 #include "EntitySystem.h"
-#include "Sprite.h"
+#include "IDrawable.h"
 #include "FileNotFoundException.h"
 #include "GLRenderer.h"
 
 #include <iostream>
 
-using SpritePtr = std::unique_ptr<Sprite>;
+using SpritePtr = std::unique_ptr<IDrawable>;
 
 class RenderComponent {
 public:
@@ -18,23 +18,16 @@ public:
 	RenderComponent & operator=(const RenderComponent & other);
 	
 	template<typename T, typename... Args>
-	void loadSprite(Args... args);
+	void loadDrawable(Args... args);
 
 	template<typename T, typename U>
-	void setSprite(U&& u);
+	void setDrawable(U&& u);
 	
 	template<typename U>
-	void setSprite(std::unique_ptr<U> u);
+	void setDrawable(std::unique_ptr<U> u);
 
-	Sprite * getSprite();
-
-	Vec2f getImgRes() const;
-	void setObjRes(Vec2f objRes);
-
-	void setScale(Vec2f scale);
-
-	unsigned int getRenderBufferId() const;
-	const ImgData & getImgData() const;
+	template<typename T>
+	T * getDrawable();
 
 	EntityId getId() const;
 protected:
@@ -45,7 +38,7 @@ protected:
 };
 
 template<typename T, typename ...Args>
-inline void RenderComponent::loadSprite(Args ...args) {
+inline void RenderComponent::loadDrawable(Args ...args) {
 	try {
 		sprite = std::make_unique<T>(args...);
 	}
@@ -55,11 +48,16 @@ inline void RenderComponent::loadSprite(Args ...args) {
 }
 
 template<typename T, typename U>
-inline void RenderComponent::setSprite(U && u) {
+inline void RenderComponent::setDrawable(U && u) {
 	try {
 	sprite = std::make_unique<T>(std::forward<U>(u));
 	}
 	catch (FileNotFoundException e) {
 		std::cout << e.what() << '\n';
 	}
+}
+
+template<typename T>
+inline T* RenderComponent::getDrawable() {
+	return static_cast<T *>(sprite.get());
 }

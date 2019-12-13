@@ -156,6 +156,10 @@ void Shader::uniform2f(std::string var, float arg0, float arg1) const {
 	glUniform2f(glGetUniformLocation(id, var.c_str()), arg0, arg1);
 }
 
+void Shader::uniform3f(std::string var, float arg0, float arg1, float arg2) const {
+	glUniform3f(glGetUniformLocation(id, var.c_str()), arg0, arg1, arg2);
+}
+
 void Shader::uniform1i(std::string val, int arg0) const {
 	glUniform1i(glGetUniformLocation(id, val.c_str()), arg0);
 }

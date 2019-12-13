@@ -10,6 +10,7 @@ struct Hitbox {
 	unsigned int active;
 	unsigned int ending;
 	unsigned int stun;
+	float damage;
 };
 
 class Attack {
@@ -26,6 +27,7 @@ public:
 	unsigned int getActiveId();
 	unsigned int getCurrFrame();
 	unsigned int getCurrentTotalFrames();
+	unsigned int getDamage() const;
 	void bufferNext();
 	void update(double timeDelta, Vec2f pos, int facing);
 	void addHitbox(Hitbox && hitbox);

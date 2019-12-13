@@ -3,42 +3,92 @@
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 #include "ClimbableComponent.h"
+#include "PhysicsComponent.h"
+#include <fstream>
 
-Stage::Stage() :
-	pos{ -(STAGE_WIDTH / 2), 0 },
-	colliders{}
+const std::string Stage::folder{"stage"};
+
+Stage::Stage() {}
+
+Stage::Stage(const std::string& stage) :
+	name{stage}
 {
-	colliders.emplace_back(Vec2f{ -(STAGE_WIDTH / 2), 0 }, Vec2f{STAGE_WIDTH, STAGE_HEIGHT});
-	EntitySystem::GenEntities(1, &id);
+	std::string fileName = folder + '/' + name + ".stg";
+	std::ifstream file{ fileName, std::ios::binary | std::ios::ate };
+	if (!file.is_open()) {
+		std::cout << "Unable to open file \"" << fileName << "\"\n";
+		return;
+	}
 
-	EntitySystem::GenEntities(1, &ladder);
-	EntitySystem::MakeComps<ClimbableComponent>(1, &ladder);
-	EntitySystem::GetComp<ClimbableComponent>(ladder)->collider = { {0.0f, 0.0f}, {16.0f, 128.0f} };
-	EntitySystem::GetComp<PositionComponent>(ladder)->pos = { -200, -128 };
+	constexpr int blockSize = sizeof(AABB) + sizeof(StageElement);
+	std::streamsize fileSize = file.tellg();
+	file.seekg(0, std::ios::beg);
+	std::vector<char> buffer(fileSize);
+	if (file.read(buffer.data(), fileSize)) {
+		for (auto pos = 0; pos < fileSize; pos += blockSize) {
+			AABB collider;
+			StageElement type;
+			std::memcpy(&collider, buffer.data() + pos, sizeof(AABB));
+			std::memcpy(&type, buffer.data() + pos + sizeof(AABB), sizeof(StageElement));
+
+			switch (type)
+			{
+			case StageElement::collideable:
+				EntityId id;
+				EntitySystem::GenEntities(1, &id);
+				EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+				EntitySystem::GetComp<PhysicsComponent>(id)->collideable = true;
+				EntitySystem::GetComp<PhysicsComponent>(id)->weightless = true;
+				EntitySystem::GetComp<PhysicsComponent>(id)->setRes(collider.res);
+
+				EntitySystem::GetComp<PositionComponent>(id)->pos = collider.pos;
+				collideables.push_back(id);
+				break;
+			case StageElement::climbable:
+				EntityId ladder;
+				EntitySystem::GenEntities(1, &ladder);
+				EntitySystem::MakeComps<ClimbableComponent>(1, &ladder);
+				EntitySystem::GetComp<ClimbableComponent>(ladder)->collider = collider;
+				EntitySystem::GetComp<PositionComponent>(ladder)->pos = collider.pos;
+
+				climbables.push_back(ladder);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	else {
+		std::cout << "Unable to open file \"" << stage << "\"\n";
+	}
 }
 
 Vec2f Stage::getSpawnPos() const {
-	return Vec2f{0, 0};
+	return Vec2f{0, -10};
 }
 
-const std::vector<AABB> & Stage::getColliders() const {
-	return colliders;
+void Stage::loadGraphics() {
+	renderables = { 0 };
+	EntitySystem::GenEntities(1, renderables.data());
+	EntitySystem::MakeComps<RenderComponent>(renderables.size(), renderables.data());
+
+	for (auto& id : renderables) {
+		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
+
+		render->loadDrawable<Sprite>(folder + '/' + name + ".png");
+		Sprite* sprite = render->getDrawable<Sprite>();
+		render->offset = {sprite->getImgRes().x / 2, sprite->getImgRes().y};
+	}
 }
 
-void Stage::loadGraphics(std::string filePath) {
-	EntitySystem::MakeComps<RenderComponent>(1, &id);
-	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-
-	EntitySystem::MakeComps<RenderComponent>(1, &ladder);
-	EntitySystem::GetComp<RenderComponent>(ladder)->loadSprite<Sprite>("images/ladder.png");
-
-	position->pos = pos;
-
-	render->loadSprite<Sprite>(filePath, pos);
-	render->setScale({STAGE_WIDTH / render->getImgRes().x, STAGE_HEIGHT / render->getImgRes().y });
+const std::vector<EntityId>& Stage::getCollideables() const {
+	return collideables;
 }
 
-EntityId Stage::getId() {
-	return id;
+const std::vector<EntityId>& Stage::getClimbables() const {
+	return climbables;
+}
+
+const std::vector<EntityId>& Stage::getRenderables() const {
+	return renderables;
 }

@@ -9,7 +9,8 @@
             "startup": 4,
             "active": 32,
             "ending": 4,
-            "stun": 40
+            "stun": 40,
+            "damage": 500
         }
     ]
 }

@@ -19,6 +19,12 @@
     <Filter Include="Source Files\Game">
       <UniqueIdentifier>{671086b4-ef86-4c70-bca0-e6a955101028}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Editor">
+      <UniqueIdentifier>{d3abcc33-2972-421f-86f7-92da61f364e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game\Editor">
+      <UniqueIdentifier>{f6956ca7-1d3e-4aff-b730-d2e0aed12d22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -83,6 +89,24 @@
     </ClInclude>
     <ClInclude Include="VelocityCommand.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="EditableColliderComponent.h">
+      <Filter>Header Files\Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditableColliderGC.h">
+      <Filter>Header Files\Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditableSystem.h">
+      <Filter>Header Files\Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorCam.h">
+      <Filter>Header Files\Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveStageCommand.h">
+      <Filter>Header Files\Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadStageCommand.h">
+      <Filter>Header Files\Game\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +175,24 @@
     </ClCompile>
     <ClCompile Include="VelocityCommand.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditableColliderComponent.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditableColliderGC.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditableSystem.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorCam.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadStageCommand.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveStageCommand.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -25,7 +25,6 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 
 
 	SDL_GL_SetSwapInterval(1);
-
 	
 	glViewport(0, 0, windowRes.x, windowRes.y);
 	glDisable(GL_DEPTH_TEST);
@@ -36,9 +35,10 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &ImgDataBuffer);
+	glGenBuffers(1, &VBO);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ImgDataBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ImgData) * IMG_DATA_BUFFER_SIZE, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ImgData) * IMG_DATA_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
 	particleSystem.genBuffer();
 
@@ -46,7 +46,8 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 		{Folder + "shaders/image.vert", Folder + "shaders/image.frag"},
 		{Folder + "shaders/image.vert", Folder + "shaders/text.frag"},
 		{Folder + "shaders/basic.vert", Folder + "shaders/basic.frag"},
-		{Folder + "shaders/particle.vert", Folder + "shaders/particle.frag"}
+		{Folder + "shaders/particle.vert", Folder + "shaders/particle.frag"},
+		{Folder + "shaders/primitive.vert", Folder + "shaders/primitive.frag"}
 		}, &DefaultShaders[0]);
 	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
@@ -54,6 +55,8 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	GLRenderer::GetShaderRef(DefaultShaders[DebugShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).use();
+	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 }
 
 void GLRenderer::Clear(GLbitfield bits) {
@@ -183,6 +186,34 @@ void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 				//glBindVertexArray(0);
 			}
 		}
+	}
+}
+
+void GLRenderer::DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b) {
+
+	GLRenderer::SetDefShader(PrimitiveShader);
+
+	Camera& cam = cameras[currentCam];
+
+	currentShader->use();
+	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
+	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
+	currentShader->uniform3f("color", r, g, b);
+
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vec2f), points.data(), GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2f), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glDrawArrays(GL_LINE_LOOP, 0, points.size());
+}
+
+void GLRenderer::DrawPrimitves(std::vector<AABB> rects, float r, float g, float b) {
+	for (auto& shape : rects) {
+		GLRenderer::DrawPrimitve({ shape.pos, Vec2f{shape.pos.x + shape.res.x, shape.pos.y}, shape.pos + shape.res, Vec2f{shape.pos.x, shape.pos.y + shape.res.y} }, r, g, b);
 	}
 }
 
@@ -363,6 +394,7 @@ std::vector<RenderBuffer> GLRenderer::renderBuffers{};
 SDL_GLContext GLRenderer::context{};
 SDL_Window* GLRenderer::window{nullptr};
 unsigned int GLRenderer::VAO{};
+unsigned int GLRenderer::VBO{};
 unsigned int GLRenderer::ImgDataBuffer{};
 std::vector<Camera> GLRenderer::cameras{};
 int GLRenderer::currentCam{};
@@ -371,7 +403,7 @@ Vec2i GLRenderer::viewRes{};
 RenderBuffer * GLRenderer::currentRenderBuffer{};
 std::unordered_map<unsigned int, Shader> GLRenderer::shaders{};
 Shader * GLRenderer::currentShader{nullptr};
-int GLRenderer::DefaultShaders[4]{};
+int GLRenderer::DefaultShaders[5]{};
 ParticleSystem GLRenderer::particleSystem{};
 
 const std::string GLRenderer::Folder{"SuquaEng0.1/"};

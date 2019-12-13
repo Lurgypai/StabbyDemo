@@ -83,6 +83,10 @@ unsigned int Attack::getCurrentTotalFrames() {
 	return hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending;
 }
 
+unsigned int Attack::getDamage() const {
+	return hitboxes[active - 1].damage;
+}
+
 void Attack::bufferNext() {
 	nextIsBuffered = true;
 }

@@ -3,14 +3,15 @@
 #include "AngleUtil.h"
 #include "PositionComponent.h"
 
-PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, Vec2f vel_) :
+PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, Vec2f vel_, bool collideable_) :
 	id{ id_ },
 	collider{collider_},
 	weight{weight_},
 	vel{vel_},
 	grounded{false},
 	frozen{false},
-	weightless{false}
+	weightless{false},
+	collideable{collideable_}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {

@@ -204,12 +204,14 @@
     <ClInclude Include="SuquaEng0.1\header\Framebuffer.h" />
     <ClInclude Include="SuquaEng0.1\header\GLRenderer.h" />
     <ClInclude Include="SuquaEng0.1\header\ImgData.h" />
+    <ClInclude Include="SuquaEng0.1\header\IDrawable.h" />
     <ClInclude Include="SuquaEng0.1\header\NetworkTypes.h" />
     <ClInclude Include="SuquaEng0.1\header\Packet.h" />
     <ClInclude Include="SuquaEng0.1\header\PhysicsAABB.h" />
     <ClInclude Include="SuquaEng0.1\header\Pool.h" />
     <ClInclude Include="SuquaEng0.1\header\PoolMap.h" />
     <ClInclude Include="SuquaEng0.1\header\RandomUtil.h" />
+    <ClInclude Include="SuquaEng0.1\header\RectDrawable.h" />
     <ClInclude Include="SuquaEng0.1\header\Shader.h" />
     <ClInclude Include="SuquaEng0.1\header\Sprite.h" />
     <ClInclude Include="SuquaEng0.1\header\stb_image.h" />
@@ -257,6 +259,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SuquaEng0.1\header\RectDrawable.cpp" />
     <ClCompile Include="SuquaEng0.1\src\AABB.cpp" />
     <ClCompile Include="SuquaEng0.1\src\AnimatedSprite.cpp" />
     <ClCompile Include="SuquaEng0.1\src\BitmapFont.cpp" />

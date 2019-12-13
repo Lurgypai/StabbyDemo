@@ -4,20 +4,27 @@
 #include "AABB.h"
 #include <string>
 
-#define STAGE_WIDTH 1000
-#define STAGE_HEIGHT 10
+enum class StageElement {
+	collideable,
+	climbable
+};
 
 class Stage {
 public:
+	static const std::string folder;
+
 	Stage();
+	Stage(const std::string & stage);
 	Vec2f getSpawnPos() const;
-	void loadGraphics(std::string filePath);
-	const std::vector<AABB>& getColliders() const;
-	EntityId getId();
+	void loadGraphics();
+	const std::vector<EntityId> & getCollideables() const;
+	const std::vector<EntityId>& getClimbables() const;
+	const std::vector<EntityId>& getRenderables() const;
 
 private:
-	std::vector<AABB> colliders;
-	Vec2f pos;
-	EntityId id;
-	EntityId ladder;
+
+	std::string name;
+	std::vector<EntityId> collideables;
+	std::vector<EntityId> climbables;
+	std::vector<EntityId> renderables;
 };

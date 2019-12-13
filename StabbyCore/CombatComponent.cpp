@@ -5,6 +5,7 @@
 #include "CombatComponent.h"
 #include "DirectionComponent.h"
 #include "PositionComponent.h"
+#include <iostream>
 
 CombatComponent::CombatComponent(EntityId id_) :
 	id{id_},
@@ -113,19 +114,29 @@ void CombatComponent::stun(unsigned int i) {
 }
 
 int CombatComponent::rollDamage() {
-	float doCrit = randFloat(0.0f, 1.0f);
-	int guaranteedCrits = static_cast<int>(stats.critChance);
-	float critChance = stats.critChance - guaranteedCrits;
 
-	//calculate the guaranteed crits, if the leftover chance happens do it, otherwise return the base damage.
-	int totalDamage =  (stats.baseDamage * stats.critMultiplier) * guaranteedCrits + (doCrit < critChance ? stats.baseDamage * stats.critMultiplier : stats.baseDamage);
+	const Hitbox* active = attack.getActive();
 
-	float doVampire = randFloat(0.0f, 1.0f);
-	if (doVampire < stats.vampirismChance) {
-		heal(totalDamage * stats.vampirismMultiplier);
+	if (active != nullptr) {
+
+		int activeId = attack.getActiveId();
+
+		float doCrit = randFloat(0.0f, 1.0f);
+		int guaranteedCrits = static_cast<int>(stats.critChance);
+		float critChance = stats.critChance - guaranteedCrits;
+
+		//calculate the guaranteed crits, if the leftover chance happens do it, otherwise return the base damage.
+		int totalDamage = (active->damage * stats.baseDamage * stats.critMultiplier) * guaranteedCrits + (doCrit < critChance ? active->damage * stats.baseDamage * stats.critMultiplier : active->damage * stats.baseDamage);
+
+		float doVampire = randFloat(0.0f, 1.0f);
+		if (doVampire < stats.vampirismChance) {
+			heal(totalDamage * stats.vampirismMultiplier);
+		}
+
+		return totalDamage;
 	}
 
-	return totalDamage;
+	return 0;
 }
 
 EntityId CombatComponent::getLastAttacker() {

@@ -5,32 +5,29 @@
 
 PhysicsSystem::PhysicsSystem() {}
 
-void PhysicsSystem::setStage(Stage * stage_) {
-	currStage = stage_;
-}
-
 void PhysicsSystem::runPhysics(double timeDelta) {
-	if (currStage != nullptr) {
-		if (EntitySystem::Contains<PhysicsComponent>()) {
-			for (auto& rawComp : EntitySystem::GetPool<PhysicsComponent>()) {
-				PhysicsComponent * comp = &rawComp;
-				PositionComponent * position = EntitySystem::GetComp<PositionComponent>(comp->getId());
+	if (EntitySystem::Contains<PhysicsComponent>()) {
+		for (auto& rawComp : EntitySystem::GetPool<PhysicsComponent>()) {
+			PhysicsComponent * comp = &rawComp;
+			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(comp->getId());
 
-				//refresh to make sure we're in the right place
-				comp->collider.pos = position->pos;
+			//refresh to make sure we're in the right place
+			comp->collider.pos = position->pos;
 
-				if (!comp->frozen) {
-					//accelerate downwards, gravity
-					if(!comp->weightless)
-						comp->accelerate({ 0, comp->weight });
+			if (!comp->frozen) {
+				//accelerate downwards, gravity
+				if(!comp->weightless)
+					comp->accelerate({ 0, comp->weight });
 
-					comp->grounded = false;
-					Vec2f currPos = position->pos;
-					Vec2f & vel = comp->vel;
-					Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
+				comp->grounded = false;
+				Vec2f currPos = position->pos;
+				Vec2f & vel = comp->vel;
+				Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 
-					//handle collisions with the stage
-					for (auto & collider : currStage->getColliders()) {
+				//handle collisions with the stage
+				for (auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
+					if (physicsComp.id != rawComp.id && physicsComp.collideable) {
+						auto& collider = physicsComp.getCollider();
 						Vec2f res = comp->getRes();
 						//place we are updating too
 
@@ -97,37 +94,37 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 							}
 							newPos -= overlap;
 						}
-						currPos = newPos;
 					}
-					currPos = newPos;
-					position->pos = currPos;
-					comp->collider.pos = currPos;
 				}
+				currPos = newPos;
+				position->pos = currPos;
+				comp->collider.pos = currPos;
 			}
 		}
 	}
 }
 
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
-	if (currStage != nullptr) {
-		if (EntitySystem::Contains<PhysicsComponent>()) {
-			PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(entity);
-			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(entity);
+	if (EntitySystem::Contains<PhysicsComponent>()) {
+		PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(entity);
+		PositionComponent * position = EntitySystem::GetComp<PositionComponent>(entity);
 
-			//refresh to make sure we're in the right place
-			comp->collider.pos = position->pos;
+		//refresh to make sure we're in the right place
+		comp->collider.pos = position->pos;
 
-			if (!comp->frozen) {
-				//accelerate downwards, gravity
-				comp->accelerate({ 0, comp->weight });
+		if (!comp->frozen) {
+			//accelerate downwards, gravity
+			comp->accelerate({ 0, comp->weight });
 
-				comp->grounded = false;
-				Vec2f currPos = position->pos;
-				Vec2f & vel = comp->vel;
-				Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
+			comp->grounded = false;
+			Vec2f currPos = position->pos;
+			Vec2f & vel = comp->vel;
+			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 
-				//handle collisions with the stage
-				for (auto & collider : currStage->getColliders()) {
+			//handle collisions with the stage
+			for (auto & physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
+				if (physicsComp.collideable) {
+					auto& collider = physicsComp.collider;
 					Vec2f res = comp->getRes();
 					//place we are updating too
 
@@ -196,10 +193,11 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 					}
 					currPos = newPos;
 				}
-				currPos = newPos;
-				position->pos = currPos;
-				comp->collider.pos = currPos;
+
 			}
+			currPos = newPos;
+			position->pos = currPos;
+			comp->collider.pos = currPos;
 		}
 	}
 }

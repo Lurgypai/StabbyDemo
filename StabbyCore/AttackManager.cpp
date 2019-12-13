@@ -33,14 +33,16 @@ void AttackManager::loadAttacks(const std::string & attackDir) {
 						unsigned int active = hitbox["active"];
 						unsigned int ending = hitbox["ending"];
 						unsigned int stun = hitbox["stun"];
+						float damage = hitbox["damage"];
 
-						attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stun });
+						attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stun, damage });
 					}
 
 					attacks.insert(std::pair{ file.path().stem().string(), attack });
 				}
 				catch (std::exception e) {
 					std::cout << "An error occurred while reading the file \"" << file.path() << "\"\n";
+					std::cout << e.what() << '\n';
 				}
 			}
 			else {

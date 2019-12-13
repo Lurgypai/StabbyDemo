@@ -18,7 +18,8 @@ public:
 	void resetDelay();
 	Vec2i getAnimation(int id);
 	int getCurrentAnimationId();
-	virtual Sprite * clone() const override;
+
+	IDrawable* clone() override;
 
 	bool looping;
 	double frameDelay;

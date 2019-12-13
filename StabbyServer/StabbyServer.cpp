@@ -118,7 +118,6 @@ int main(int argv, char* argc[])
 
 	Stage stage{};
 	PhysicsSystem physics{};
-	physics.setStage(&stage);
 	CombatSystem combat{};
 	WeaponManager weapons{};
 	ClimbableSystem climbables{};
@@ -163,7 +162,7 @@ int main(int argv, char* argc[])
 				users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 				users.back()->getCombat().teamId = users.back()->getNetId();
 				users.back()->getCombat().health = 100;
-				users.back()->getCombat().stats = CombatStats{ 100, 0, 0, 20, 0.0f, 0.0f, 0.0f, 0.0f };
+				users.back()->getCombat().stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 				if (event.packet->dataLength == 0) {

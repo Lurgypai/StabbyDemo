@@ -35,7 +35,7 @@ PlayerState ServerPlayerLC::getLatestState() {
 
 void ServerPlayerLC::bufferInput(ClientCommand c) {
 	//skip inputs older than the last one
-	//keep inputs older than the current time (clientTime). AVoid dropping inputs (though this will cause desyncs if thigns are too old.)
+	//keep inputs older than the current time (clientTime). Avoid dropping inputs (though this will cause desyncs if thigns are too old.)
 	if (c.clientTime > latestTime) {
 
 		Time_t delay = ((1 / CLIENT_TIME_STEP) * SERVER_TIME_STEP);
@@ -46,7 +46,7 @@ void ServerPlayerLC::bufferInput(ClientCommand c) {
 
 		commands.push_back(c);
 		latestTime = c.clientTime;
-		DebugFIO::Out("s_out.txt") << "received input " << static_cast<int>(c.controllerState.getState()) << " for time " << c.clientTime << '\n';
+		//DebugFIO::Out("s_out.txt") << "received input " << static_cast<int>(c.controllerState.getState()) << " for time " << c.clientTime << '\n';
 	}
 }
 
@@ -76,10 +76,10 @@ void ServerPlayerLC::update(Time_t gameTime) {
 		prevStates.emplace_back(stateComp->playerState);
 
 		//print the stored pos and vel, with the time linked.
-		auto& out = DebugFIO::Out("s_out.txt");
-		out << "pos at time " << clientTime << ": " << stateComp->playerState.pos << '\n';
-		out << "vel at time " << clientTime << ": " << stateComp->playerState.vel << '\n';
-		out << "inp at time " << clientTime << ": " << static_cast<int>(activeCommand.controllerState.getState()) << '\n';
+		//auto& out = DebugFIO::Out("s_out.txt");
+		//out << "pos at time " << clientTime << ": " << stateComp->playerState.pos << '\n';
+		//out << "vel at time " << clientTime << ": " << stateComp->playerState.vel << '\n';
+		//out << "inp at time " << clientTime << ": " << static_cast<int>(activeCommand.controllerState.getState()) << '\n';
 
 		++clientTime;
 }

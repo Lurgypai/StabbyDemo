@@ -16,7 +16,7 @@ HealthPickupGC::HealthPickupGC(EntityId id_) :
 void HealthPickupGC::updateState(double timeDelta) {
 	if (EntitySystem::GetComp<EntityBaseComponent>(id)->isDead) {
 		RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-		Vec2f center = render->getSprite()->getPos() + Vec2f{ 2.5, 2.5 };
+		Vec2f center = render->getDrawable<Sprite>()->getPos() + Vec2f{ 2.5, 2.5 };
 
 		std::string tag = "blood";
 		float vel = 2.5f;

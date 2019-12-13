@@ -47,9 +47,14 @@
 #include "ClimbableComponent.h"
 #include "VelocityCommand.h"
 #include "DebugFIO.h"
+#include "EditableColliderComponent.h"
+#include "EditableColliderGC.h"
+#include "EditorCam.h"
+#include <SaveStageCommand.h>
+#include <LoadStageCommand.h>
 
-const int windowWidth = 1920 / 2;
-const int windowHeight = 1080 / 2;
+const int windowWidth = 1920;
+const int windowHeight = 1080;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -67,11 +72,9 @@ void MessageCallback(GLenum source,
 		type, severity, message);
 }
 
-/*
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
-*/
 
 int main(int argc, char* argv[]) {
 
@@ -93,44 +96,39 @@ int main(int argc, char* argv[]) {
 
 	DebugIO::startDebug("SuquaEng0.1/fonts/consolas_0.png", "SuquaEng0.1/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
-	int debugCamId;
-	debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
+	game.debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 
 	PlayerCam playerCam{ viewWidth, viewHeight };
 	//playerCam.setZoom(.08);
-	int playerCamId = GLRenderer::addCamera(playerCam);
+	game.playerCamId = GLRenderer::addCamera(playerCam);
+	game.editorCamId = GLRenderer::addCamera(Camera{ {0.0f, 0.0f}, {viewWidth, viewHeight}, 1.0});
+
+	EditorCam cam{ game.editorCamId };
 
 	PartitionID blood = GLRenderer::GenParticleType("blood", 1, {"particles/blood.vert"});
 	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
 	PartitionID floating = GLRenderer::GenParticleType("float", 1, { "particles/float.vert" });
-	//glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
-
 	
 	EntityId title;
 	EntitySystem::GenEntities(1, &title);
 	EntitySystem::MakeComps<RenderComponent>(1, &title);
 	RenderComponent * titleRender = EntitySystem::GetComp<RenderComponent>(title);
-	titleRender->loadSprite<Sprite>("images/tempcover.png");
-	EntitySystem::GetComp<PositionComponent>(title)->pos = {-titleRender->getImgRes().x / 2 , -300 };
+	titleRender->loadDrawable<Sprite>("images/tempcover.png");
+	EntitySystem::GetComp<PositionComponent>(title)->pos = {-320 , -300 };
 
-	GLRenderer::getCamera(playerCamId).pos = { -titleRender->getImgRes().x / 2 , -300 };
-
-	EntityId reddot;
-	EntitySystem::GenEntities(1, &reddot);
-	EntitySystem::MakeComps<RenderComponent>(1, &reddot);
-	RenderComponent* reddotSprite = EntitySystem::GetComp<RenderComponent>(reddot);
-	reddotSprite->loadSprite<Sprite>("images/redpixel.png");
+	GLRenderer::getCamera(game.playerCamId).pos = { -320 , -300 };
+	GLRenderer::getCamera(game.editorCamId).center({ 0, 0 });
 
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
 
-	game.stage.loadGraphics("images/stage.png");
-	physics.setStage(&game.stage);
-
 	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
 	DebugIO::getCommandManager().registerCommand<AttackSpeedCommand>(AttackSpeedCommand{ game });
 	DebugIO::getCommandManager().registerCommand<MoveSpeedCommand>(MoveSpeedCommand{ game });
+	DebugIO::getCommandManager().registerCommand<SaveStageCommand>(SaveStageCommand{ game.editables });
+	DebugIO::getCommandManager().registerCommand<LoadStageCommand>(LoadStageCommand{ game.editables });
 	//DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
 	DebugIO::getCommandManager().registerCommand<KillCommand>();
 	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
@@ -165,7 +163,7 @@ int main(int argc, char* argv[]) {
 	outlineMap.bind();
 	outlineTex = outlineMap .addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
 	outlineMap.finalizeFramebuffer();
-	Framebuffer::unbind();
+	Framebuffer::unbind();	
 
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
 
@@ -268,7 +266,8 @@ int main(int argc, char* argv[]) {
 
 				if (EntitySystem::Contains<PlayerLC>()) {
 					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
-					player->update(CLIENT_TIME_STEP, controller);
+					if(player != nullptr)
+						player->update(CLIENT_TIME_STEP, controller);
 				}
 
 
@@ -278,6 +277,9 @@ int main(int argc, char* argv[]) {
 
 				physics.runPhysics(CLIENT_TIME_STEP);
 				game.combat.runAttackCheck(CLIENT_TIME_STEP);
+
+				game.editables.updateLogic(game.editorCamId);
+
 
 				/*
 				if (EntitySystem::Contains<CombatComponent>()) {
@@ -313,7 +315,7 @@ int main(int argc, char* argv[]) {
 					if (lastSent != state) {
 						lastSent = state;
 						client.send(state);
-						DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << "for time " << client.clientTime << '\n';
+						//DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
 						//std::cout << "Sending update for time: " << lastSent.when << '\n';
 					}
 
@@ -392,6 +394,7 @@ int main(int argc, char* argv[]) {
 			//std::cout << 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency()) << std::endl;
 			currentGfx = now;
 
+			//draw everything to the framebuffer
 			fb.bind();
 
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
@@ -402,37 +405,6 @@ int main(int argc, char* argv[]) {
 
 			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
 			GLRenderer::SetDefShader(ImageShader);
-			GLRenderer::setCamera(playerCamId);
-			static_cast<PlayerCam &>(GLRenderer::getCamera(playerCamId)).update(game.getPlayerId());
-
-			/*
-			RenderComponent * reddot = EntitySystem::GetComp<RenderComponent>(testComp);
-			PositionComponent * reddotposition = EntitySystem::GetComp<PositionComponent>(testComp);
-			if (EntitySystem::Contains<PlayerLC>()) {
-				PlayerLC & player = EntitySystem::GetPool<PlayerLC>().front();
-				const AABB * hitbox = player.getActiveHitbox();
-				if (hitbox != nullptr) {
-					reddot->setScale({ hitbox->res.x, hitbox->res.y });
-					reddotposition->pos = hitbox->pos;
-				}
-				else {
-					reddot->setScale({ 0, 0 });
-				}
-			}
-			*/
-
-			/*
-			if (EntitySystem::Contains<CombatComponent>()) {
-				for (auto & combat : EntitySystem::GetPool<CombatComponent>()) {
-					if (combat.getActiveHitbox() != nullptr) {
-						RenderComponent * renderComp = EntitySystem::GetComp<RenderComponent>(testComp);
-						PositionComponent * position = EntitySystem::GetComp<PositionComponent>(testComp);
-						renderComp->setObjRes(combat.getActiveHitbox()->hit.res);
-						position->pos = combat.getActiveHitbox()->hit.pos;
-					}
-				}
-			}
-			*/
 
 			if (EntitySystem::Contains<PlayerGC>()) {
 				for (auto & comp : EntitySystem::GetPool<PlayerGC>()) {
@@ -440,31 +412,28 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-			/*
-			if (EntitySystem::Contains<ZombieGC>()) {
-				for (auto & comp : EntitySystem::GetPool<ZombieGC>()) {
-					comp.updateState(gfxDelay);
-				}
+			if (game.editables.isEnabled) {
+				GLRenderer::setCamera(game.editorCamId);
+				cam.update();
+				game.editables.updateGfx();
 			}
-			*/
-
-			if (EntitySystem::Contains<HealthPickupGC>()) {
-				for (auto & comp : EntitySystem::GetPool<HealthPickupGC>()) {
-					comp.updateState(gfxDelay);
-				}
+			else {
+				GLRenderer::setCamera(game.playerCamId);
+				static_cast<PlayerCam&>(GLRenderer::getCamera(game.playerCamId)).update(game.getPlayerId());
 			}
 
 			render.drawAll();
 
-			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
-
-			RenderComponent * stageRender = EntitySystem::GetComp<RenderComponent>(game.stage.getId());
-			if (stageRender != nullptr) {
-				unsigned int stageRenderBuffer = stageRender->getRenderBufferId();
-				occlusionMap.bind();
-				GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
-				GLRenderer::Draw(GLRenderer::include, 1, &stageRenderBuffer);
+			//Draw all the physics components to the occlusion map.
+			occlusionMap.bind();
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			if (EntitySystem::Contains<PhysicsComponent>()) {
+				for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
+					GLRenderer::DrawPrimitves({ physics.getCollider() }, 1.0, 1.0, 1.0);
+				}
 			}
+
+			//draw the pixels to the framebuffer, draw the framebuffer over the screen
 
 			fb.bind();
 
@@ -472,8 +441,8 @@ int main(int argc, char* argv[]) {
 			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
 
 			GLRenderer::getComputeShader("blood").use();
-			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(playerCamId).pos.x, GLRenderer::getCamera(playerCamId).pos.y);
-			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(playerCamId).camScale);
+			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(game.playerCamId).pos.x, GLRenderer::getCamera(game.playerCamId).pos.y);
+			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(game.playerCamId).camScale);
 
 			GLRenderer::UpdateAndDrawParticles();
 
@@ -484,12 +453,14 @@ int main(int argc, char* argv[]) {
 
 			GLRenderer::DrawOverScreen(fb.getTexture(0).id);
 
-			GLRenderer::setCamera(debugCamId);
+			//draw the debugio over the screen
+
+			GLRenderer::setCamera(game.debugCamId);
 			GLRenderer::SetDefShader(DebugShader);
 			DebugIO::drawLines();
 
 			GLRenderer::Swap();
-			GLRenderer::ReadErrors();
+			//GLRenderer::ReadErrors();
 
 			//after drawing clean up dead entities. This way everything gets a chance to be drawn.
 			EntitySystem::FreeDeadEntities();

@@ -15,7 +15,7 @@ ZombieGC::ZombieGC(EntityId id_) :
 
 void ZombieGC::loadAnimations() {
 	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
+	AnimatedSprite& animSprite = *render->getDrawable<AnimatedSprite>();
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
 	//keep in mind graphics gale starts at frame 1, not 0
@@ -30,7 +30,7 @@ void ZombieGC::loadAnimations() {
 void ZombieGC::updateState(double timeDelta) {
 	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite & animSprite = static_cast<AnimatedSprite &>(*render->getSprite());
+	AnimatedSprite& animSprite = *render->getDrawable<AnimatedSprite>();
 
 	ZombieLC * zombie = EntitySystem::GetComp<ZombieLC>(id);
 

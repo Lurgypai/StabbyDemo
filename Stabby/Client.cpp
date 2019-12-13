@@ -231,7 +231,7 @@ void Client::receive(ENetEvent & e) {
 					EntitySystem::MakeComps<ZombieGC>(1, &id);
 					EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
 					EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-					EntitySystem::GetComp<RenderComponent>(id)->setSprite<AnimatedSprite>(sprite);
+					EntitySystem::GetComp<RenderComponent>(id)->setDrawable<AnimatedSprite>(sprite);
 					EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
 					idTable.add(zombieState.onlineId, id);
 				}
@@ -243,7 +243,7 @@ void Client::receive(ENetEvent & e) {
 				EntitySystem::MakeComps<ZombieGC>(1, &id);
 				EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
 				EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-				EntitySystem::GetComp<RenderComponent>(id)->setSprite<AnimatedSprite>(sprite);
+				EntitySystem::GetComp<RenderComponent>(id)->setDrawable<AnimatedSprite>(sprite);
 				EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
 				idTable.add(zombieState.onlineId, id);
 			}
@@ -315,7 +315,7 @@ void Client::receive(ENetEvent & e) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
 			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
-			EntitySystem::GetComp<RenderComponent>(entity)->loadSprite<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
+			EntitySystem::GetComp<RenderComponent>(entity)->loadDrawable<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
 			EntitySystem::GetComp<PlayerGC>(entity)->attackSprite = weapons->cloneAnimation("player_sword");
 			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ 0, 0 }, AABB{ {0, 0}, {4, 20} } });

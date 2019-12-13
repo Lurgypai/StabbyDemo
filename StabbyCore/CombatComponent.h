@@ -15,7 +15,7 @@ struct CombatStats {
 	int regeneration;
 	int shields;
 
-	int baseDamage;
+	float baseDamage;
 	float critChance;
 	float critMultiplier;
 	float vampirismChance;

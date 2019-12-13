@@ -84,6 +84,6 @@ int AnimatedSprite::getCurrentAnimationId() {
 	return currentAnimationId;
 }
 
-Sprite * AnimatedSprite::clone() const {
+IDrawable* AnimatedSprite::clone() {
 	return new AnimatedSprite(*this);
 }

@@ -12,7 +12,7 @@ Vec2f AABB::center() const {
 
 void AABB::center(const Vec2f & newCenter) {
 	//newpos = newcenter - res / 2;
-	pos = Vec2f{ newCenter.x + res.x / 2, newCenter.y + res.y / 2 };
+	pos = Vec2f{ newCenter.x - res.x / 2, newCenter.y - res.y / 2 };
 }
 
 bool AABB::contains(Vec2f point) {

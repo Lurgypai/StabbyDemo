@@ -28,7 +28,7 @@ PlayerGC::PlayerGC(EntityId id_) :
 
 void PlayerGC::loadAnimations() {
 	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite & animSprite_ = static_cast<AnimatedSprite &>(*render->getSprite());
+	AnimatedSprite & animSprite_ = *render->getDrawable<AnimatedSprite>();
 
 
 	//keep in mind graphics gale starts at frame 1, not 0
@@ -69,7 +69,7 @@ void PlayerGC::spawnHead(Vec2f pos) {
 	position->pos = pos;
 
 	RenderComponent * image = EntitySystem::GetComp<RenderComponent>(id_);
-	image->loadSprite<Sprite>("images/head.png");
+	image->loadDrawable<Sprite>("images/head.png");
 }
 
 void PlayerGC::updateState(double timeDelta) {
@@ -84,10 +84,10 @@ void PlayerGC::updateState(double timeDelta) {
 		if (state.attackFreezeFrame == 0) {
 			if (plrState == State::attacking) {
 				if (prevState != State::attacking) {
-					render->setSprite<AnimatedSprite>(attackSprite);
+					render->setDrawable<AnimatedSprite>(attackSprite);
 					
 				}
-				AnimatedSprite& sprite = static_cast<AnimatedSprite&>(*render->getSprite());
+				AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 				int width = sprite.getObjRes().abs().x;
 				int height = sprite.getObjRes().abs().y;
 				sprite.setObjRes(Vec2i{ direction->dir * width, height });
@@ -103,9 +103,9 @@ void PlayerGC::updateState(double timeDelta) {
 			}
 			else {
 				if (prevState == State::attacking) {
-					render->setSprite<AnimatedSprite>(animSprite);
+					render->setDrawable<AnimatedSprite>(animSprite);
 				}
-				AnimatedSprite& sprite = static_cast<AnimatedSprite&>(*render->getSprite());
+				AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 				int width = sprite.getObjRes().abs().x;
 				int height = sprite.getObjRes().abs().y;
 				sprite.setObjRes(Vec2i{ direction->dir * width, height });

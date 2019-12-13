@@ -168,12 +168,17 @@
     <ClInclude Include="AttackSpeedCommand.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientZombieLC.h" />
+    <ClInclude Include="EditableColliderComponent.h" />
+    <ClInclude Include="EditableColliderGC.h" />
+    <ClInclude Include="EditableSystem.h" />
+    <ClInclude Include="EditorCam.h" />
     <ClInclude Include="FrameByFrameCommand.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="HeadCommand.h" />
     <ClInclude Include="HeadParticleLC.h" />
     <ClInclude Include="HealthPickupGC.h" />
     <ClInclude Include="KillCommand.h" />
+    <ClInclude Include="LoadStageCommand.h" />
     <ClInclude Include="MoveSpeedCommand.h" />
     <ClInclude Include="PlayerCam.h" />
     <ClInclude Include="PlayerGC.h" />
@@ -181,6 +186,7 @@
     <ClInclude Include="ConnectCommand.h" />
     <ClInclude Include="OnlinePlayerLC.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="SaveStageCommand.h" />
     <ClInclude Include="SpawnZombieCommand.h" />
     <ClInclude Include="StartCommand.h" />
     <ClInclude Include="VelocityCommand.h" />
@@ -191,12 +197,17 @@
     <ClCompile Include="AttackSpeedCommand.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientZombieLC.cpp" />
+    <ClCompile Include="EditableColliderComponent.cpp" />
+    <ClCompile Include="EditableColliderGC.cpp" />
+    <ClCompile Include="EditableSystem.cpp" />
+    <ClCompile Include="EditorCam.cpp" />
     <ClCompile Include="FrameByFrameCommand.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HeadCommand.cpp" />
     <ClCompile Include="HeadParticleLC.cpp" />
     <ClCompile Include="HealthPickupGC.cpp" />
     <ClCompile Include="KillCommand.cpp" />
+    <ClCompile Include="LoadStageCommand.cpp" />
     <ClCompile Include="MoveSpeedCommand.cpp" />
     <ClCompile Include="PlayerCam.cpp" />
     <ClCompile Include="PlayerGC.cpp" />
@@ -209,6 +220,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SaveStageCommand.cpp" />
     <ClCompile Include="SpawnZombieCommand.cpp" />
     <ClCompile Include="Stabby.cpp" />
     <ClCompile Include="StartCommand.cpp" />

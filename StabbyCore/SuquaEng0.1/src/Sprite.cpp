@@ -35,6 +35,8 @@ Sprite::Sprite(const std::string &filePath, Vec2f pos_, Vec2f origin_, Vec2f sca
 	renderBufferId = GLRenderer::GenRenderStyleBuf(texture, 0);
 }
 
+Sprite::~Sprite() {}
+
 Vec2f Sprite::getImgRes() const {
 	return data.imgRes;
 }
@@ -103,6 +105,12 @@ unsigned int Sprite::getRenderBufferId() const {
 	return renderBufferId;
 }
 
-Sprite * Sprite::clone() const {
+void Sprite::draw() {
+	GLRenderer::SetBuffer(renderBufferId);
+	GLRenderer::Buffer(data);
+	GLRenderer::Draw(GLRenderer::include, 1, &renderBufferId);
+}
+
+IDrawable* Sprite::clone() {
 	return new Sprite(*this);
 }

@@ -15,6 +15,7 @@
 #include "Particle.h"
 #include "ComputeShader.h"
 #include "ParticleSystem.h"
+#include "AABB.h"
 
 #define IMG_DATA_BUFFER_SIZE 1000
 
@@ -78,7 +79,8 @@ enum DefShader {
 	ImageShader = 0,
 	DebugShader = 1,
 	FullscreenShader = 2,
-	ParticleShader = 3
+	ParticleShader = 3,
+	PrimitiveShader = 4
 };
 
 class GLRenderer {
@@ -108,6 +110,10 @@ public:
 	static void Draw(SelectType t_, std::vector<unsigned int>& ids);
 	//Draw the selected RenderBuffers
 	static void Draw(SelectType t_, int count = 0, unsigned int * ids = nullptr);
+	//Draw a simple shape outline
+	static void DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b);
+	//Draw an aabb outline
+	static void DrawPrimitves(std::vector<AABB> rects, float r, float g, float b);
 	//Clear the selected RenderBuffers
 	static void ClearRenderBufs(SelectType t_, std::vector<unsigned int>& ids);
 	//Clear the selected RenderBuffers
@@ -149,6 +155,7 @@ private:
 	static SDL_Window* window;
 	static SDL_GLContext context;
 	static unsigned int VAO;
+	static unsigned int VBO;
 	static unsigned int ImgDataBuffer;
 	static std::vector<Camera> cameras;
 	static int currentCam;
@@ -157,7 +164,7 @@ private:
 	static RenderBuffer * currentRenderBuffer;
 	static std::unordered_map<unsigned int, Shader> shaders;
 	static Shader * currentShader;
-	static int DefaultShaders[4];
+	static int DefaultShaders[5];
 
 	static const std::string Folder;
 	static ParticleSystem particleSystem;

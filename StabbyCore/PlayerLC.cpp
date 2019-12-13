@@ -251,7 +251,7 @@ void PlayerLC::respawn() {
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);\
 	Attack & attack = combat->attack;
 
-	position->pos = Vec2f{static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
+	position->pos = Vec2f{ 0, -10 };
 	comp->vel = { 0, 0 };
 	attack.setActive(0);
 	attack.setFrame(0);

@@ -27,9 +27,9 @@ void ClientPlayerLC::update(Time_t clientTime, Time_t gameTime, double timeDelta
 	states.emplace_back(TotalPlayerState{ playerState->playerState, controller.getState() });
 
 	//print the stored state
-	DebugFIO::Out("c_out.txt") << "pos at time " << clientTime << ": " << playerState->playerState.pos << '\n';
-	DebugFIO::Out("c_out.txt") << "vel at time " << clientTime << ": " << playerState->playerState.vel << '\n';
-	DebugFIO::Out("c_out.txt") << "inp at time " << clientTime << ": " << static_cast<int>(controller.getState()) << '\n';
+	//DebugFIO::Out("c_out.txt") << "pos at time " << clientTime << ": " << playerState->playerState.pos << '\n';
+	//DebugFIO::Out("c_out.txt") << "vel at time " << clientTime << ": " << playerState->playerState.vel << '\n';
+	//DebugFIO::Out("c_out.txt") << "inp at time " << clientTime << ": " << static_cast<int>(controller.getState()) << '\n';
 }
 
 //this doesn't run physics - will need to be fixed

@@ -25,7 +25,7 @@ void SpawnZombieCommand::onCommand(const std::vector<std::string>& args) {
 
 			for (int i = 0; i != count; ++i) {
 				EntitySystem::GetComp<PhysicsComponent>(id[i])->teleport({ x, y });
-				EntitySystem::GetComp<RenderComponent>(id[i])->setSprite<AnimatedSprite>(sprite);
+				EntitySystem::GetComp<RenderComponent>(id[i])->setDrawable<AnimatedSprite>(sprite);
 				EntitySystem::GetComp<ZombieGC>(id[i])->loadAnimations();
 			}
 		}
