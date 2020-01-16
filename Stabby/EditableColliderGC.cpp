@@ -2,7 +2,7 @@
 #include "EditableColliderGC.h"
 #include "RenderComponent.h"
 #include "RectDrawable.h"
-#include "EditableColliderComponent.h"
+#include "EditableStageComponent.h"
 
 EditableColliderGC::EditableColliderGC(EntityId id_) :
 	id{id_}
@@ -19,7 +19,7 @@ void EditableColliderGC::update() {
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
 	RectDrawable* rect = render->getDrawable<RectDrawable>();
 
-	EditableColliderComponent* editable = EntitySystem::GetComp<EditableColliderComponent>(id);
+	EditableStageComponent* editable = EntitySystem::GetComp<EditableStageComponent>(id);
 	
 	rect->shape = editable->getCollider();
 
@@ -33,6 +33,11 @@ void EditableColliderGC::update() {
 	case StageElement::collideable:
 		rect->r = 1.0;
 		rect->g = 0.0;
+		rect->b = 0.0;
+		break;
+	case StageElement::spawnable:
+		rect->r = 0.0;
+		rect->g = 1.0;
 		rect->b = 0.0;
 		break;
 	default:

@@ -6,7 +6,8 @@
 
 enum class StageElement {
 	collideable,
-	climbable
+	climbable,
+	spawnable
 };
 
 class Stage {
@@ -20,6 +21,7 @@ public:
 	const std::vector<EntityId> & getCollideables() const;
 	const std::vector<EntityId>& getClimbables() const;
 	const std::vector<EntityId>& getRenderables() const;
+	const EntityId getSpawnable() const;
 
 private:
 
@@ -27,4 +29,5 @@ private:
 	std::vector<EntityId> collideables;
 	std::vector<EntityId> climbables;
 	std::vector<EntityId> renderables;
+	EntityId spawnZones;
 };

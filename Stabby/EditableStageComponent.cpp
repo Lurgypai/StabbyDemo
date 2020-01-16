@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "EditableColliderComponent.h"
+#include "EditableStageComponent.h"
 #include "GLRenderer.h"
 #include "SDL.h"
 #include "EntityBaseComponent.h"
@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-EditableColliderComponent::EditableColliderComponent(EntityId id_) :
+EditableStageComponent::EditableStageComponent(EntityId id_) :
 	id{id_},
 	anchorPoint{0, 0},
 	type{StageElement::collideable},
@@ -25,11 +25,11 @@ EditableColliderComponent::EditableColliderComponent(EntityId id_) :
 	}
 }
 
-const EntityId EditableColliderComponent::getId() const {
+const EntityId EditableStageComponent::getId() const {
 	return id;
 }
 
-void EditableColliderComponent::update(int camId) {
+void EditableStageComponent::update(int camId) {
 	Vec2i mousePos_;
 	Uint32 mouseState = SDL_GetMouseState(&mousePos_.x, &mousePos_.y);
 
@@ -170,6 +170,9 @@ void EditableColliderComponent::update(int camId) {
 					type = StageElement::climbable;
 				}
 				else if (type == StageElement::climbable) {
+					type = StageElement::spawnable;
+				}
+				else if (type == StageElement::spawnable) {
 					type = StageElement::collideable;
 				}
 			}
@@ -197,32 +200,32 @@ void EditableColliderComponent::update(int camId) {
 	EntitySystem::GetComp<PositionComponent>(id)->pos = collider.pos;
 }
 
-const AABB& EditableColliderComponent::getCollider() const {
+const AABB& EditableStageComponent::getCollider() const {
 	return collider;
 }
 
-StageElement EditableColliderComponent::getType() const {
+StageElement EditableStageComponent::getType() const {
 	return type;
 }
 
-void EditableColliderComponent::adjustLeft(const Vec2f mousePos) {
+void EditableStageComponent::adjustLeft(const Vec2f mousePos) {
 	float delta = anchorPoint.x - mousePos.x;
 	collider.pos.x = prevPoint.x - delta;
 	collider.res.x = prevRes.x + delta;
 }
 
-void EditableColliderComponent::adjustRight(const Vec2f mousePos) {
+void EditableStageComponent::adjustRight(const Vec2f mousePos) {
 	float delta = mousePos.x - anchorPoint.x;
 	collider.res.x = prevRes.x + delta;
 }
 
-void EditableColliderComponent::adjustTop(const Vec2f mousePos) {
+void EditableStageComponent::adjustTop(const Vec2f mousePos) {
 	float delta = anchorPoint.y - mousePos.y;
 	collider.pos.y = prevPoint.y - delta;
 	collider.res.y = prevRes.y + delta;
 }
 
-void EditableColliderComponent::adjustBottom(const Vec2f mousePos) {
+void EditableStageComponent::adjustBottom(const Vec2f mousePos) {
 	float delta = mousePos.y - anchorPoint.y;
 	collider.res.y = prevRes.y + delta;
 }

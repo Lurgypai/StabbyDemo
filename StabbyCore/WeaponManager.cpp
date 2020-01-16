@@ -45,7 +45,7 @@ void WeaponManager::loadAnimations(std::string animationDir) {
 	}
 }
 
-Attack WeaponManager::cloneAttack(const std::string& attackId) {
+Attack WeaponManager::cloneAttack(const std::string& attackId) const {
 	return attacks.cloneAttack(attackId);
 }
 

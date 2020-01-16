@@ -8,6 +8,7 @@
 #include "HealthPickupLC.h"
 #include "HealthPickupGC.h"
 #include <EntityBaseComponent.h>
+#include <SpawnComponent.h>
 
 void Game::startOfflineGame(const std::string & stageName) {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
@@ -35,7 +36,8 @@ void Game::startOfflineGame(const std::string & stageName) {
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
 	PhysicsComponent * pos = EntitySystem::GetComp<PhysicsComponent>(playerId);
-	pos->teleport( spawnPos );
+	SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnable());
+	pos->teleport(spawn->findSpawnPos());
 }
 
 void Game::startOnlineGame(const std::string & address, int port) {

@@ -90,9 +90,6 @@
     <ClInclude Include="VelocityCommand.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="EditableColliderComponent.h">
-      <Filter>Header Files\Game\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="EditableColliderGC.h">
       <Filter>Header Files\Game\Editor</Filter>
     </ClInclude>
@@ -106,6 +103,9 @@
       <Filter>Header Files\Game\Editor</Filter>
     </ClInclude>
     <ClInclude Include="LoadStageCommand.h">
+      <Filter>Header Files\Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditableStageComponent.h">
       <Filter>Header Files\Game\Editor</Filter>
     </ClInclude>
   </ItemGroup>
@@ -176,9 +176,6 @@
     <ClCompile Include="VelocityCommand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditableColliderComponent.cpp">
-      <Filter>Source Files\Game\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="EditableColliderGC.cpp">
       <Filter>Source Files\Game\Editor</Filter>
     </ClCompile>
@@ -192,6 +189,9 @@
       <Filter>Source Files\Game\Editor</Filter>
     </ClCompile>
     <ClCompile Include="SaveStageCommand.cpp">
+      <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditableStageComponent.cpp">
       <Filter>Source Files\Game\Editor</Filter>
     </ClCompile>
   </ItemGroup>

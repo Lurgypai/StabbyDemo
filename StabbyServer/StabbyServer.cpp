@@ -28,6 +28,7 @@
 #include "WeaponManager.h"
 #include "ClimbableSystem.h"
 #include "DebugFIO.h"
+#include "PlayerManager.h"
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
@@ -52,7 +53,7 @@ int main(int argv, char* argc[])
 	}
 
 	string line;
-	Settings settings{ 0, 0, 0 };
+	Settings settings{ 0, 0, 0, "" };
 	while (std::getline(file, line, '\n')) {
 		size_t splitPos = line.find('=');
 		string idToken = line.substr(0, splitPos);
@@ -84,7 +85,12 @@ int main(int argv, char* argc[])
 				return 1;
 			}
 		}
+		else if (idToken == "stage") {
+			settings.stage = value;
+		}
 	}
+
+	Stage stage{settings.stage};
 
 	Host server;
 	if (!server.createServer(settings.port, 32, 3)) {
@@ -116,11 +122,11 @@ int main(int argv, char* argc[])
 	std::vector<ControllerPacket> ctrls;
 	std::list<UserPtr> users;
 
-	Stage stage{};
 	PhysicsSystem physics{};
 	CombatSystem combat{};
 	WeaponManager weapons{};
 	ClimbableSystem climbables{};
+	PlayerManager players{};
 
 	weapons.loadAttacks("attacks/hit");
 	climbables.updateClimbables();
@@ -286,7 +292,6 @@ int main(int argv, char* argc[])
 				for (auto& user : users) {
 					user->getPlayer().update(lastUpdatedTime);
 				}
-
 				physics.runPhysics(CLIENT_TIME_STEP);
 				combat.runAttackCheck(CLIENT_TIME_STEP);
 			}

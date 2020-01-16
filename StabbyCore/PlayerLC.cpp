@@ -126,11 +126,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 			break;
 		case State::dead:
 			++deathFrame;
-
-			if (deathFrame == deathFrameMax) {
-				deathFrame = 0;
-				respawn();
-			}
 			break;
 		case State::healing:
 		{
@@ -188,7 +183,7 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 		}
 
 		if (position->pos.y > 1000) {
-			respawn();
+			kill();
 		}
 	}
 	else {
@@ -235,7 +230,7 @@ Vec2f PlayerLC::getRes() const {
 	return comp->getRes();
 }
 
-void PlayerLC::respawn() {
+void PlayerLC::respawn(const Vec2f & spawnPos) {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerState & state = playerState->playerState;
@@ -251,10 +246,30 @@ void PlayerLC::respawn() {
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);\
 	Attack & attack = combat->attack;
 
-	position->pos = Vec2f{ 0, -10 };
+	deathFrame = 0;
+
+	comp->teleport(spawnPos);
 	comp->vel = { 0, 0 };
 	attack.setActive(0);
 	attack.setFrame(0);
+}
+
+bool PlayerLC::shouldRespawn() {
+	return deathFrame >= deathFrameMax;
+}
+
+void PlayerLC::kill() {
+	PlayerStateComponent* playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	PlayerState& state = playerState->playerState;
+
+	if (state.state != State::dead) {
+
+		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+
+		state.state = State::dead;
+		combat->health = 0;
+		deathFrame = 0;
+	}
 }
 
 EntityId PlayerLC::getId() const {

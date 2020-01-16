@@ -16,7 +16,9 @@ public:
 	PhysicsComponent * getPhysics();
 	Vec2f getVel() const;
 	Vec2f getRes() const;
-	void respawn();
+	void respawn(const Vec2f & spawnPos);
+	bool shouldRespawn();
+	void kill();
 
 	EntityId getId() const;
 

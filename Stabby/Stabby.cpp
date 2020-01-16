@@ -47,7 +47,7 @@
 #include "ClimbableComponent.h"
 #include "VelocityCommand.h"
 #include "DebugFIO.h"
-#include "EditableColliderComponent.h"
+#include "EditableStageComponent.h"
 #include "EditableColliderGC.h"
 #include "EditorCam.h"
 #include <SaveStageCommand.h>
@@ -264,17 +264,7 @@ int main(int argc, char* argv[]) {
 					player->update(client.clientTime, client.getTime(), CLIENT_TIME_STEP, controller);
 				}
 
-				if (EntitySystem::Contains<PlayerLC>()) {
-					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
-					if(player != nullptr)
-						player->update(CLIENT_TIME_STEP, controller);
-				}
-
-
-				if (EntitySystem::Contains<PlayerStateComponent>()) {
-					PlayerStateComponent* playerState = EntitySystem::GetComp<PlayerStateComponent>(game.getPlayerId());
-				}
-
+				game.players.update(CLIENT_TIME_STEP, controller, game.getStage());
 				physics.runPhysics(CLIENT_TIME_STEP);
 				game.combat.runAttackCheck(CLIENT_TIME_STEP);
 

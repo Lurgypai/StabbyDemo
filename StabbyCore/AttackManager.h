@@ -9,7 +9,7 @@ using attack_iterator = std::list<std::pair<const std::string, Attack>>::const_i
 class AttackManager {
 public:
 	void loadAttacks(const std::string & attackDir);
-	Attack cloneAttack(const std::string & attackId);
+	Attack cloneAttack(const std::string & attackId) const;
 
 	attack_iterator begin();
 	attack_iterator end();

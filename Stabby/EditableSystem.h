@@ -1,5 +1,5 @@
 #pragma once
-#include "EditableColliderComponent.h"
+#include "EditableStageComponent.h"
 
 class EditableSystem {
 public:

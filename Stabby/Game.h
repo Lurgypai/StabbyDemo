@@ -8,6 +8,7 @@
 #include "WeaponManager.h"
 #include "ClimbableSystem.h"
 #include "EditableSystem.h"
+#include "PlayerManager.h"
 
 class Game {
 public:
@@ -25,6 +26,7 @@ public:
 	WeaponManager weapons;
 	ClimbableSystem climbables;
 	EditableSystem editables;
+	PlayerManager players;
 
 	int playerCamId;
 	int debugCamId;

@@ -5,6 +5,7 @@
 #include "ClimbableComponent.h"
 #include "PhysicsComponent.h"
 #include <fstream>
+#include <SpawnComponent.h>
 
 const std::string Stage::folder{"stage"};
 
@@ -20,11 +21,17 @@ Stage::Stage(const std::string& stage) :
 		return;
 	}
 
+	EntitySystem::GenEntities(1, &spawnZones);
+	EntitySystem::MakeComps<SpawnComponent>(1, &spawnZones);
+
+	std::vector<AABB> spawnBoxes{};
+
 	constexpr int blockSize = sizeof(AABB) + sizeof(StageElement);
 	std::streamsize fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
 	std::vector<char> buffer(fileSize);
 	if (file.read(buffer.data(), fileSize)) {
+
 		for (auto pos = 0; pos < fileSize; pos += blockSize) {
 			AABB collider;
 			StageElement type;
@@ -40,7 +47,6 @@ Stage::Stage(const std::string& stage) :
 				EntitySystem::GetComp<PhysicsComponent>(id)->collideable = true;
 				EntitySystem::GetComp<PhysicsComponent>(id)->weightless = true;
 				EntitySystem::GetComp<PhysicsComponent>(id)->setRes(collider.res);
-
 				EntitySystem::GetComp<PositionComponent>(id)->pos = collider.pos;
 				collideables.push_back(id);
 				break;
@@ -53,9 +59,16 @@ Stage::Stage(const std::string& stage) :
 
 				climbables.push_back(ladder);
 				break;
+			case StageElement::spawnable:
+				spawnBoxes.push_back(collider);
 			default:
 				break;
 			}
+		}
+
+		//defered, so colliders are loaded
+		for (auto& spawnBox : spawnBoxes) {
+			EntitySystem::GetComp<SpawnComponent>(spawnZones)->addSpawnZone(spawnBox);
 		}
 	}
 	else {
@@ -91,4 +104,8 @@ const std::vector<EntityId>& Stage::getClimbables() const {
 
 const std::vector<EntityId>& Stage::getRenderables() const {
 	return renderables;
+}
+
+const EntityId Stage::getSpawnable() const {
+	return spawnZones;
 }

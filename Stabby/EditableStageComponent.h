@@ -19,12 +19,12 @@ enum class EditableState {
 	idle
 };
 
-class EditableColliderComponent {
+class EditableStageComponent {
 
 	friend class EditableSystem;
 
 public:
-	EditableColliderComponent(EntityId id_ = 0);
+	EditableStageComponent(EntityId id_ = 0);
 
 	const EntityId getId() const;
 	void update(int camId);

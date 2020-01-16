@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "EditableSystem.h"
 #include "EntitySystem.h"
-#include "EditableColliderComponent.h"
+#include "EditableStageComponent.h"
 #include "EditableColliderGC.h"
 #include "SDL.h"
 #include "GLRenderer.h"
@@ -19,8 +19,8 @@ EditableSystem::EditableSystem() :
 void EditableSystem::updateLogic(int camId) {
 	if (!isEnabled)
 		return;
-	if (EntitySystem::Contains<EditableColliderComponent>()) {
-		for (auto& editable : EntitySystem::GetPool<EditableColliderComponent>()) {
+	if (EntitySystem::Contains<EditableStageComponent>()) {
+		for (auto& editable : EntitySystem::GetPool<EditableStageComponent>()) {
 			editable.update(camId);
 		}
 	}
@@ -42,7 +42,7 @@ void EditableSystem::updateLogic(int camId) {
 
 	if (ctrl && currButton1 != prevButton1 && currButton1) {
 		EntityId editableId = makeEditable(mousePos, { 0, 0 }, StageElement::collideable);
-		auto editable = EntitySystem::GetComp<EditableColliderComponent>(editableId);
+		auto editable = EntitySystem::GetComp<EditableStageComponent>(editableId);
 		editable->anchorPoint = mousePos;
 		editable->state = EditableState::resizing;
 		editable->prevPoint = mousePos;
@@ -51,7 +51,7 @@ void EditableSystem::updateLogic(int camId) {
 	}
 	if (ctrl && currButton2 != prevButton2 && currButton2) {
 		EntityId editableId = makeEditable(mousePos, { 0, 0 }, StageElement::climbable);
-		auto editable = EntitySystem::GetComp<EditableColliderComponent>(editableId);
+		auto editable = EntitySystem::GetComp<EditableStageComponent>(editableId);
 		editable->anchorPoint = mousePos;
 		editable->state = EditableState::resizing;
 		editable->prevPoint = mousePos;
@@ -92,7 +92,7 @@ void EditableSystem::save(const std::string& stage_) {
 
 	constexpr int size = sizeof(AABB) + sizeof(StageElement);
 	char data[size];
-	for (auto& editable : EntitySystem::GetPool<EditableColliderComponent>()) {
+	for (auto& editable : EntitySystem::GetPool<EditableStageComponent>()) {
 		std::memcpy(data, &editable.collider, sizeof(AABB));
 		std::memcpy(data + sizeof(AABB), &editable.type, sizeof(StageElement));
 
@@ -133,8 +133,8 @@ void EditableSystem::load(const std::string& stage_) {
 EntityId EditableSystem::makeEditable(Vec2f pos, Vec2f res, StageElement type) {
 	EntityId id;
 	EntitySystem::GenEntities(1, &id);
-	EntitySystem::MakeComps<EditableColliderComponent>(1, &id);
-	auto editable = EntitySystem::GetComp<EditableColliderComponent>(id);
+	EntitySystem::MakeComps<EditableStageComponent>(1, &id);
+	auto editable = EntitySystem::GetComp<EditableStageComponent>(id);
 	editable->collider.pos = { pos.x, pos.y };
 	editable->collider.res = res;
 	editable->type = type;

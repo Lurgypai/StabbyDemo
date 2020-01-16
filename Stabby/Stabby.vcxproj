@@ -168,7 +168,7 @@
     <ClInclude Include="AttackSpeedCommand.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientZombieLC.h" />
-    <ClInclude Include="EditableColliderComponent.h" />
+    <ClInclude Include="EditableStageComponent.h" />
     <ClInclude Include="EditableColliderGC.h" />
     <ClInclude Include="EditableSystem.h" />
     <ClInclude Include="EditorCam.h" />
@@ -197,7 +197,7 @@
     <ClCompile Include="AttackSpeedCommand.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientZombieLC.cpp" />
-    <ClCompile Include="EditableColliderComponent.cpp" />
+    <ClCompile Include="EditableStageComponent.cpp" />
     <ClCompile Include="EditableColliderGC.cpp" />
     <ClCompile Include="EditableSystem.cpp" />
     <ClCompile Include="EditorCam.cpp" />

@@ -52,8 +52,8 @@ void AttackManager::loadAttacks(const std::string & attackDir) {
 	}
 }
 
-Attack AttackManager::cloneAttack(const std::string & attackId) {
-	return attacks[attackId];
+Attack AttackManager::cloneAttack(const std::string & attackId) const {
+	return attacks.at(attackId);
 }
 
 attack_iterator AttackManager::begin() {
