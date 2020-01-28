@@ -21,10 +21,10 @@ void StartCommand::onCommand(const std::vector<std::string>& args) {
 			}
 		}
 		else if (args[1] == "1") {
-			if (args.size() == 4) {
+			if (args.size() == 5) {
 				try {
 					int port = std::stoi(args[3]);
-					game.startOnlineGame(args[2], port);
+					game.startOnlineGame(args[2], port, args[4]);
 				}
 				catch (std::invalid_argument e) {
 					DebugIO::printLine("Invalid argument.");

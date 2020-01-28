@@ -39,9 +39,6 @@
     <ClInclude Include="Client.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="ClientPlayerLC.h">
-      <Filter>Header Files\Game</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerGC.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
@@ -67,9 +64,6 @@
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="KillCommand.h">
-      <Filter>Header Files\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientZombieLC.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="HealthPickupGC.h">
@@ -108,6 +102,12 @@
     <ClInclude Include="EditableStageComponent.h">
       <Filter>Header Files\Game\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="ClientPlayerSystem.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientPlayerComponent.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -120,9 +120,6 @@
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="Client.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientPlayerLC.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="Stabby.cpp">
@@ -153,9 +150,6 @@
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="SpawnZombieCommand.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientZombieLC.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="HealthPickupGC.cpp">
@@ -193,6 +187,12 @@
     </ClCompile>
     <ClCompile Include="EditableStageComponent.cpp">
       <Filter>Source Files\Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientPlayerComponent.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientPlayerSystem.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

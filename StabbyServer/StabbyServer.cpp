@@ -28,7 +28,7 @@
 #include "WeaponManager.h"
 #include "ClimbableSystem.h"
 #include "DebugFIO.h"
-#include "PlayerManager.h"
+#include <ServerPlayerSystem.h>
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
@@ -127,6 +127,7 @@ int main(int argv, char* argc[])
 	WeaponManager weapons{};
 	ClimbableSystem climbables{};
 	PlayerManager players{};
+	ServerPlayerSystem onlinePlayers{};
 
 	weapons.loadAttacks("attacks/hit");
 	climbables.updateClimbables();
@@ -193,7 +194,7 @@ int main(int argv, char* argc[])
 						cont.unserialize();
 
 						for (auto& user : users) {
-							ServerPlayerLC& player = user->getPlayer();
+							ServerPlayerComponent& player = user->getServerPlayer();
 							if (user->getNetId() == cont.netId) {
 								ClientCommand comm{ Controller{ cont.state }, cont.clientTime, cont.when };
 								player.bufferInput(comm);
@@ -289,11 +290,18 @@ int main(int argv, char* argc[])
 
 			while (lastUpdatedTime != gameTime) {
 				++lastUpdatedTime;
-				for (auto& user : users) {
-					user->getPlayer().update(lastUpdatedTime);
-				}
+				onlinePlayers.updatePlayers(players, lastUpdatedTime, stage);
+				for (auto& user : users)
+					DebugFIO::Out("s_out.txt") << "Updated to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				physics.runPhysics(CLIENT_TIME_STEP);
+				for (auto& user : users)
+					DebugFIO::Out("s_out.txt") << "Physics to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				combat.runAttackCheck(CLIENT_TIME_STEP);
+
+				for (auto& user : users)
+					DebugFIO::Out("s_out.txt") << "Final state at time " << user->getServerPlayer().getClientTime() << ", pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
+
+				onlinePlayers.tickPlayerTimes();
 			}
 
 			++currentTick;
@@ -303,7 +311,7 @@ int main(int argv, char* argc[])
 			for (auto& user : users) {
 
 				StatePacket pos{};
-				pos.state = user->getPlayer().getLatestState();
+				pos.state = user->getPlayer().getState();
 				pos.when = gameTime;
 				pos.id = user->getNetId();
 				pos.serialize();

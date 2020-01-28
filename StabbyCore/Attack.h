@@ -28,6 +28,7 @@ public:
 	unsigned int getCurrFrame();
 	unsigned int getCurrentTotalFrames();
 	unsigned int getDamage() const;
+	double getSpeed();
 	void bufferNext();
 	void update(double timeDelta, Vec2f pos, int facing);
 	void addHitbox(Hitbox && hitbox);

@@ -22,6 +22,9 @@ public:
 
 	EntityId getId() const;
 
+	void setState(const PlayerState& state);
+	PlayerState getState();
+
 	const static int PLAYER_WIDTH = 4;
 	const static int PLAYER_HEIGHT = 20;
 protected:

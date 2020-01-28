@@ -5,7 +5,6 @@
 #include "PlayerGC.h"
 #include "Game.h"
 #include "WeaponChangePacket.h"
-#include "ClientPlayerLC.h"
 
 WeaponCommand::WeaponCommand(Game & game) :
 	weapons(&game.weapons),
@@ -19,20 +18,8 @@ std::string WeaponCommand::getTag() const {
 void WeaponCommand::onCommand(const std::vector<std::string>& args) {
 	if (args.size() == 2) {
 		if (weapons->hasWeapon(args[1])) {
-
 			if (EntitySystem::Contains<PlayerLC>() && EntitySystem::Contains<PlayerGC>()) {
 				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-					EntityId id = player.getId();
-					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
-					PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(id);
-
-					combat->attack = weapons->cloneAttack(args[1]);
-					graphics->attackSprite = weapons->cloneAnimation(args[1]);
-
-				}
-			}
-			else if (EntitySystem::Contains<ClientPlayerLC>()) {
-				for (auto& player : EntitySystem::GetPool<ClientPlayerLC>()) {
 					EntityId id = player.getId();
 					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 					PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(id);
@@ -52,7 +39,6 @@ void WeaponCommand::onCommand(const std::vector<std::string>& args) {
 						memcpy(data, &p, sizeof(WeaponChangePacket));
 						memcpy(data + sizeof(WeaponChangePacket), args[1].data(), size);
 						client->send(sizeof(WeaponChangePacket) + size, data);
-
 						free(data);
 					}
 				}

@@ -8,7 +8,8 @@ User::User(NetworkId id_, ConnectionPtr && con_) :
 	con{std::move(con_)}
 {
 	EntitySystem::GenEntities(1, &id);
-	EntitySystem::MakeComps<ServerPlayerLC>(1, &id);
+	EntitySystem::MakeComps<PlayerLC>(1, &id);
+	EntitySystem::MakeComps<ServerPlayerComponent>(1, &id);
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
 	EntitySystem::MakeComps<CombatComponent>(1, &id);
 	EntitySystem::GetComp<PhysicsComponent>(id)->setRes({ -2, -20 });
@@ -28,8 +29,12 @@ Connection * User::getConnection() {
 	return con.get();
 }
 
-ServerPlayerLC & User::getPlayer() {
-	return *EntitySystem::GetComp<ServerPlayerLC>(id);
+PlayerLC & User::getPlayer() {
+	return *EntitySystem::GetComp<PlayerLC>(id);
+}
+
+ServerPlayerComponent& User::getServerPlayer() {
+	return *EntitySystem::GetComp<ServerPlayerComponent>(id);
 }
 
 PhysicsComponent & User::getPhysics() {

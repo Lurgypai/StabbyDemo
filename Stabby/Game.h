@@ -9,11 +9,13 @@
 #include "ClimbableSystem.h"
 #include "EditableSystem.h"
 #include "PlayerManager.h"
+#include "ClientPlayerSystem.h"
 
 class Game {
 public:
+	Game();
 	void startOfflineGame(const std::string& stage);
-	void startOnlineGame(const std::string & address, int port);
+	void startOnlineGame(const std::string & address, int port, const std::string & stageName);
 	void startStageEditor(const std::string & filePath);
 	void loadStage(const std::string& stageName);
 
@@ -27,6 +29,7 @@ public:
 	ClimbableSystem climbables;
 	EditableSystem editables;
 	PlayerManager players;
+	ClientPlayerSystem clientPlayers;
 
 	int playerCamId;
 	int debugCamId;

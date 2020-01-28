@@ -27,7 +27,6 @@
 #include "PhysicsSystem.h"
 #include "RenderSystem.h"
 #include "RenderComponent.h"
-#include "ClientPlayerLC.h"
 #include "ConnectCommand.h"
 #include "OnlinePlayerLC.h."
 #include "Stage.h"
@@ -259,31 +258,12 @@ int main(int argc, char* argv[]) {
 
 			if (canProgressFrame) {
 
-				if (EntitySystem::Contains<ClientPlayerLC>()) {
-					ClientPlayerLC* player = EntitySystem::GetComp<ClientPlayerLC>(game.getPlayerId());
-					player->update(client.clientTime, client.getTime(), CLIENT_TIME_STEP, controller);
-				}
-
-				game.players.update(CLIENT_TIME_STEP, controller, game.getStage());
+				game.players.updateAll(CLIENT_TIME_STEP, controller, game.getStage());
 				physics.runPhysics(CLIENT_TIME_STEP);
 				game.combat.runAttackCheck(CLIENT_TIME_STEP);
+				game.clientPlayers.update(client.getTime(), client.clientTime, controller);
 
 				game.editables.updateLogic(game.editorCamId);
-
-
-				/*
-				if (EntitySystem::Contains<CombatComponent>()) {
-					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(game.getPlayerId());
-					PositionComponent* position  = EntitySystem::GetComp<PositionComponent>(reddot);
-					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(reddot);
-					const Hitbox* hitbox = combat->getActiveHitbox();
-					if (hitbox != nullptr) {
-						render->setObjRes(hitbox->hit.res);
-						position->pos = hitbox->hit.pos;
-
-					}
-				}
-				*/
 
 				if (client.getConnected()) {
 
@@ -305,7 +285,7 @@ int main(int argc, char* argv[]) {
 					if (lastSent != state) {
 						lastSent = state;
 						client.send(state);
-						//DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+						DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
 						//std::cout << "Sending update for time: " << lastSent.when << '\n';
 					}
 
@@ -325,26 +305,6 @@ int main(int argc, char* argv[]) {
 
 					DebugIO::setLine(3, "NetId: " + std::to_string(client.getNetId()));
 					DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
-				}
-				else {
-					//singleplayer physics / combat
-
-					if (EntitySystem::Contains<HealthPickupLC>()) {
-						for (auto& health : EntitySystem::GetPool<HealthPickupLC>()) {
-							health.update(client.clientTime, CLIENT_TIME_STEP);
-						}
-					}
-
-					/*
-					if (EntitySystem::Contains<ZombieLC>()) {
-						for (auto& zombie : EntitySystem::GetPool<ZombieLC>()) {
-							zombie.searchForTarget<PlayerLC>();
-							zombie.runLogic();
-						}
-					}
-					*/
-
-					//game.pickups.runPickupCheck<HealthPickupLC, PlayerLC>();
 				}
 
 

@@ -87,6 +87,10 @@ unsigned int Attack::getDamage() const {
 	return hitboxes[active - 1].damage;
 }
 
+double Attack::getSpeed() {
+	return speed;
+}
+
 void Attack::bufferNext() {
 	nextIsBuffered = true;
 }

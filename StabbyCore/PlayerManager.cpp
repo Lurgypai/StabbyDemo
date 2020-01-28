@@ -17,7 +17,7 @@ EntityId PlayerManager::makePlayer(const WeaponManager & weapons) {
 	return playerId;
 }
 
-void PlayerManager::update(double timeDelta, const Controller & cont, const Stage & stage) {
+void PlayerManager::updateAll(double timeDelta, const Controller & cont, const Stage & stage) {
 	if (EntitySystem::Contains<PlayerLC>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
 			player.update(timeDelta, cont);
@@ -27,5 +27,17 @@ void PlayerManager::update(double timeDelta, const Controller & cont, const Stag
 				player.respawn(spawnZones->findSpawnPos());
 			}
 		}
+	}
+}
+
+void PlayerManager::update(EntityId playerId, double timeDelta, const Controller& cont, const Stage& stage) {
+	if (EntitySystem::Contains<PlayerLC>()) {
+		PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+		player->update(timeDelta, cont);
+		if (player->shouldRespawn()) {
+			SpawnComponent* spawnZones = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnable());
+			player->respawn(spawnZones->findSpawnPos());
+		}
+
 	}
 }

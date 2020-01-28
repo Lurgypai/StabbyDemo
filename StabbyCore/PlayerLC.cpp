@@ -230,6 +230,48 @@ Vec2f PlayerLC::getRes() const {
 	return comp->getRes();
 }
 
+void PlayerLC::setState(const PlayerState& newState) {
+	PlayerStateComponent* state = EntitySystem::GetComp<PlayerStateComponent>(id);
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
+
+	state->playerState = newState;
+
+	combat->attack.setActive(newState.activeAttack);
+	combat->attack.setFrame(newState.attackFrame);
+	combat->attack.setSpeed(newState.attackSpeed);
+	combat->health = newState.health;
+	combat->stunFrame = newState.stunFrame;
+
+	dir->dir = newState.facing;
+	
+	physics->teleport(newState.pos);
+	physics->vel = newState.vel;
+	physics->frozen = newState.frozen;
+}
+
+PlayerState PlayerLC::getState() {
+	PlayerStateComponent* playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
+
+	playerState->playerState.activeAttack = combat->attack.getActiveId();
+	playerState->playerState.attackFrame = combat->attack.getCurrFrame();
+	playerState->playerState.attackSpeed = combat->attack.getSpeed();
+	playerState->playerState.health = combat->health;
+	playerState->playerState.stunFrame = combat->stunFrame;
+
+	playerState->playerState.facing = dir->dir;
+
+	playerState->playerState.pos = physics->getPos();
+	playerState->playerState.vel = physics->vel;
+	playerState->playerState.frozen = physics->frozen;
+
+	return playerState->playerState;
+}
+
 void PlayerLC::respawn(const Vec2f & spawnPos) {
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "PlayerCam.h"
-#include "ClientPlayerLC.h"
+#include "PhysicsComponent.h"
 #include "PositionComponent.h"
 #include <iostream>
 

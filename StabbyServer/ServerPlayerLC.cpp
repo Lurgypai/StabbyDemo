@@ -73,7 +73,6 @@ void ServerPlayerLC::update(Time_t gameTime) {
 		PlayerStateComponent* stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
 		stateComp->playerState.gameTime = gameTime;
 		stateComp->playerState.clientTime = clientTime;
-		prevStates.emplace_back(stateComp->playerState);
 
 		//print the stored pos and vel, with the time linked.
 		//auto& out = DebugFIO::Out("s_out.txt");

@@ -1,3 +1,4 @@
 port=25565
 disconnectDelay=120.0
 forceDisconnectDelay=120.0
+stage=stage

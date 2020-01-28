@@ -7,11 +7,11 @@
 #include "EntitySystem.h"
 #include "OnlinePlayerLC.h"
 #include "PlayerGC.h"
-#include "ClientPlayerLC.h"
 #include "ServerClientData.h"
 #include "ZombieGC.h"
 #include "EntityBaseComponent.h"
 #include <iostream>
+#include <ClientPlayerComponent.h>
 
 Client::Client() :
 	id{ 0 }
@@ -58,6 +58,9 @@ void Client::connect(const std::string & ip, int port) {
 					networkTime = packet.currentTick;
 					id = packet.netId;
 					handshakeComplete = true;
+
+					ClientPlayerComponent* clientPlayer = EntitySystem::GetComp<ClientPlayerComponent>(playerId);
+					clientPlayer->netId = id;
 				}
 				break;
 			}
@@ -153,6 +156,10 @@ void Client::setWeaponManager(WeaponManager& weapons_) {
 	weapons = &weapons_;
 }
 
+void Client::setClientPlayerSystem(ClientPlayerSystem* clientPlayer) {
+	clientPlayers = clientPlayer;
+}
+
 void Client::receive(ENetEvent & e) {
 	std::string packetKey = PacketUtil::readPacketKey(e.packet);
 	std::vector<NetworkId> ids;
@@ -170,7 +177,6 @@ void Client::receive(ENetEvent & e) {
 
 		PacketUtil::readInto<StatePacket>(&states[0], e.packet, size);
 
-
 		for (auto & p : states) {
 			p.unserialize();
 			if (EntitySystem::Contains<OnlinePlayerLC>()) {
@@ -181,13 +187,8 @@ void Client::receive(ENetEvent & e) {
 					}
 				}
 			}
-			if (EntitySystem::Contains<ClientPlayerLC>()) {
-				if (id == p.id) {
-					ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-					if (player != nullptr) {
-						player->repredict(p.state);
-					}
-				}
+			if (p.id == id) {
+				clientPlayers->repredict(playerId, id, p.state, CLIENT_TIME_STEP);
 			}
 		}
 	}
@@ -281,7 +282,7 @@ void Client::receive(ENetEvent & e) {
 		attackId.resize(p.size);
 		std::memcpy(attackId.data(), e.packet->data + sizeof(WeaponChangePacket), p.size);
 
-		if (EntitySystem::Contains<ClientPlayerLC>()) {
+		if (EntitySystem::Contains<PlayerLC>()) {
 			if (id == p.id) {
 				CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
 				combat->attack = weapons->cloneAttack(attackId);

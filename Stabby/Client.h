@@ -7,6 +7,7 @@
 #include "Host.h"
 #include "WeaponManager.h"
 #include <deque>
+#include <ClientPlayerSystem.h>
 
 #define PING_COUNT 10
 
@@ -45,6 +46,7 @@ public:
 	void resetBehindServer();
 
 	void setWeaponManager(WeaponManager& weapons_);
+	void setClientPlayerSystem(ClientPlayerSystem* clientPlayer);
 	//client time
 	Time_t clientTime;
 private:
@@ -65,6 +67,7 @@ private:
 	Pool<EntityId> idTable;
 	Host client;
 	WeaponManager* weapons;
+	ClientPlayerSystem* clientPlayers;
 };
 
 template<typename Packet>

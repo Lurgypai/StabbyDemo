@@ -167,7 +167,8 @@
   <ItemGroup>
     <ClInclude Include="AttackSpeedCommand.h" />
     <ClInclude Include="Client.h" />
-    <ClInclude Include="ClientZombieLC.h" />
+    <ClInclude Include="ClientPlayerComponent.h" />
+    <ClInclude Include="ClientPlayerSystem.h" />
     <ClInclude Include="EditableStageComponent.h" />
     <ClInclude Include="EditableColliderGC.h" />
     <ClInclude Include="EditableSystem.h" />
@@ -182,7 +183,6 @@
     <ClInclude Include="MoveSpeedCommand.h" />
     <ClInclude Include="PlayerCam.h" />
     <ClInclude Include="PlayerGC.h" />
-    <ClInclude Include="ClientPlayerLC.h" />
     <ClInclude Include="ConnectCommand.h" />
     <ClInclude Include="OnlinePlayerLC.h" />
     <ClInclude Include="pch.h" />
@@ -196,7 +196,8 @@
   <ItemGroup>
     <ClCompile Include="AttackSpeedCommand.cpp" />
     <ClCompile Include="Client.cpp" />
-    <ClCompile Include="ClientZombieLC.cpp" />
+    <ClCompile Include="ClientPlayerComponent.cpp" />
+    <ClCompile Include="ClientPlayerSystem.cpp" />
     <ClCompile Include="EditableStageComponent.cpp" />
     <ClCompile Include="EditableColliderGC.cpp" />
     <ClCompile Include="EditableSystem.cpp" />
@@ -211,7 +212,6 @@
     <ClCompile Include="MoveSpeedCommand.cpp" />
     <ClCompile Include="PlayerCam.cpp" />
     <ClCompile Include="PlayerGC.cpp" />
-    <ClCompile Include="ClientPlayerLC.cpp" />
     <ClCompile Include="ConnectCommand.cpp" />
     <ClCompile Include="OnlinePlayerLC.cpp" />
     <ClCompile Include="pch.cpp">

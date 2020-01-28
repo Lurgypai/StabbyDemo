@@ -43,6 +43,7 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent *playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	DirectionComponent * dir = EntitySystem::GetComp<DirectionComponent>(id);
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 	PlayerState & state = playerState->playerState;
 
 	state = st;
@@ -58,6 +59,10 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	state.pos = previousPos[0];
 	position->pos = previousPos[0] - Vec2f{static_cast<float>(PlayerLC::PLAYER_WIDTH) / 2, static_cast<float>(PlayerLC::PLAYER_HEIGHT)};
 	dir->dir = state.facing;
+
+	combat->attack.setActive(state.activeAttack);
+	combat->attack.setFrame(state.attackFrame);
+	combat->attack.setSpeed(state.attackSpeed);
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {

@@ -2,8 +2,9 @@
 #include "Vec2.h"
 #include "NetworkTypes.h"
 #include "Connection.h"
-#include "ServerPlayerLC.h"
 #include "PositionComponent.h"
+#include "PlayerLC.h"
+#include "ServerPlayerComponent.h"
 
 //user stores their connection, id, as well as the logic component
 class User {
@@ -13,7 +14,8 @@ public:
 	EntityId getId() const;
 	NetworkId getNetId() const;
 	Connection * getConnection();
-	ServerPlayerLC & getPlayer();
+	PlayerLC & getPlayer();
+	ServerPlayerComponent& getServerPlayer();
 	PhysicsComponent & getPhysics();
 	PositionComponent & getPosition();
 	PlayerStateComponent & getPlayerState();
