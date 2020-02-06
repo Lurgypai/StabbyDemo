@@ -3,6 +3,7 @@
 #include "ClientPlayerComponent.h"
 #include "DebugFIO.h"
 #include <iostream>
+#include <ControllerComponent.h>
 
 ClientPlayerSystem::ClientPlayerSystem(PhysicsSystem* physicsSystem_, CombatSystem* combatSystem_) :
 	physicsSystem{ physicsSystem_ },
@@ -10,17 +11,19 @@ ClientPlayerSystem::ClientPlayerSystem(PhysicsSystem* physicsSystem_, CombatSyst
 	players{}
 {}
 
-void ClientPlayerSystem::update(Time_t gameTime, Time_t clientTime, Controller & cont) {
+void ClientPlayerSystem::update(Time_t gameTime, Time_t clientTime) {
 	if (EntitySystem::Contains<ClientPlayerComponent>()) {
 		for (auto& player : EntitySystem::GetPool<ClientPlayerComponent>()) {
-			player.storePlayerState(gameTime, clientTime, cont);
+			ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(player.getid());
+			player.storePlayerState(gameTime, clientTime, controller->getController());
 		}
 	}
 }
 
-void ClientPlayerSystem::update(Time_t gameTime, Time_t clientTime, Controller& cont, const EntityId& player_) {
+void ClientPlayerSystem::update(Time_t gameTime, Time_t clientTime, const EntityId& player_) {
 	ClientPlayerComponent* player = EntitySystem::GetComp<ClientPlayerComponent>(player_);
-	player->storePlayerState(gameTime, clientTime, cont);
+	ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(player->getid());
+	player->storePlayerState(gameTime, clientTime, controller->getController());
 }
 
 void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const PlayerState& state, double timeDelta) {
@@ -86,12 +89,15 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 					auto states = clientPlayer->readAllStates();
 					//store the current state
 					clientPlayer->storePlayerState(plrState.gameTime, plrState.clientTime, currentController);
+
+					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
 					for(auto& unprocessedState : states) {
 						DebugFIO::Out("c_out.txt") << "Processing unprocessed state at time " << unprocessedState.plrState.clientTime << '\n';
 						DebugFIO::Out("c_out.txt") << "reset pos to: " << physics->getPos() << '\n';
 						DebugFIO::Out("c_out.txt") << "reset vel to: " << physics->vel << '\n';
 						Controller cont{ unprocessedState.contState };
-						player->update(timeDelta, cont);
+						controller->getController() = cont;
+						player->update(timeDelta);
 						DebugFIO::Out("c_out.txt") << "updated pos to: " << physics->getPos() << '\n';
 						DebugFIO::Out("c_out.txt") << "updated vel to: " << physics->vel << '\n';
 						physicsSystem->runPhysics(timeDelta, id);

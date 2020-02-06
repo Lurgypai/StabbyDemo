@@ -40,7 +40,7 @@ EntityId OnlinePlayerLC::getId() const {
 }
 
 void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
-	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+	PositionComponent* position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent *playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	DirectionComponent * dir = EntitySystem::GetComp<DirectionComponent>(id);
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);

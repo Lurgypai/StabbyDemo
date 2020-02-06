@@ -62,7 +62,7 @@ void Attack::startAttacking() {
 }
 
 const Hitbox * Attack::getActive() const {
-	if (active != 0 && active <= hitboxes.size()) {
+	if (active != 0) {
 		const Hitbox * hitbox = &hitboxes[active - 1];
 		if (hitbox->startup < currFrame && currFrame < hitbox->startup + hitbox->active) {
 			return hitbox;

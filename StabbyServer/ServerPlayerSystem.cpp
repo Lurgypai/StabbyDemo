@@ -10,9 +10,8 @@ void ServerPlayerSystem::updatePlayers(PlayerManager & players, Time_t gameTime,
 	if (EntitySystem::Contains<ServerPlayerComponent>()) {
 		for (auto& onlinePlayer : EntitySystem::GetPool<ServerPlayerComponent>()) {
 			EntityId id = onlinePlayer.getId();
-			ClientCommand latestCommand = onlinePlayer.readCommand(gameTime);
-
-			players.update(id, CLIENT_TIME_STEP, latestCommand.controllerState, stage);
+			onlinePlayer.readCommand(gameTime);
+			players.update(id, CLIENT_TIME_STEP, stage);
 		}
 	}
 	//get the controller state for each player

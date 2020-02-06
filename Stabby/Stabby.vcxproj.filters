@@ -108,6 +108,15 @@
     <ClInclude Include="ClientPlayerComponent.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
+    <ClInclude Include="TeleportCommand.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnPlayerCommand.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="TeamChangeCommand.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -167,9 +176,6 @@
     <ClCompile Include="WeaponCommand.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="VelocityCommand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EditableColliderGC.cpp">
       <Filter>Source Files\Game\Editor</Filter>
     </ClCompile>
@@ -193,6 +199,18 @@
     </ClCompile>
     <ClCompile Include="ClientPlayerSystem.cpp">
       <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="VelocityCommand.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="TeleportCommand.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnPlayerCommand.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="TeamChangeCommand.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

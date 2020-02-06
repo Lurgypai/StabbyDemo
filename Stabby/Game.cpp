@@ -9,6 +9,7 @@
 #include <EntityBaseComponent.h>
 #include <SpawnComponent.h>
 #include <ClientPlayerComponent.h>
+#include <ControllerComponent.h>
 
 Game::Game() :
 	physics{},
@@ -28,12 +29,7 @@ void Game::startOfflineGame(const std::string & stageName) {
 	
 	loadStage(stageName);
 
-	EntitySystem::GenEntities(1, &playerId);
-	EntitySystem::MakeComps<PlayerLC>(1, &playerId);
-	EntitySystem::GetComp<CombatComponent>(playerId)->attack = weapons.cloneAttack("player_sword");
-	EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ 0, 0 }, AABB{ {0, 0}, {4, 20} } });
-	EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
-	EntitySystem::GetComp<CombatComponent>(playerId)->stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	playerId = players.makePlayer(weapons);
 
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
 	EntitySystem::GetComp<RenderComponent>(playerId)->loadDrawable<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
@@ -53,13 +49,9 @@ void Game::startOnlineGame(const std::string & address, int port, const std::str
 
 	loadStage(stageName);
 
-	EntitySystem::GenEntities(1, &playerId);
-	EntitySystem::MakeComps<PlayerLC>(1, &playerId);
+	playerId = players.makePlayer(weapons);
+
 	EntitySystem::MakeComps<ClientPlayerComponent>(1, &playerId);
-	EntitySystem::GetComp<CombatComponent>(playerId)->attack = weapons.cloneAttack("player_sword");
-	EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ 0, 0 }, AABB{ {0, 0}, {4, 20} } });
-	EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
-	EntitySystem::GetComp<CombatComponent>(playerId)->stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
 	EntitySystem::GetComp<RenderComponent>(playerId)->loadDrawable<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });

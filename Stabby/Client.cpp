@@ -12,6 +12,7 @@
 #include "EntityBaseComponent.h"
 #include <iostream>
 #include <ClientPlayerComponent.h>
+#include "TeamChangePacket.h"
 
 Client::Client() :
 	id{ 0 }
@@ -192,63 +193,13 @@ void Client::receive(ENetEvent & e) {
 			}
 		}
 	}
-	else if (packetKey == ZOMBIE_KEY) {
-		std::vector<ZombiePacket> states;
-		size_t size = (e.packet->dataLength - sizeof(Time_t)) / sizeof(ZombiePacket);
-		states.resize(size);
-
-		PacketUtil::readInto<ZombiePacket>(&states[0], e.packet, size);
-		Time_t when;
-		memcpy(&when, e.packet->data + sizeof(ZombiePacket) * size, sizeof(Time_t));
-		when = ntohll(when);
-
-		if(!behindServer)
-			behindServer = when > clientTime;
-
-		//to be removed, in favor of a storing the "master sprite" inside the zombiegc
-		static AnimatedSprite sprite{ "images/zambo.png", Vec2i{32, 32} };
-
-		for (auto& zombieState : states) {
-			zombieState.unserialize();
-			if (EntitySystem::Contains<ZombieLC>()) {
-				if (idTable.contains(zombieState.onlineId)) {
-					//remove this in favor of the server determining when a zombie dies.
-					ZombieLC * zombie = EntitySystem::GetComp<ZombieLC>(idTable[zombieState.onlineId]);
-					if (zombie != nullptr && !zombieState.isDead) {
-						zombie->setState(zombieState.state);
-					}
-					else {
-						idTable.free(zombieState.onlineId);
-
-						EntityBaseComponent * death = EntitySystem::GetComp<EntityBaseComponent>(zombie->getId());
-						if (death != nullptr)
-							death->isDead = true;
-					}
-				}
-				else {
-					EntityId id;
-					EntitySystem::GenEntities(1, &id);
-					EntitySystem::MakeComps<ZombieLC>(1, &id);
-					EntitySystem::MakeComps<ZombieGC>(1, &id);
-					EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
-					EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-					EntitySystem::GetComp<RenderComponent>(id)->setDrawable<AnimatedSprite>(sprite);
-					EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
-					idTable.add(zombieState.onlineId, id);
-				}
-			}
-			else {
-				EntityId id;
-				EntitySystem::GenEntities(1, &id);
-				EntitySystem::MakeComps<ZombieLC>(1, &id);
-				EntitySystem::MakeComps<ZombieGC>(1, &id);
-				EntitySystem::GetComp<ZombieLC>(id)->onlineId = zombieState.onlineId;
-				EntitySystem::GetComp<ZombieLC>(id)->setState(zombieState.state);
-				EntitySystem::GetComp<RenderComponent>(id)->setDrawable<AnimatedSprite>(sprite);
-				EntitySystem::GetComp<ZombieGC>(id)->loadAnimations();
-				idTable.add(zombieState.onlineId, id);
-			}
-		}
+	else if (packetKey == TEAM_KEY) {
+		TeamChangePacket p;
+		PacketUtil::readInto(p, e.packet);
+		p.unserialize();
+		
+		EntitySystem::GetComp<CombatComponent>(playerId)->teamId = p.targetTeamId;
+		DebugIO::printLine("Team switched to " + std::to_string(p.targetTeamId) + ".");
 	}
 	else if (packetKey == QUIT_KEY) {
 		QuitPacket q;

@@ -1,59 +1,62 @@
 #pragma once
 #include "Pool.h"
 #include <memory>
-#include <vector>
+#include <set>
 #include <unordered_map>
 
 #include "TypeData.h"
 #include "PoolNotFoundException.h"
 
-using pool_ptr = std::shared_ptr<IPool>;
+using pool_ptr = IPool*;
+
+template<typename P>
+using unique_pool_ptr = std::unique_ptr<Pool<P>>;
 
 class PoolMap {
+private:
+	template<typename P>
+	class PoolWrapper {
+	public:
+		inline static unique_pool_ptr<P> pool = nullptr;
+	};
+
 public:
 	template<typename U>
 	void add(U&& u) {
-		if (!pools.contains(TypeTag<U>::tag)) {
-			pools.add(TypeTag<U>::tag, std::make_shared<Pool<U>>());
+		if (PoolWrapper<U>::pool == nullptr) {
+			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
+			pools.emplace_back(PoolWrapper<U>::pool.get());
 		}
 
-		Pool<U>* pool = static_cast<Pool<U>*>(pools[TypeTag<U>::tag].get());
-		pool->add(std::forward<U>(u));
+		PoolWrapper<U>::pool->add(std::forward<U>(u));
 	}
 
 	template<typename U>
 	void add(size_t pos, U&& u) {
-		if (!pools.contains(TypeTag<U>::tag)) {
-			pools.add(TypeTag<U>::tag, std::make_shared<Pool<U>>());
+		if (PoolWrapper<U>::pool == nullptr) {
+			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
+			pools.emplace_back(PoolWrapper<U>::pool.get());
 		}
-
-		Pool<U>* pool = static_cast<Pool<U>*>(pools[TypeTag<U>::tag].get());
-		pool->add(pos, std::forward<U>(u));
+		PoolWrapper<U>::pool->add(pos, std::forward<U>(u));
 	}
 
 	template<typename U>
 	void add() {
-		if (!pools.contains(TypeTag<U>::tag)) {
-			pools.add(TypeTag<U>::tag, std::make_shared<Pool<U>>());
+		if (PoolWrapper<U>::pool == nullptr) {
+			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
+			pools.emplace_back(PoolWrapper<U>::pool.get());
 		}
-
-		Pool<U>* pool = static_cast<Pool<U>*>(pools[TypeTag<U>::tag].get());
-		pool->add();
+		PoolWrapper<U>::pool->add();
 	}
 
 	template<typename T>
 	Pool<T> & get() {
-		if (pools.contains(TypeTag<T>::tag)) {
-			return static_cast<Pool<T> &>(*(pools[TypeTag<T>::tag]));
-		}
-		else {
-			throw PoolNotFoundException{ TypeTag<T>::tag };
-		}
+		return *PoolWrapper<T>::pool;
 	}
 
 	template<typename T>
 	bool contains() {
-		return pools.contains(TypeTag<T>::tag);
+		return PoolWrapper<T>::pool != nullptr;
 	}
 
 	auto begin() {
@@ -65,5 +68,6 @@ public:
 	}
 
 private:
-	Pool<pool_ptr> pools;
+
+	std::list<pool_ptr> pools;
 };

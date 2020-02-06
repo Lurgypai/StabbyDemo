@@ -176,6 +176,7 @@
     <ClInclude Include="FrameByFrameCommand.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="HeadCommand.h" />
+    <ClInclude Include="SpawnPlayerCommand.h" />
     <ClInclude Include="HeadParticleLC.h" />
     <ClInclude Include="HealthPickupGC.h" />
     <ClInclude Include="KillCommand.h" />
@@ -189,6 +190,8 @@
     <ClInclude Include="SaveStageCommand.h" />
     <ClInclude Include="SpawnZombieCommand.h" />
     <ClInclude Include="StartCommand.h" />
+    <ClInclude Include="TeamChangeCommand.h" />
+    <ClInclude Include="TeleportCommand.h" />
     <ClInclude Include="VelocityCommand.h" />
     <ClInclude Include="WeaponCommand.h" />
     <ClInclude Include="ZombieGC.h" />
@@ -205,6 +208,7 @@
     <ClCompile Include="FrameByFrameCommand.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HeadCommand.cpp" />
+    <ClCompile Include="SpawnPlayerCommand.cpp" />
     <ClCompile Include="HeadParticleLC.cpp" />
     <ClCompile Include="HealthPickupGC.cpp" />
     <ClCompile Include="KillCommand.cpp" />
@@ -224,6 +228,8 @@
     <ClCompile Include="SpawnZombieCommand.cpp" />
     <ClCompile Include="Stabby.cpp" />
     <ClCompile Include="StartCommand.cpp" />
+    <ClCompile Include="TeamChangeCommand.cpp" />
+    <ClCompile Include="TeleportCommand.cpp" />
     <ClCompile Include="VelocityCommand.cpp" />
     <ClCompile Include="WeaponCommand.cpp" />
     <ClCompile Include="ZombieGC.cpp" />

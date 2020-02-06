@@ -9,6 +9,6 @@ std::string KillCommand::getTag() const {
 
 void KillCommand::onCommand(const std::vector<std::string>& args) {
 	for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-		EntitySystem::GetComp<EntityBaseComponent>(player.getId())->isDead = true;
+		player.kill();
 	}
 }

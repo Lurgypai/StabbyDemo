@@ -4,6 +4,7 @@
 #include "PlayerStateComponent.h"
 #include "DebugFIO.h"
 #include <algorithm>
+#include <ControllerComponent.h>
 
 ServerPlayerComponent::ServerPlayerComponent(EntityId id_) :
 	id{id_},
@@ -55,6 +56,9 @@ ClientCommand ServerPlayerComponent::readCommand(Time_t gameTime) {
 	PlayerStateComponent* stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
 	stateComp->playerState.gameTime = gameTime;
 	stateComp->playerState.clientTime = clientTime;
+
+	ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
+	controller->getController() = Controller{ latestCommand.controllerState };
 
 	DebugFIO::Out("s_out.txt") << "Used command: " << static_cast<int>(latestCommand.controllerState.getState()) << " for time " << clientTime << '\n';
 	//return the command with a time equal to or less than (the most recent thats not after) the current time

@@ -17,8 +17,8 @@ struct LastClientTick {
 class ClientPlayerSystem {
 public:
 	ClientPlayerSystem(PhysicsSystem* physicsSystem_, CombatSystem* combatSystem_);
-	void update(Time_t gameTime, Time_t clientTime, Controller & cont);
-	void update(Time_t gameTime, Time_t clientTime, Controller& cont, const EntityId& player);
+	void update(Time_t gameTime, Time_t clientTime);
+	void update(Time_t gameTime, Time_t clientTime, const EntityId& player);
 	void repredict(EntityId playerId, NetworkId netId, const PlayerState& state, double timeDelta);
 private:
 	PhysicsSystem* physicsSystem;

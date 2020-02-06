@@ -29,7 +29,7 @@
 #include "ClimbableSystem.h"
 #include "DebugFIO.h"
 #include <ServerPlayerSystem.h>
-
+#include "TeamChangePacket.h" 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
 //I don't know how to copy peers, or If I should even try. Thus, to simplifiy things copying of connections is not allowed,
@@ -248,6 +248,19 @@ int main(int argv, char* argc[])
 									server.sendData(user->getConnection()->getPeer(), 0, data, sizeof(WeaponChangePacket) + attackId.size());
 									free(data);
 								}
+							}
+						}
+					}
+					else if (key == TEAM_KEY) {
+						TeamChangePacket p;
+						PacketUtil::readInto<TeamChangePacket>(p, event.packet);
+						p.unserialize();
+
+						for (auto& user : users) {
+							if (user->getNetId() == p.id) {
+								user->getCombat().teamId = p.targetTeamId;
+
+								server.bufferPacket(event.peer, 0, p);
 							}
 						}
 					}

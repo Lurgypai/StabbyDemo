@@ -6,6 +6,7 @@
 #include "ClimbableComponent.h"
 
 #include <iostream>
+#include <ControllerComponent.h>
 
 PlayerLC::PlayerLC(EntityId id_) :
 	id{id_},
@@ -53,17 +54,21 @@ PlayerLC::PlayerLC(EntityId id_) :
 		if (!EntitySystem::Contains<CombatComponent>() || EntitySystem::GetComp<CombatComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<CombatComponent>(1, &id);
 		}
+		if (!EntitySystem::Contains<ControllerComponent>() || EntitySystem::GetComp<ControllerComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<ControllerComponent>(1, &id);
+		}
 	}
 }
 
-void PlayerLC::update(double timeDelta, const Controller & controller) {
+void PlayerLC::update(double timeDelta) {
 
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 	PlayerStateComponent * playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
 	DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
 	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
-
+	ControllerComponent* contPtr = EntitySystem::GetComp<ControllerComponent>(id);
+	auto& controller = contPtr->getController();
 	PlayerState& state = playerState->playerState;
 	Attack & attack = combat->attack;
 	

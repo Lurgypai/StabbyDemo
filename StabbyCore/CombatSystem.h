@@ -17,9 +17,5 @@ public:
 private:
 
 	void attackCheck(CombatComponent& attacker, CombatComponent& defender);
-	std::vector<EntityId> hitMobs;
-	//index for the pool -> the entity who attacked
-	//values in the vector -> who was attacked
-	Pool<std::vector<EntityId>> hitList{};
 	int prevAttackId;
 };

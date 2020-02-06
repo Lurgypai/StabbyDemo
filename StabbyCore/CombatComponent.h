@@ -3,6 +3,7 @@
 #include "CombatSystem.h"
 #include "AABB.h"
 #include "Attack.h"
+#include "DynamicBitset.h"
 
 struct Hurtbox {
 	//offset from the middle bottom of the entity being described
@@ -39,6 +40,7 @@ public:
 	void damage(unsigned int i);
 	void heal(unsigned int i);
 	void stun(unsigned int i);
+	bool hasHitEntity(const EntityId & target);
 
 	//runs damage calculations and returns the result
 	int rollDamage();
@@ -54,6 +56,8 @@ public:
 private:
 	void updateStun();
 	void updateHurtboxes();
+	void addHitEntity(EntityId hit);
+	void clearHitEntities();
 
 	//effects triggers
 	void onAttackLand();
@@ -66,4 +70,6 @@ private:
 	bool attackChanged;
 	EntityId id;
 	EntityId lastAttacker;
+	//Index is the EntityId, bool is wether they've been hit
+	DynamicBitset hitEntities;
 };

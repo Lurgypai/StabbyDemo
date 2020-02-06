@@ -51,6 +51,10 @@
 #include "EditorCam.h"
 #include <SaveStageCommand.h>
 #include <LoadStageCommand.h>
+#include <ControllerComponent.h>
+#include <TeleportCommand.h>
+#include <SpawnPlayerCommand.h>
+#include <TeamChangeCommand.h>
 
 const int windowWidth = 1920;
 const int windowHeight = 1080;
@@ -132,10 +136,11 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<KillCommand>();
 	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
 	DebugIO::getCommandManager().registerCommand<VelocityCommand>();
-
+	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
+	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game.players, &game.weapons });
+	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{&game.client});
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
-	Controller controller;
 
 	game.weapons.loadAttacks("attacks/hit");
 	game.weapons.loadAnimations("attacks/asset");
@@ -174,7 +179,7 @@ int main(int argc, char* argv[]) {
 	Uint64 currentGfx = SDL_GetPerformanceCounter();
 	Uint64 leftover{ 0 };
 
-	bool lockFPS{ false };
+	bool lockFPS{ true };
 
 	bool canProgressFrame = true;
 
@@ -235,33 +240,52 @@ int main(int argc, char* argv[]) {
 			if (toggleDebug)
 				DebugIO::toggleDebug();
 
-			//reset / set scroll
-			controller.setMouseScroll(mouseScroll);
+			if (EntitySystem::Contains<ControllerComponent>() && EntitySystem::GetComp<ControllerComponent>(game.getPlayerId()) != nullptr) {
+				ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
+				auto& controller = cont->getController();
+				//reset / set scroll
+				controller.setMouseScroll(mouseScroll);
 
-			const Uint8* state = SDL_GetKeyboardState(NULL);
+				const Uint8* state = SDL_GetKeyboardState(NULL);
 
-			if (!DebugIO::getOpen()) {
-				//update controllers
+				if (!DebugIO::getOpen()) {
+					//update controllers
 
-				controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
-				controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
-				controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
-				controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
-				controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
-				controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
-				controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
-			}
-			else {
-				controller.off(ControllerBits::ALL);
+					controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
+					controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
+					controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
+					controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
+					controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
+					controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
+					controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
+				}
+				else {
+					controller.off(ControllerBits::ALL);
+				}
+				constexpr bool aiDo{ true };
+				if (aiDo) {
+					for (auto& aiCont : EntitySystem::GetPool<ControllerComponent>()) {
+						if (aiCont.getId() != game.getPlayerId()) {
+							auto& aiController = aiCont.getController();
+							aiController.set(ControllerBits::UP, rand() % 2);
+							aiController.set(ControllerBits::DOWN, rand() % 2);
+							aiController.set(ControllerBits::LEFT, rand() % 2);
+							aiController.set(ControllerBits::RIGHT, rand() % 2);
+							aiController.set(ControllerBits::BUTTON_1, rand() % 2);
+							aiController.set(ControllerBits::BUTTON_2, rand() % 2);
+							aiController.set(ControllerBits::BUTTON_3, rand() % 2);
+						}
+					}
+				}
 			}
 
 
 			if (canProgressFrame) {
 
-				game.players.updateAll(CLIENT_TIME_STEP, controller, game.getStage());
+				game.players.updateAll(CLIENT_TIME_STEP, game.getStage());
 				physics.runPhysics(CLIENT_TIME_STEP);
 				game.combat.runAttackCheck(CLIENT_TIME_STEP);
-				game.clientPlayers.update(client.getTime(), client.clientTime, controller);
+				game.clientPlayers.update(client.getTime(), client.clientTime);
 
 				game.editables.updateLogic(game.editorCamId);
 
@@ -270,23 +294,29 @@ int main(int argc, char* argv[]) {
 					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
 
-					static ControllerPacket lastSent{};
+					if (EntitySystem::Contains<ControllerComponent>()) {
+						ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
+						if (cont != nullptr) {
+							auto& controller = cont->getController();
+							static ControllerPacket lastSent{};
 
-					ControllerPacket state{};
-					state.clientTime = client.clientTime;
-					state.state = controller.getState();
-					state.netId = client.getNetId();
-					state.when = client.getTime();
+							ControllerPacket state{};
+							state.clientTime = client.clientTime;
+							state.state = controller.getState();
+							state.netId = client.getNetId();
+							state.when = client.getTime();
 
-					lastSent.when = client.getTime();
-					lastSent.clientTime = client.clientTime;
+							lastSent.when = client.getTime();
+							lastSent.clientTime = client.clientTime;
 
-					//the sent state is the controller state from after the timestamped update has run
-					if (lastSent != state) {
-						lastSent = state;
-						client.send(state);
-						DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
-						//std::cout << "Sending update for time: " << lastSent.when << '\n';
+							//the sent state is the controller state from after the timestamped update has run
+							if (lastSent != state) {
+								lastSent = state;
+								client.send(state);
+								DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+								//std::cout << "Sending update for time: " << lastSent.when << '\n';
+							}
+						}
 					}
 
 					client.service();

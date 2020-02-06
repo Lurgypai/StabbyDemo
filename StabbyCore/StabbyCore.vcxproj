@@ -170,6 +170,7 @@
     <ClInclude Include="ControllerPacket.h" />
     <ClInclude Include="DebugFIO.h" />
     <ClInclude Include="DirectionComponent.h" />
+    <ClInclude Include="DynamicBitset.h" />
     <ClInclude Include="EntityBaseComponent.h" />
     <ClInclude Include="HealthPickupLC.h" />
     <ClInclude Include="Host.h" />
@@ -180,6 +181,7 @@
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsSystem.h" />
     <ClInclude Include="PickupSystem.h" />
+    <ClInclude Include="ControllerComponent.h" />
     <ClInclude Include="PlayerLC.h" />
     <ClInclude Include="PlayerManager.h" />
     <ClInclude Include="PlayerStateComponent.h" />
@@ -221,6 +223,7 @@
     <ClInclude Include="SuquaEng0.1\header\TypeData.h" />
     <ClInclude Include="SuquaEng0.1\header\Vec2.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TeamChangePacket.h" />
     <ClInclude Include="TimestampPacket.h" />
     <ClInclude Include="AttackManager.h" />
     <ClInclude Include="WeaponChangePacket.h" />
@@ -239,6 +242,7 @@
     <ClCompile Include="ControllerPacket.cpp" />
     <ClCompile Include="DebugFIO.cpp" />
     <ClCompile Include="DirectionComponent.cpp" />
+    <ClCompile Include="DynamicBitset.cpp" />
     <ClCompile Include="EntityBaseComponent.cpp" />
     <ClCompile Include="HealthPickupLC.cpp" />
     <ClCompile Include="Host.cpp" />
@@ -246,6 +250,7 @@
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsSystem.cpp" />
+    <ClCompile Include="ControllerComponent.cpp" />
     <ClCompile Include="PlayerLC.cpp" />
     <ClCompile Include="PlayerManager.cpp" />
     <ClCompile Include="PlayerStateComponent.cpp" />
@@ -286,6 +291,7 @@
     <ClCompile Include="SuquaEng0.1\src\stb_image.cpp" />
     <ClCompile Include="SuquaEng0.1\src\Texture.cpp" />
     <ClCompile Include="SuquaEng0.1\src\TypeData.cpp" />
+    <ClCompile Include="TeamChangePacket.cpp" />
     <ClCompile Include="TimestampPacket.cpp" />
     <ClCompile Include="AttackManager.cpp" />
     <ClCompile Include="WeaponChangePacket.cpp" />

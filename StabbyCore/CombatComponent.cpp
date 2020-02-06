@@ -47,8 +47,6 @@ void CombatComponent::updateHurtboxes() {
 	DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
 	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
 
-
-
 	for (auto& hurtbox : hurtboxes) {
 		hurtbox.box.pos = position->pos + hurtbox.offset;
 	}
@@ -109,8 +107,23 @@ void CombatComponent::heal(unsigned int i) {
 }
 
 void CombatComponent::stun(unsigned int i) {
-	stunFrame = i;
+	if(!invulnerable)
+		stunFrame = i;
 	onStun(i);
+}
+
+bool CombatComponent::hasHitEntity(const EntityId& target) {
+	return hitEntities.size() > target && hitEntities[target];
+}
+
+void CombatComponent::addHitEntity(EntityId hit) {
+	if (hitEntities.size() < hit + 1)
+		hitEntities.resize(hit + 1);
+	hitEntities.set(hit, true);
+}
+
+void CombatComponent::clearHitEntities() {
+	hitEntities.zero();
 }
 
 int CombatComponent::rollDamage() {

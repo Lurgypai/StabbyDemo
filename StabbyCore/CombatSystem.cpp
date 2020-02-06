@@ -52,37 +52,29 @@ void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
 }
 
 void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defender) {
-	if (defender.getId() != attacker.getId()) {
-		EntityId attackerId = attacker.getId();
-		EntityId defenderId = defender.getId();
-		if (!hitList.contains(attackerId)) {
-			hitList.add(attackerId, std::vector<EntityId>{});
-		}
-
-		//who we've hit
-		std::vector<EntityId>& hitIds = hitList[attackerId];
-
-		//if there has been a change in the attack state (started attacking, changed attack etc)
-		if (attacker.attack.pollAttackChange()) {
-			size_t priorSize = hitIds.size();
-			hitIds.clear();
-			hitIds.reserve(priorSize);
-		}
+	EntityId attackerId = attacker.getId();
+	EntityId defenderId = defender.getId();
+	if (attackerId != defenderId) {
 		if (attacker.teamId != defender.teamId) {
-			if (attacker.getActiveHitbox() != nullptr) {
-				const AABB& hitbox = attacker.getActiveHitbox()->hit;
-				if (hitbox.intersects(defender.getBoundingBox())) {
-					auto hurtboxes = defender.hurtboxes;
-					for (auto& hurtbox : hurtboxes) {
-						if (hurtbox.box.intersects(hitbox)) {
-							//who we've already hit
-							if (std::find(hitIds.begin(), hitIds.end(), defenderId) == hitIds.end()) {
+
+			bool attackChanged = attacker.attack.pollAttackChange();
+			if (attackChanged)
+				attacker.clearHitEntities();
+
+			if (attackChanged || !attacker.hasHitEntity(defenderId)) {
+				auto* activeHitbox = attacker.getActiveHitbox();
+				if (activeHitbox != nullptr) {
+					const AABB& hit = activeHitbox->hit;
+					if (hit.intersects(defender.getBoundingBox())) {
+						auto hurtboxes = defender.hurtboxes;
+						for (auto& hurtbox : hurtboxes) {
+							if (hurtbox.box.intersects(hit)) {
 								defender.damage(attacker.rollDamage());
 								defender.stun(attacker.getStun());
 								defender.lastAttacker = attackerId;
 								attacker.onAttackLand();
 
-								hitIds.emplace_back(defenderId);
+								attacker.addHitEntity(defenderId);
 							}
 						}
 					}

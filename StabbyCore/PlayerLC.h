@@ -12,12 +12,13 @@
 class PlayerLC {
 public:
 	PlayerLC(EntityId id_ = 0);
-	void update(double timeDelta, const Controller& controller);
+	void update(double timeDelta);
 	PhysicsComponent * getPhysics();
 	Vec2f getVel() const;
 	Vec2f getRes() const;
 	void respawn(const Vec2f & spawnPos);
 	bool shouldRespawn();
+	void shouldRespawn(bool newShouldRespawn);
 	void kill();
 
 	EntityId getId() const;
