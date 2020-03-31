@@ -11,7 +11,7 @@ const std::string Stage::folder{"stage"};
 
 Stage::Stage() {}
 
-Stage::Stage(const std::string& stage) :
+Stage::Stage(const std::string& stage, SpawnSystem & spawns) :
 	name{stage}
 {
 	std::string fileName = folder + '/' + name + ".stg";
@@ -20,9 +20,6 @@ Stage::Stage(const std::string& stage) :
 		std::cout << "Unable to open file \"" << fileName << "\"\n";
 		return;
 	}
-
-	EntitySystem::GenEntities(1, &spawnZones);
-	EntitySystem::MakeComps<SpawnComponent>(1, &spawnZones);
 
 	std::vector<AABB> spawnBoxes{};
 
@@ -65,10 +62,8 @@ Stage::Stage(const std::string& stage) :
 				break;
 			}
 		}
-
-		//defered, so colliders are loaded
-		for (auto& spawnBox : spawnBoxes) {
-			EntitySystem::GetComp<SpawnComponent>(spawnZones)->addSpawnZone(spawnBox);
+		for (auto& box : spawnBoxes) {
+			spawnZones.push_back(spawns.addSpawnZone(box, true, 0));
 		}
 	}
 	else {
@@ -106,6 +101,6 @@ const std::vector<EntityId>& Stage::getRenderables() const {
 	return renderables;
 }
 
-const EntityId Stage::getSpawnable() const {
+const std::vector<EntityId>& Stage::getSpawnables() const {
 	return spawnZones;
 }

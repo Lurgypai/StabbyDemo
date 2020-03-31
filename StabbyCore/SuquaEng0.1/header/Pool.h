@@ -103,9 +103,11 @@ public:
 			resources[pos] = Resource<T>(std::forward<U>(r), false);
 		}
 		else {
+			//add in betweens
 			size_t start = resources.size();
 			resize(pos);
 			free(start, pos);
+			//place us on end
 			resources.emplace_back(std::forward<U>(r), false);
 		}
 	}

@@ -4,16 +4,20 @@
 #include <AABB.h>
 
 class SpawnComponent {
+	friend class SpawnSystem;
 public:
 	SpawnComponent(EntityId id_ = 0);
 	const EntityId getId() const;
 
-	void addSpawnZone(const AABB& zone);
-	Vec2f generateSpawnPos(int spawnZoneId);
+	void generateSpawns();
 	Vec2f findSpawnPos();
+	const AABB& getSpawnZone() const;
+	bool isDefault();
 
 private:
 	EntityId id;
-	std::vector<AABB> spawnZones;
-	std::vector<std::vector<Vec2f>> spawnPoints;
+	AABB spawnZone;
+	bool defaultSpawnZone;
+	unsigned int owningTeam;
+	std::vector<Vec2f> spawnPoints;
 };

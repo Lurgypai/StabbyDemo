@@ -51,22 +51,12 @@ void main() {
 	float newAngle = atan(diff.y, diff.x) + radians(dat.angle);
 	pixelPos = vec2(magn * cos(newAngle), magn * sin(newAngle));
 	pixelPos += dat.origin;
-	
-    	
-	vec2 screenSize = camRes;
-	
-	if(screenSize.x > windowRes.x)
-		screenSize.x = windowRes.x;
-		
-	if(screenSize.y > windowRes.y)
-		screenSize.y = windowRes.y;
     
 	//position
 	pixelPos += (dat.objPos - camPos);
-	vec2 camWindowPos = pixelPos / (screenSize / zoom);
-	camWindowPos.y = (-camWindowPos.y) + 1;
-    //scale camera into the window
-    vec2 windowPos = camWindowPos * (screenSize / windowRes);
+    
+	vec2 windowPos = pixelPos / (camRes / zoom);
+	windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
 	
 	gl_Position = vec4(windowPos, 0.0, 1.0);

@@ -9,7 +9,6 @@
 
 OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 	id{ id_ },
-	netId{ 0 },
 	previousPos{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
 	whens{}
 {
@@ -25,14 +24,6 @@ OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 			EntitySystem::MakeComps<CombatComponent>(1, &id);
 		}
 	}
-}
-
-void OnlinePlayerLC::setNetId(NetworkId id_) {
-	netId = id_;
-}
-
-NetworkId OnlinePlayerLC::getNetId() {
-	return netId;
 }
 
 EntityId OnlinePlayerLC::getId() const {
@@ -63,6 +54,7 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 	combat->attack.setActive(state.activeAttack);
 	combat->attack.setFrame(state.attackFrame);
 	combat->attack.setSpeed(state.attackSpeed);
+	combat->teamId = st.teamId;
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {

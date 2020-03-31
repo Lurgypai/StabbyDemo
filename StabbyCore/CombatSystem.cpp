@@ -55,7 +55,7 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 	EntityId attackerId = attacker.getId();
 	EntityId defenderId = defender.getId();
 	if (attackerId != defenderId) {
-		if (attacker.teamId != defender.teamId) {
+		if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
 
 			bool attackChanged = attacker.attack.pollAttackChange();
 			if (attackChanged)

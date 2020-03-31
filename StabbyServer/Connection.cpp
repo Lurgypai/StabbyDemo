@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "Connection.h"
+#include "Host.h"
 
-Connection::Connection(ENetPeer & peer_, NetworkId id_, Time_t currentTime) :
+Connection::Connection(ENetPeer & peer_, PeerId id_, Time_t currentTime) :
 	peer{ &peer_ },
 	lastPacket{ currentTime },
 	reset{ false }
 {
-	NetworkId * id_ptr = new NetworkId(id_);
+	PeerId * id_ptr = new PeerId(id_);
 	peer->data = id_ptr;
 }
 

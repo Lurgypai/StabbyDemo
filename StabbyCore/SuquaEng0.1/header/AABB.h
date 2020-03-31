@@ -19,8 +19,11 @@ public:
 
 	void center(const Vec2f & newCenter);
 
-	bool contains(Vec2f point);
+	bool contains(Vec2f point) const;
 	bool intersects(const AABB& other) const;
+
+	bool operator==(const AABB& other) const;
+	bool operator!=(const AABB& other) const;
 
 	Vec2f pos;
 	Vec2f res;

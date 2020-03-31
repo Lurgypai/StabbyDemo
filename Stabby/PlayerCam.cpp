@@ -2,6 +2,8 @@
 #include "PlayerCam.h"
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
+#include "PlayerLC.h"
+#include "RespawnComponent.h"
 #include <iostream>
 
 PlayerCam::PlayerCam(int windowWidth, int windowHeight) :
@@ -13,15 +15,27 @@ void PlayerCam::update(EntityId targetId) {
 
 	Vec2f prevPos = pos;
 
-	if (EntitySystem::Contains<PhysicsComponent>()) {
-		PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(targetId);
-		if (physics != nullptr) {
-			center(physics->center());
-		}
-		else {
-			PositionComponent * position = EntitySystem::GetComp<PositionComponent>(targetId);
-			if (position != nullptr) {
-				center(position->pos);
+	if (EntitySystem::Contains<PlayerLC>()) {
+		auto player = EntitySystem::GetComp<PlayerLC>(targetId);
+		if (player != nullptr) {
+			if (!player->shouldRespawn()) {
+				if (EntitySystem::Contains<PhysicsComponent>()) {
+					PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(targetId);
+					if (physics != nullptr) {
+						center(physics->center());
+					}
+					else {
+						PositionComponent* position = EntitySystem::GetComp<PositionComponent>(targetId);
+						if (position != nullptr) {
+							center(position->pos);
+						}
+					}
+				}
+			}
+			else {
+				RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(targetId);
+				SpawnComponent* targetSpawn = EntitySystem::GetComp<SpawnComponent>(respawn->getCurrentSpawn());
+				center(targetSpawn->getSpawnZone().center());
 			}
 		}
 	}

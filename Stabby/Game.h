@@ -10,6 +10,10 @@
 #include "EditableSystem.h"
 #include "PlayerManager.h"
 #include "ClientPlayerSystem.h"
+#include "PaletteManager.h"
+#include "SpawnSystem.h"
+#include "DominationMode.h"
+#include "OnlineSystem.h"
 
 class Game {
 public:
@@ -30,6 +34,10 @@ public:
 	EditableSystem editables;
 	PlayerManager players;
 	ClientPlayerSystem clientPlayers;
+	PaletteManager palettes;
+	SpawnSystem spawns;
+	DominationMode mode;
+	OnlineSystem online;
 
 	int playerCamId;
 	int debugCamId;

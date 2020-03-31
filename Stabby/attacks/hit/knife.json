@@ -1,0 +1,27 @@
+{
+    "restartDelay": 10,
+    "hitboxes": [
+        {
+            "width": 9,
+            "height": 7,
+            "offset_x": 2,
+            "offset_y": -16,
+            "startup": 2,
+            "active": 16,
+            "ending": 2,
+            "stun": 15,
+            "damage": 15
+        },
+        {
+            "width": 16,
+            "height": 12,
+            "offset_x": 2,
+            "offset_y": -19,
+            "startup": 2,
+            "active": 16,
+            "ending": 2,
+            "stun": 40,
+            "damage": 20
+        }
+    ]
+}

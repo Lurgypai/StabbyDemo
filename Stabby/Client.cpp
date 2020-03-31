@@ -13,9 +13,11 @@
 #include <iostream>
 #include <ClientPlayerComponent.h>
 #include "TeamChangePacket.h"
+#include "OnlineComponent.h"
+#include "CapturePointPacket.h"
+#include "CapturePointGC.h"
 
-Client::Client() :
-	id{ 0 }
+Client::Client()
 {
 	enet_initialize();
 	DebugIO::printLine("Starting client.");
@@ -57,11 +59,9 @@ void Client::connect(const std::string & ip, int port) {
 					DebugIO::printLine("Handshake Complete!");
 					DebugIO::printLine("Time is " + std::to_string(packet.currentTick) + ", and our ID is " + std::to_string(packet.netId) + "!");
 					networkTime = packet.currentTick;
-					id = packet.netId;
 					handshakeComplete = true;
 
-					ClientPlayerComponent* clientPlayer = EntitySystem::GetComp<ClientPlayerComponent>(playerId);
-					clientPlayer->netId = id;
+					online->registerOnlineComponent(playerId, packet.netId);
 				}
 				break;
 			}
@@ -108,7 +108,8 @@ void Client::service() {
 
 void Client::ping() {
 	TimestampPacket p;
-	p.id = id;
+	OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
+	p.id = online->getNetId();
 	p.clientTime = clientTime;
 	client.sendPacket(serverId, 0, p);
 }
@@ -137,10 +138,6 @@ void Client::progressTime(Time_t delta) {
 	networkTime += delta;
 }
 
-NetworkId Client::getNetId() {
-	return id;
-}
-
 void Client::setPlayer(EntityId id_) {
 	playerId = id_;
 }
@@ -159,6 +156,18 @@ void Client::setWeaponManager(WeaponManager& weapons_) {
 
 void Client::setClientPlayerSystem(ClientPlayerSystem* clientPlayer) {
 	clientPlayers = clientPlayer;
+}
+
+void Client::setOnlineSystem(OnlineSystem* online_) {
+	online = online_;
+}
+
+void Client::setMode(DominationMode* mode_) {
+	mode = mode_;
+}
+
+void Client::setSpawns(SpawnSystem* spawns_) {
+	spawns = spawns_;
 }
 
 void Client::receive(ENetEvent & e) {
@@ -180,16 +189,16 @@ void Client::receive(ENetEvent & e) {
 
 		for (auto & p : states) {
 			p.unserialize();
-			if (EntitySystem::Contains<OnlinePlayerLC>()) {
-				Pool<OnlinePlayerLC> & onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
-				for (auto& onlinePlayer : onlinePlayers) {
-					if (onlinePlayer.getNetId() == p.id) {
-						onlinePlayer.interp(p.state, p.when);
-					}
+			EntityId targetId = online->getEntity(p.id);
+			if (targetId != 0) {
+				ClientPlayerComponent* player = EntitySystem::GetComp<ClientPlayerComponent>(targetId);
+				if (player != nullptr) {
+					clientPlayers->repredict(playerId, targetId, p.state, CLIENT_TIME_STEP);
 				}
-			}
-			if (p.id == id) {
-				clientPlayers->repredict(playerId, id, p.state, CLIENT_TIME_STEP);
+				else if (EntitySystem::Contains<OnlinePlayerLC>()) {
+					auto& onlinePlayer = *(EntitySystem::GetComp<OnlinePlayerLC>(targetId));
+					onlinePlayer.interp(p.state, p.when);
+				}
 			}
 		}
 	}
@@ -205,15 +214,11 @@ void Client::receive(ENetEvent & e) {
 		QuitPacket q;
 		PacketUtil::readInto<QuitPacket>(q, e.packet);
 		q.unserialize();
-		for (auto iter = EntitySystem::GetPool<OnlinePlayerLC>().beginResource(); iter != EntitySystem::GetPool<OnlinePlayerLC>().endResource(); iter++) {
-			auto& onlinePlayer = *iter;
-			if (!onlinePlayer.isFree && onlinePlayer.val.getNetId() == q.id) {
-				//remove
-				onlinePlayer.isFree = true;
-				EntityId id = onlinePlayer.val.getId();
-				EntitySystem::FreeComps<PlayerGC>(1, &id);
-			}
+		EntityId targetEntity = online->getEntity(q.id);
+		if (targetEntity != 0) {
+			EntitySystem::GetComp<EntityBaseComponent>(targetEntity)->isDead = true;
 		}
+
 		DebugIO::printLine("Player " + std::to_string(q.id) + " has disconnected.");
 	}
 	else if (packetKey == TIME_KEY) {
@@ -233,40 +238,66 @@ void Client::receive(ENetEvent & e) {
 		attackId.resize(p.size);
 		std::memcpy(attackId.data(), e.packet->data + sizeof(WeaponChangePacket), p.size);
 
-		if (EntitySystem::Contains<PlayerLC>()) {
-			if (id == p.id) {
-				CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
-				combat->attack = weapons->cloneAttack(attackId);
+		EntityId playerId = online->getEntity(p.id);
+		if (playerId != 0) {
+			CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
+			combat->attack = weapons->cloneAttack(attackId);
 
-				PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
-				graphics->attackSprite = weapons->cloneAnimation(attackId);
-			}
+			PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
+			graphics->attackSprite = weapons->cloneAnimation(attackId);
 		}
-		if (EntitySystem::Contains<OnlinePlayerLC>()) {
-			Pool<OnlinePlayerLC>& onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
-			for (auto& onlinePlayer : onlinePlayers) {
-				if (onlinePlayer.getNetId() == p.id) {
-					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(onlinePlayer.getId());
-					combat->attack = weapons->cloneAttack(attackId);
+	}
+	else if (packetKey == CAP_KEY) {
+		std::vector<CapturePointPacket> capturePointPackets;
+		size_t size = e.packet->dataLength / sizeof(CapturePointPacket);
+		capturePointPackets.resize(size);
 
-					PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(onlinePlayer.getId());
-					graphics->attackSprite = weapons->cloneAnimation(attackId);
+		PacketUtil::readInto<CapturePointPacket>(capturePointPackets.data(), e.packet, size);
+
+		for (auto& packet : capturePointPackets) {
+			packet.unserialize();
+
+			EntityId targetId = online->getEntity(packet.netId);
+			if (EntitySystem::Contains<CapturePointComponent>() && targetId != 0) {
+				CapturePointComponent* capturePoint = EntitySystem::GetComp<CapturePointComponent>(targetId);
+				capturePoint->setState(packet.state);
+				spawns->assignTeam(targetId, packet.state.currTeamId);
+			}
+			else {
+				bool spawnWasFound = false;
+				for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
+					if (spawn.getSpawnZone() == packet.zone) {
+						EntityId id = spawn.getId();
+						spawnWasFound = true;
+						mode->createZone(id, packet.zone, packet.state.currTeamId, packet.state.totalCaptureTime, packet.state.remainingCaptureTime);
+
+						CapturePointComponent* capturePoint = EntitySystem::GetComp<CapturePointComponent>(id);
+						capturePoint->setState(packet.state);
+
+						EntitySystem::MakeComps<CapturePointGC>(1, &id);
+
+						online->registerOnlineComponent(id, packet.netId);
+					}
+				}
+				if (!spawnWasFound) {
+					//unable to sync with server, throw an error
+					throw std::exception{};
 				}
 			}
 		}
 	}
-
 	if (!ids.empty()) {
 		std::vector<EntityId> entities;
 		entities.resize(ids.size());
-		EntitySystem::GenEntities(ids.size(), &entities[0]);
-		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), &entities[0]);
-		EntitySystem::MakeComps<PlayerGC>(entities.size(), &entities[0]);
+		EntitySystem::GenEntities(ids.size(), entities.data());
+		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), entities.data());
+		EntitySystem::MakeComps<PlayerGC>(entities.size(), entities.data());
+		EntitySystem::MakeComps<OnlineComponent>(entities.size(), entities.data());
 
 		for (int i = 0; i != ids.size(); ++i) {
 			EntityId entity = entities[i];
 			NetworkId netId = ids[i];
-			EntitySystem::GetComp<OnlinePlayerLC>(entity)->setNetId(netId);
+			online->registerOnlineComponent(entity, netId);
 			EntitySystem::GetComp<RenderComponent>(entity)->loadDrawable<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
 			EntitySystem::GetComp<PlayerGC>(entity)->attackSprite = weapons->cloneAnimation("player_sword");

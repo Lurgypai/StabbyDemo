@@ -8,6 +8,9 @@
 #include "WeaponManager.h"
 #include <deque>
 #include <ClientPlayerSystem.h>
+#include "OnlineSystem.h"
+#include "DominationMode.h"
+#include "SpawnSystem.h"
 
 #define PING_COUNT 10
 
@@ -38,8 +41,6 @@ public:
 	Time_t getTime();
 	void progressTime(Time_t delta);
 
-	NetworkId getNetId();
-
 	void setPlayer(EntityId id_);
 	bool isBehindServer();
 	//once we've told the server the time, and what we're doing, this is done to reset that we are behind.
@@ -47,6 +48,9 @@ public:
 
 	void setWeaponManager(WeaponManager& weapons_);
 	void setClientPlayerSystem(ClientPlayerSystem* clientPlayer);
+	void setOnlineSystem(OnlineSystem* online);
+	void setMode(DominationMode* mode);
+	void setSpawns(SpawnSystem* spawns);
 	//client time
 	Time_t clientTime;
 private:
@@ -56,10 +60,9 @@ private:
 	//average ping in local client time
 	Time_t currentPing;
 
-	NetworkId serverId;
-	bool connected;
-	NetworkId id;
+	PeerId serverId;
 	EntityId playerId;
+	bool connected;
 	//gameTime
 	Time_t networkTime;
 	//if we're behind the server, so that we can tell the server the current time.
@@ -68,6 +71,9 @@ private:
 	Host client;
 	WeaponManager* weapons;
 	ClientPlayerSystem* clientPlayers;
+	OnlineSystem* online;
+	DominationMode* mode;
+	SpawnSystem* spawns;
 };
 
 template<typename Packet>

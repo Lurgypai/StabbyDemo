@@ -55,6 +55,10 @@
 #include <TeleportCommand.h>
 #include <SpawnPlayerCommand.h>
 #include <TeamChangeCommand.h>
+#include <PaletteCommand.h>
+#include "RectDrawable.h"
+#include "CapturePointGC.h"
+#include "OnlineComponent.h"
 
 const int windowWidth = 1920;
 const int windowHeight = 1080;
@@ -111,6 +115,12 @@ int main(int argc, char* argv[]) {
 	PartitionID blood = GLRenderer::GenParticleType("blood", 1, {"particles/blood.vert"});
 	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
 	PartitionID floating = GLRenderer::GenParticleType("float", 1, { "particles/float.vert" });
+
+	int colorShader;
+	GLRenderer::LoadShaders({ {"shaders/color.vert", "shaders/color.frag"} }, &colorShader);
+	GLRenderer::GetShaderRef(colorShader).uniform2f("viewRes", viewWidth, viewHeight);
+	Sprite colors{ "images/palettes/test.png" };
+
 	glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
 	
@@ -121,11 +131,13 @@ int main(int argc, char* argv[]) {
 	titleRender->loadDrawable<Sprite>("images/tempcover.png");
 	EntitySystem::GetComp<PositionComponent>(title)->pos = {-320 , -300 };
 
+
 	GLRenderer::getCamera(game.playerCamId).pos = { -320 , -300 };
 	GLRenderer::getCamera(game.editorCamId).center({ 0, 0 });
 
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
+	game.palettes.loadPalettes("images/palettes");
 
 	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
 	DebugIO::getCommandManager().registerCommand<AttackSpeedCommand>(AttackSpeedCommand{ game });
@@ -139,6 +151,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
 	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game.players, &game.weapons });
 	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{&game.client});
+	DebugIO::getCommandManager().registerCommand<PaletteCommand>(PaletteCommand{ &game.palettes });
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
 
@@ -148,11 +161,11 @@ int main(int argc, char* argv[]) {
 	game.climbables.updateClimbables();
 
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
-	Framebuffer fb{};
+	Framebuffer screenBuffer{};
 	unsigned int screenTex;
-	fb.bind();
-	screenTex = fb.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
-	fb.finalizeFramebuffer();
+	screenBuffer.bind();
+	screenTex = screenBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	screenBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
 	Framebuffer occlusionMap{};
@@ -162,12 +175,19 @@ int main(int argc, char* argv[]) {
 	occlusionMap.finalizeFramebuffer();
 	Framebuffer::unbind();
 
-	Framebuffer outlineMap{};
-	unsigned int outlineTex;
-	outlineMap.bind();
-	outlineTex = outlineMap .addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
-	outlineMap.finalizeFramebuffer();
-	Framebuffer::unbind();	
+	Framebuffer pingBuffer{};
+	unsigned int pingTex;
+	pingBuffer.bind();
+	pingTex = pingBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	pingBuffer.finalizeFramebuffer();
+	Framebuffer::unbind();
+
+	Framebuffer pongBuffer{};
+	unsigned int pongTex;
+	pongBuffer.bind();
+	pongTex = pongBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	pongBuffer.finalizeFramebuffer();
+	Framebuffer::unbind();
 
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
 
@@ -282,14 +302,20 @@ int main(int argc, char* argv[]) {
 
 			if (canProgressFrame) {
 
-				game.players.updateAll(CLIENT_TIME_STEP, game.getStage());
+				game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 				physics.runPhysics(CLIENT_TIME_STEP);
 				game.combat.runAttackCheck(CLIENT_TIME_STEP);
 				game.clientPlayers.update(client.getTime(), client.clientTime);
 
 				game.editables.updateLogic(game.editorCamId);
 
+				if(!client.getConnected())
+					game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
+
 				if (client.getConnected()) {
+
+					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
+
 
 					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
@@ -303,8 +329,8 @@ int main(int argc, char* argv[]) {
 							ControllerPacket state{};
 							state.clientTime = client.clientTime;
 							state.state = controller.getState();
-							state.netId = client.getNetId();
 							state.when = client.getTime();
+							state.netId = online->getNetId();
 
 							lastSent.when = client.getTime();
 							lastSent.clientTime = client.clientTime;
@@ -333,7 +359,8 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
-					DebugIO::setLine(3, "NetId: " + std::to_string(client.getNetId()));
+
+					DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
 					DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
 				}
 
@@ -375,7 +402,7 @@ int main(int argc, char* argv[]) {
 			currentGfx = now;
 
 			//draw everything to the framebuffer
-			fb.bind();
+			pingBuffer.bind();
 
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 			GLRenderer::ClearRenderBufs(GLRenderer::all);
@@ -384,11 +411,18 @@ int main(int argc, char* argv[]) {
 			const Uint8 *state = SDL_GetKeyboardState(NULL);
 
 			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
-			GLRenderer::SetDefShader(ImageShader);
 
+			//players
 			if (EntitySystem::Contains<PlayerGC>()) {
 				for (auto & comp : EntitySystem::GetPool<PlayerGC>()) {
 					comp.updateState(gfxDelay);
+				}
+			}
+
+			//capture points
+			if (EntitySystem::Contains<CapturePointGC>()) {
+				for (auto& comp : EntitySystem::GetPool<CapturePointGC>()) {
+					comp.update(gfxDelay);
 				}
 			}
 
@@ -401,6 +435,33 @@ int main(int argc, char* argv[]) {
 				GLRenderer::setCamera(game.playerCamId);
 				static_cast<PlayerCam&>(GLRenderer::getCamera(game.playerCamId)).update(game.getPlayerId());
 			}
+
+			//hitbox rendering
+			/*
+			if (EntitySystem::Contains<CombatComponent>()) {
+
+
+				static EntityId hitbox = 0;
+				if (hitbox == 0) {
+					EntitySystem::GenEntities(1, &hitbox);
+					EntitySystem::MakeComps<RenderComponent>(1, &hitbox);
+					EntitySystem::GetComp<RenderComponent>(hitbox)->loadDrawable<RectDrawable>();
+				}
+
+				for (auto& combat : EntitySystem::GetPool<CombatComponent>()) {
+					if (combat.getActiveHitbox() != nullptr) {
+						AABB box = combat.getActiveHitbox()->hit;
+						PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(hitbox);
+						pos->pos = box.pos;
+						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->shape = box;
+						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->r = 1.0;
+						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->g = 0.0;
+						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->b = 0.0;
+					}
+				}
+			}
+			*/
+			
 
 			render.drawAll();
 
@@ -415,7 +476,7 @@ int main(int argc, char* argv[]) {
 
 			//draw the pixels to the framebuffer, draw the framebuffer over the screen
 
-			fb.bind();
+			pingBuffer.bind();
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
@@ -426,12 +487,25 @@ int main(int argc, char* argv[]) {
 
 			GLRenderer::UpdateAndDrawParticles();
 
+			//palettes, for later
+			/*
+			pongBuffer.bind();
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, game.palettes.getCurrentPalette().getTexture());
+
+			GLRenderer::GetShaderRef(colorShader).use();
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id, viewWidth, viewHeight);
+			*/
+
+			//finished ping-ponging, draw to screen
 			Framebuffer::unbind();
 			GLRenderer::SetDefShader(FullscreenShader);
 			GLRenderer::bindCurrShader();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 
-			GLRenderer::DrawOverScreen(fb.getTexture(0).id);
+			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id);
 
 			//draw the debugio over the screen
 

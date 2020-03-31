@@ -166,6 +166,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AttackSpeedCommand.h" />
+    <ClInclude Include="CapturePointGC.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientPlayerComponent.h" />
     <ClInclude Include="ClientPlayerSystem.h" />
@@ -176,6 +177,8 @@
     <ClInclude Include="FrameByFrameCommand.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="HeadCommand.h" />
+    <ClInclude Include="PaletteManager.h" />
+    <ClInclude Include="PaletteCommand.h" />
     <ClInclude Include="SpawnPlayerCommand.h" />
     <ClInclude Include="HeadParticleLC.h" />
     <ClInclude Include="HealthPickupGC.h" />
@@ -198,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AttackSpeedCommand.cpp" />
+    <ClCompile Include="CapturePointGC.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientPlayerComponent.cpp" />
     <ClCompile Include="ClientPlayerSystem.cpp" />
@@ -208,6 +212,8 @@
     <ClCompile Include="FrameByFrameCommand.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HeadCommand.cpp" />
+    <ClCompile Include="PaletteCommand.cpp" />
+    <ClCompile Include="PaletteManager.cpp" />
     <ClCompile Include="SpawnPlayerCommand.cpp" />
     <ClCompile Include="HeadParticleLC.cpp" />
     <ClCompile Include="HealthPickupGC.cpp" />

@@ -162,6 +162,8 @@
     <ClInclude Include="Attack.h" />
     <ClInclude Include="BehaviourNode.h" />
     <ClInclude Include="BehaviourTree.h" />
+    <ClInclude Include="CapturePointComponent.h" />
+    <ClInclude Include="CapturePointPacket.h" />
     <ClInclude Include="ClimbableComponent.h" />
     <ClInclude Include="ClimbableSystem.h" />
     <ClInclude Include="CombatComponent.h" />
@@ -170,11 +172,14 @@
     <ClInclude Include="ControllerPacket.h" />
     <ClInclude Include="DebugFIO.h" />
     <ClInclude Include="DirectionComponent.h" />
+    <ClInclude Include="DominationMode.h" />
     <ClInclude Include="DynamicBitset.h" />
     <ClInclude Include="EntityBaseComponent.h" />
     <ClInclude Include="HealthPickupLC.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="JoinPacket.h" />
+    <ClInclude Include="OnlineComponent.h" />
+    <ClInclude Include="OnlineSystem.h" />
     <ClInclude Include="PacketTypes.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleSystem.h" />
@@ -190,8 +195,10 @@
     <ClInclude Include="QuitPacket.h" />
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="RenderSystem.h" />
+    <ClInclude Include="RespawnComponent.h" />
     <ClInclude Include="ServerClientData.h" />
     <ClInclude Include="SpawnComponent.h" />
+    <ClInclude Include="SpawnSystem.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="StatePacket.h" />
     <ClInclude Include="stdafx.h" />
@@ -234,6 +241,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Attack.cpp" />
+    <ClCompile Include="CapturePointComponent.cpp" />
+    <ClCompile Include="CapturePointPacket.cpp" />
     <ClCompile Include="ClimbableComponent.cpp" />
     <ClCompile Include="ClimbableSystem.cpp" />
     <ClCompile Include="CombatComponent.cpp" />
@@ -242,11 +251,14 @@
     <ClCompile Include="ControllerPacket.cpp" />
     <ClCompile Include="DebugFIO.cpp" />
     <ClCompile Include="DirectionComponent.cpp" />
+    <ClCompile Include="DominationMode.cpp" />
     <ClCompile Include="DynamicBitset.cpp" />
     <ClCompile Include="EntityBaseComponent.cpp" />
     <ClCompile Include="HealthPickupLC.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="JoinPacket.cpp" />
+    <ClCompile Include="OnlineComponent.cpp" />
+    <ClCompile Include="OnlineSystem.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsSystem.cpp" />
@@ -259,7 +271,9 @@
     <ClCompile Include="QuitPacket.cpp" />
     <ClCompile Include="RandomUtil.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
+    <ClCompile Include="RespawnComponent.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
+    <ClCompile Include="SpawnSystem.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="StatePacket.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -106,6 +106,7 @@ unsigned int Sprite::getRenderBufferId() const {
 }
 
 void Sprite::draw() {
+	GLRenderer::SetDefShader(ImageShader);
 	GLRenderer::SetBuffer(renderBufferId);
 	GLRenderer::Buffer(data);
 	GLRenderer::Draw(GLRenderer::include, 1, &renderBufferId);

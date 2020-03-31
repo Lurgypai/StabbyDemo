@@ -117,6 +117,15 @@
     <ClInclude Include="TeamChangeCommand.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
+    <ClInclude Include="PaletteManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PaletteCommand.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="CapturePointGC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -210,6 +219,15 @@
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="TeamChangeCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PaletteManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PaletteCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CapturePointGC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,8 +6,6 @@
 class OnlinePlayerLC {
 public:
 	OnlinePlayerLC(EntityId id_ = 0);
-	void setNetId(NetworkId id_);
-	NetworkId getNetId();
 	EntityId getId() const;
 	//add a position to move towards
 	void interp(PlayerState st, Time_t when);
@@ -17,6 +15,5 @@ private:
 	Vec2f previousPos[3];
 	//when the current and two previous positions arrived.
 	Time_t whens[3];
-	NetworkId netId;
 	EntityId id;
 };

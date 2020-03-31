@@ -11,7 +11,8 @@ CombatComponent::CombatComponent(EntityId id_) :
 	id{id_},
 	invulnerable{false},
 	stats{},
-	stunFrame{0}
+	stunFrame{0},
+	teamId{0}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
@@ -86,6 +87,10 @@ unsigned int CombatComponent::getStun() {
 
 bool CombatComponent::isStunned() {
 	return stunFrame != 0;
+}
+
+bool CombatComponent::isAlive() {
+	return health > 0;
 }
 
 void CombatComponent::updateStun() {

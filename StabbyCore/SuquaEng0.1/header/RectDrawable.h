@@ -18,5 +18,4 @@ public:
 	float b;
 
 	AABB shape;
-
 };

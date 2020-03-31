@@ -4,6 +4,7 @@
 #include "DirectionComponent.h"
 #include "DebugIO.h"
 #include "ClimbableComponent.h"
+#include "RespawnComponent.h";
 
 #include <iostream>
 #include <ControllerComponent.h>
@@ -56,6 +57,9 @@ PlayerLC::PlayerLC(EntityId id_) :
 		}
 		if (!EntitySystem::Contains<ControllerComponent>() || EntitySystem::GetComp<ControllerComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<ControllerComponent>(1, &id);
+		}
+		if (!EntitySystem::Contains<RespawnComponent>() || EntitySystem::GetComp<RespawnComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<RespawnComponent>(1, &id);
 		}
 	}
 }
@@ -248,6 +252,7 @@ void PlayerLC::setState(const PlayerState& newState) {
 	combat->attack.setSpeed(newState.attackSpeed);
 	combat->health = newState.health;
 	combat->stunFrame = newState.stunFrame;
+	combat->teamId = newState.teamId;
 
 	dir->dir = newState.facing;
 	
@@ -267,6 +272,7 @@ PlayerState PlayerLC::getState() {
 	playerState->playerState.attackSpeed = combat->attack.getSpeed();
 	playerState->playerState.health = combat->health;
 	playerState->playerState.stunFrame = combat->stunFrame;
+	playerState->playerState.teamId = combat->teamId;
 
 	playerState->playerState.facing = dir->dir;
 

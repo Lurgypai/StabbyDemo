@@ -30,6 +30,10 @@
 #include "DebugFIO.h"
 #include <ServerPlayerSystem.h>
 #include "TeamChangePacket.h" 
+#include "DominationMode.h"
+#include "CapturePointPacket.h"
+#include "OnlineSystem.h"
+#include "OnlineComponent.h"
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
 //I don't know how to copy peers, or If I should even try. Thus, to simplifiy things copying of connections is not allowed,
@@ -90,7 +94,8 @@ int main(int argv, char* argc[])
 		}
 	}
 
-	Stage stage{settings.stage};
+	SpawnSystem spawns;
+	Stage stage{settings.stage, spawns};
 
 	Host server;
 	if (!server.createServer(settings.port, 32, 3)) {
@@ -109,7 +114,6 @@ int main(int argv, char* argc[])
 	Uint64 prev = SDL_GetPerformanceCounter();
 
 	ENetPacket* packet;
-	WelcomePacket welcomePacket;
 
 	//current tick in server time
 	Time_t currentTick{ 0 };
@@ -128,11 +132,18 @@ int main(int argv, char* argc[])
 	ClimbableSystem climbables{};
 	PlayerManager players{};
 	ServerPlayerSystem onlinePlayers{};
+	DominationMode mode{};
+	OnlineSystem online{};
+	mode.load(&spawns, 2, 1, 144000);
+
+	for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
+		online.addOnlineComponent(capturePoint.getId());
+	}
 
 	weapons.loadAttacks("attacks/hit");
 	climbables.updateClimbables();
 
-	NetworkId clientId = 0;
+	PeerId clientPeerId = 0;
 	DebugFIO::AddFOut("s_out.txt");
 
 	//switch game to tick at client speed, but only send updates out at server speed
@@ -144,42 +155,51 @@ int main(int argv, char* argc[])
 		int packetsPolled = 0;
 		while (server.service(&event, 0) > 0) {
 			switch (event.type) {
-			case ENET_EVENT_TYPE_CONNECT:
+			case ENET_EVENT_TYPE_CONNECT: {
 				std::cout << "Connection received.\n";
-				clientId = server.addPeer(event.peer);
+				clientPeerId = server.addPeer(event.peer);
+
+				users.emplace_back(std::make_unique<User>(User{ clientPeerId, std::make_unique<Connection>(*event.peer, clientPeerId, currentTick) }));
+				users.back()->getCombat().attack = weapons.cloneAttack("player_sword");
+				users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
+				users.back()->getCombat().health = 100;
+				users.back()->getCombat().stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+				online.addOnlineComponent(users.back()->getId());
+
+				NetworkId clientNetId = users.back()->getOnline().getNetId();
+
+				mode.addPlayer(users.back()->getId());
+
+				WelcomePacket welcomePacket;
 				welcomePacket.currentTick = gameTime;
-				welcomePacket.netId = clientId;
+				welcomePacket.netId = clientNetId;
 				server.sendPacket<WelcomePacket>(event.peer, 0, welcomePacket);
 
 				//notify all online players of a new players join
 				for (auto& user : users) {
-					//tell them about us
-					JoinPacket join{};
-					join.joinerId = clientId;
-					server.sendPacket<JoinPacket>(user->getConnection()->getPeer(), 0, join);
+					if (user->getPeerId() != clientPeerId) {
+						//tell them about us
+						JoinPacket join{};
+						join.joinerId = clientNetId;
+						server.sendPacket<JoinPacket>(user->getConnection()->getPeer(), 0, join);
 
-					//tell us about them
-					JoinPacket us{};
-					us.joinerId = user->getNetId();
-					server.sendPacket(event.peer, 0, us);
+						//tell us about them
+						JoinPacket us{};
+						us.joinerId = user->getOnline().getNetId();
+						server.sendPacket(event.peer, 0, us);
+					}
 				}
-
-				users.emplace_back(std::make_unique<User>(User{ clientId, std::make_unique<Connection>(*event.peer, clientId, currentTick) }));
-				users.back()->getCombat().attack = weapons.cloneAttack("player_sword");
-				users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
-				users.back()->getCombat().teamId = users.back()->getNetId();
-				users.back()->getCombat().health = 100;
-				users.back()->getCombat().stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 				break;
+			}
 			case ENET_EVENT_TYPE_RECEIVE:
 				if (event.packet->dataLength == 0) {
 					std::cout << "Garbage packet received.\n";
 				}
 				else {
-					NetworkId senderId = *static_cast<NetworkId*>(event.peer->data);
+					PeerId senderId = *static_cast<NetworkId*>(event.peer->data);
 					User* sender = nullptr;
 					for (auto& user : users) {
-						if (user->getNetId() == senderId)
+						if (user->getPeerId() == senderId)
 							sender = user.get();
 					}
 
@@ -195,7 +215,7 @@ int main(int argv, char* argc[])
 
 						for (auto& user : users) {
 							ServerPlayerComponent& player = user->getServerPlayer();
-							if (user->getNetId() == cont.netId) {
+							if (user->getOnline().getNetId() == cont.netId) {
 								ClientCommand comm{ Controller{ cont.state }, cont.clientTime, cont.when };
 								player.bufferInput(comm);
 							}
@@ -231,12 +251,12 @@ int main(int argv, char* argc[])
 								server.sendData(user->getConnection()->getPeer(), 0, data, sizeof(WeaponChangePacket) + attackId.size());
 								free(data);
 
-								if (user->getNetId() == p.id) {
+								if (user->getOnline().getNetId() == p.id) {
 									user->getCombat().attack = weapons.cloneAttack(attackId);
 								}
 							}
 							else {
-								if (user->getNetId() == p.id) {
+								if (user->getOnline().getNetId() == p.id) {
 									attackId = user->getCombat().attack.getId();;
 									WeaponChangePacket ret;
 									ret.size = attackId.size();
@@ -257,7 +277,7 @@ int main(int argv, char* argc[])
 						p.unserialize();
 
 						for (auto& user : users) {
-							if (user->getNetId() == p.id) {
+							if (user->getOnline().getNetId() == p.id) {
 								user->getCombat().teamId = p.targetTeamId;
 
 								server.bufferPacket(event.peer, 0, p);
@@ -270,18 +290,27 @@ int main(int argv, char* argc[])
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				QuitPacket q;
-				NetworkId peerNetId;
-				std::memcpy(&peerNetId, event.peer->data, sizeof(peerNetId));
-				q.id = peerNetId;
-				std::cout << "Player " << peerNetId << " disconnected.\n";
-				for (auto iter = users.begin(); iter != users.end(); ++iter) {
-					auto& user = *iter;
-					auto con = user->getConnection();
-					if (user->getNetId() == peerNetId) {
-						con->setShouldReset(true);
+				PeerId disconnectPeerId;
+				std::memcpy(&disconnectPeerId, event.peer->data, sizeof(disconnectPeerId));
+
+				bool foundUser;
+
+				for (auto& user : users) {
+					if (user->getPeerId() == disconnectPeerId) {
+						foundUser = true;
+						std::cout << "Player " << user->getPeerId() << ", " << user->getOnline().getNetId() << " disconnected.\n";
+						q.id = user->getOnline().getNetId();
+						user->getConnection()->setShouldReset(true);
 					}
-					else {
-						server.sendPacket<QuitPacket>(con->getPeer(), 0, q);
+				}
+
+				if (!foundUser) {
+					throw std::exception{};
+				}
+
+				for (auto& user : users) {
+					if (user->getPeerId() != disconnectPeerId) {
+						server.sendPacket<QuitPacket>(user->getConnection()->getPeer(), 0, q);
 					}
 				}
 			}
@@ -303,7 +332,7 @@ int main(int argv, char* argc[])
 
 			while (lastUpdatedTime != gameTime) {
 				++lastUpdatedTime;
-				onlinePlayers.updatePlayers(players, lastUpdatedTime, stage);
+				onlinePlayers.updatePlayers(players, lastUpdatedTime, stage, spawns);
 				for (auto& user : users)
 					DebugFIO::Out("s_out.txt") << "Updated to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				physics.runPhysics(CLIENT_TIME_STEP);
@@ -315,6 +344,8 @@ int main(int argv, char* argc[])
 					DebugFIO::Out("s_out.txt") << "Final state at time " << user->getServerPlayer().getClientTime() << ", pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 
 				onlinePlayers.tickPlayerTimes();
+
+				mode.tickCapturePoints(spawns, CLIENT_TIME_STEP);
 			}
 
 			++currentTick;
@@ -326,17 +357,32 @@ int main(int argv, char* argc[])
 				StatePacket pos{};
 				pos.state = user->getPlayer().getState();
 				pos.when = gameTime;
-				pos.id = user->getNetId();
+				pos.id = user->getOnline().getNetId();
 				pos.serialize();
 				states.push_back(pos);
 				pos.unserialize();
+			}
+
+			std::vector<CapturePointPacket> capturePointPackets;
+			auto packetsSize = EntitySystem::GetPool<CapturePointComponent>().size();
+			capturePointPackets.reserve(packetsSize);
+			for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
+				CapturePointPacket packet;
+				packet.netId = EntitySystem::GetComp<OnlineComponent>(capturePoint.getId())->getNetId();
+				packet.state = capturePoint.getState();
+				packet.zone = capturePoint.getZone();
+				packet.serialize();
+				capturePointPackets.emplace_back(std::move(packet));
 			}
 
 			for (auto& other : users) {
 				//send the contiguous state block
 				server.sendData(other->getConnection()->getPeer(), 1, states.data(), sizeof(StatePacket) * states.size());
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
+				server.sendData(other->getConnection()->getPeer(), 2, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
 			}
+
+
 
 			//cleanup after server update, so that all "dead" states can be sent
 			EntitySystem::FreeDeadEntities();
@@ -350,19 +396,19 @@ int main(int argv, char* argc[])
 			for (auto& user : users) {
 				Connection * con = user->getConnection();
 				if (static_cast<double>(currentTick - con->getLastPacket()) * SERVER_TIME_STEP > forceDisconnectDelay) {
-					std::cout << "Forcing removal of player " << user->getNetId() << ".\n";
+					std::cout << "Forcing removal of player " << user->getPeerId() << ", " << user->getOnline().getNetId() << ".\n";
 					con->setShouldReset(true);
-					q.id = user->getNetId();
+					q.id = user->getOnline().getNetId();
 					//tell everyone else
 					for (auto& other : users) {
-						if(other->getNetId() != user->getNetId())
-							server.sendPacket<QuitPacket>(other->getNetId(), 0, q);
+						if(other->getPeerId() != user->getPeerId())
+							server.sendPacket<QuitPacket>(other->getPeerId(), 0, q);
 					}
-					server.resetConnection(user->getNetId());
+					server.resetConnection(user->getPeerId());
 				}
 				else if (static_cast<double>(currentTick - con->getLastPacket()) * SERVER_TIME_STEP > disconnectDelay) {
-					std::cout << "Attempting to disconnect player " << user->getNetId() << ", no packets received recently.\n";
-					server.disconnect(user->getNetId());
+					std::cout << "Attempting to disconnect player " << user->getPeerId() << ", " << user->getOnline().getNetId() << ", no packets received recently.\n";
+					server.disconnect(user->getPeerId());
 				}
 			}
 
@@ -370,6 +416,11 @@ int main(int argv, char* argc[])
 			auto toReset = [](const UserPtr& user) {
 				return user->getConnection()->shouldReset();
 			};
+			for (auto& user : users) {
+				if (toReset(user)) {
+					mode.removePlayer(user->getId());
+				}
+			}
 			users.erase(std::remove_if(users.begin(), users.end(), toReset), users.end());
 		}
 	}

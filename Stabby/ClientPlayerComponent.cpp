@@ -6,7 +6,6 @@ const int ClientPlayerComponent::MAX_STORED_STATES{50}
 ;
 ClientPlayerComponent::ClientPlayerComponent(EntityId id_) :
 	id{id_},
-	netId{},
 	states{}
 {}
 

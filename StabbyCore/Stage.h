@@ -3,6 +3,7 @@
 #include "Vec2.h"
 #include "AABB.h"
 #include <string>
+#include "SpawnSystem.h"
 
 enum class StageElement {
 	collideable,
@@ -15,13 +16,13 @@ public:
 	static const std::string folder;
 
 	Stage();
-	Stage(const std::string & stage);
+	Stage(const std::string & stage, SpawnSystem & spawns);
 	Vec2f getSpawnPos() const;
 	void loadGraphics();
 	const std::vector<EntityId> & getCollideables() const;
 	const std::vector<EntityId>& getClimbables() const;
 	const std::vector<EntityId>& getRenderables() const;
-	const EntityId getSpawnable() const;
+	const std::vector<EntityId>& getSpawnables() const;
 
 private:
 
@@ -29,5 +30,5 @@ private:
 	std::vector<EntityId> collideables;
 	std::vector<EntityId> climbables;
 	std::vector<EntityId> renderables;
-	EntityId spawnZones;
+	std::vector<EntityId> spawnZones;
 };

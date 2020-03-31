@@ -5,6 +5,7 @@
 #include "PlayerGC.h"
 #include "Game.h"
 #include "WeaponChangePacket.h"
+#include "OnlineComponent.h"
 
 WeaponCommand::WeaponCommand(Game & game) :
 	weapons(&game.weapons),
@@ -28,12 +29,12 @@ void WeaponCommand::onCommand(const std::vector<std::string>& args) {
 					graphics->attackSprite = weapons->cloneAnimation(args[1]);
 
 					if (client->getConnected()) {
-
+						OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(id);
 						size_t size = args[1].size();
 
 						WeaponChangePacket p;
 						p.size = size;
-						p.id = client->getNetId();
+						p.id = online->getNetId();
 						p.serialize();
 						char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + size));
 						memcpy(data, &p, sizeof(WeaponChangePacket));

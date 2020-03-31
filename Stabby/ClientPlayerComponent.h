@@ -18,8 +18,6 @@ public:
 	bool pollState(PlrContState & state);
 	std::deque<PlrContState> readAllStates();
 	Time_t getEarliestTime();
-
-	NetworkId netId;
 private:
 	EntityId id;
 	std::deque<PlrContState> states;

@@ -15,7 +15,7 @@ void AABB::center(const Vec2f & newCenter) {
 	pos = Vec2f{ newCenter.x - res.x / 2, newCenter.y - res.y / 2 };
 }
 
-bool AABB::contains(Vec2f point) {
+bool AABB::contains(Vec2f point) const {
 	return (
 		pos.x < point.x &&
 		pos.y < point.y &&
@@ -31,4 +31,12 @@ bool AABB::intersects(const AABB & other) const {
 		pos.x >= other.pos.x + other.res.x ||
 		pos.y >= other.pos.y + other.res.y
 		);
+}
+
+bool AABB::operator==(const AABB& other) const {
+	return pos == other.pos && res == other.res;
+}
+
+bool AABB::operator!=(const AABB& other) const {
+	return !(*this == other);
 }

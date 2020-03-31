@@ -127,6 +127,7 @@ public:
 	//Set the current shader to one of the Default shaders.
 	static void SetDefShader(DefShader shader);
 
+
 	//Adds the specified texture/shader pair as its own buffer. Returns the location of the buffer in the RenderBuffer vector.
 	static unsigned int GenRenderStyleBuf(unsigned int textureId, unsigned int shaderId);
 	static unsigned int GenNewRenderStyleBuf(unsigned int textureId, unsigned int shaderId);
@@ -134,6 +135,7 @@ public:
 	static void SetRenderBufSize(unsigned int id, int size);
 	//render a single texture stretched over the whole screen (for post processing)
 	static void DrawOverScreen(unsigned int texId);
+	static void DrawOverScreen(unsigned int texId, int width, int height);
 
 	static PartitionID GenParticleType(const std::string & tag, int size, ComputeShader&& shader);
 	static void SpawnParticles(PartitionID id, unsigned int count, const Particle& base, float angleModulation = 0, float velModulation = 0, int lifeModulation = 0, Vec2f posModulation = {0, 0});
@@ -154,7 +156,9 @@ private:
 	static std::vector<RenderBuffer> renderBuffers;
 	static SDL_Window* window;
 	static SDL_GLContext context;
-	static unsigned int VAO;
+	static unsigned int IMG_VAO;
+	static unsigned int SCREEN_VAO;
+	static unsigned int PRIMITIVE_VAO;
 	static unsigned int VBO;
 	static unsigned int ImgDataBuffer;
 	static std::vector<Camera> cameras;

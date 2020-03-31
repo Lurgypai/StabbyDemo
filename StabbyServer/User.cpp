@@ -4,7 +4,7 @@
 #include "PlayerStateComponent.h"
 
 User::User(NetworkId id_, ConnectionPtr && con_) :
-	netId{id_},
+	peerId{id_},
 	con{std::move(con_)}
 {
 	EntitySystem::GenEntities(1, &id);
@@ -21,8 +21,8 @@ EntityId User::getId() const {
 	return id;
 }
 
-NetworkId User::getNetId() const {
-	return netId;
+PeerId User::getPeerId() const {
+	return peerId;
 }
 
 Connection * User::getConnection() {
@@ -51,4 +51,8 @@ PlayerStateComponent & User::getPlayerState() {
 
 CombatComponent& User::getCombat() {
 	return *EntitySystem::GetComp<CombatComponent>(id);
+}
+
+OnlineComponent& User::getOnline() {
+	return *EntitySystem::GetComp<OnlineComponent>(id);
 }

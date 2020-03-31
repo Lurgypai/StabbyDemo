@@ -33,12 +33,20 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glGenVertexArrays(1, &VAO);
+	glGenVertexArrays(1, &PRIMITIVE_VAO);
+	glGenVertexArrays(1, &IMG_VAO);
+	glGenVertexArrays(1, &SCREEN_VAO);
 	glGenBuffers(1, &ImgDataBuffer);
 	glGenBuffers(1, &VBO);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ImgDataBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ImgData) * IMG_DATA_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+
+	glBindVertexArray(PRIMITIVE_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2f), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
 
 	particleSystem.genBuffer();
 
@@ -101,11 +109,14 @@ void GLRenderer::Draw(SelectType t_, std::vector<unsigned int> & ids) {
 //exclude means draw all texture buffers except the ones specified
 //all means draw all texture buffers
 void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
+
 	if (renderBuffers.size() > 0) {
 		Camera& cam = cameras[currentCam];
 
 		//biind the vertex array object
-		glBindVertexArray(VAO);
+		glViewport(0, 0, cam.res.x, cam.res.y);
+		glBindVertexArray(IMG_VAO);
+		glDisableVertexAttribArray(0);
 
 		std::vector<unsigned int> allIds;
 		//handles what texture buffers to draw
@@ -182,10 +193,9 @@ void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 					//draw. 6 vertices (should) make a rectangle
 					glDrawArrays(GL_TRIANGLES, 0, 6 * objsToBuffer);
 				}
-				glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-				//glBindVertexArray(0);
 			}
 		}
+		glBindVertexArray(0);
 	}
 }
 
@@ -195,20 +205,27 @@ void GLRenderer::DrawPrimitve(std::vector<Vec2f> points, float r, float g, float
 
 	Camera& cam = cameras[currentCam];
 
+	glViewport(0, 0, cam.res.x, cam.res.y);
+	glBindVertexArray(PRIMITIVE_VAO);
+
 	currentShader->use();
 	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
 	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
 	currentShader->uniform3f("color", r, g, b);
 
-	glBindVertexArray(VAO);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vec2f), points.data(), GL_DYNAMIC_DRAW);
+
+	/*
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2f), (void*)0);
 	glEnableVertexAttribArray(0);
+	*/
 
 	glDrawArrays(GL_LINE_LOOP, 0, points.size());
+
+	glBindVertexArray(0);
 }
 
 void GLRenderer::DrawPrimitves(std::vector<AABB> rects, float r, float g, float b) {
@@ -254,6 +271,16 @@ void GLRenderer::SetRenderBufSize(unsigned int id, int size) {
 }
 
 void GLRenderer::DrawOverScreen(unsigned int texId) {
+	glBindVertexArray(SCREEN_VAO);
+	glViewport(0, 0, windowRes.x, windowRes.y);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void GLRenderer::DrawOverScreen(unsigned int texId, int width, int height) {
+	glBindVertexArray(SCREEN_VAO);
+	glViewport(0, 0, width, height);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texId);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -393,7 +420,9 @@ Vec2f GLRenderer::worldToSceen(Vec2f point, int camId) {
 std::vector<RenderBuffer> GLRenderer::renderBuffers{};
 SDL_GLContext GLRenderer::context{};
 SDL_Window* GLRenderer::window{nullptr};
-unsigned int GLRenderer::VAO{};
+unsigned int GLRenderer::SCREEN_VAO{};
+unsigned int GLRenderer::IMG_VAO{};
+unsigned int GLRenderer::PRIMITIVE_VAO{};
 unsigned int GLRenderer::VBO{};
 unsigned int GLRenderer::ImgDataBuffer{};
 std::vector<Camera> GLRenderer::cameras{};

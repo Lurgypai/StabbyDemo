@@ -36,6 +36,7 @@ public:
 	const Hitbox * getActiveHitbox() const;
 	unsigned int getStun();
 	bool isStunned();
+	bool isAlive();
 
 	void damage(unsigned int i);
 	void heal(unsigned int i);

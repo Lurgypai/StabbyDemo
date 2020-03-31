@@ -2,7 +2,7 @@
 #include "PlayerManager.h"
 #include <PlayerLC.h>
 #include <WeaponManager.h>
-#include <SpawnComponent.h>
+#include "RespawnComponent.h"
 #include <DebugIO.h>
 
 EntityId PlayerManager::makePlayer(const WeaponManager & weapons) {
@@ -18,27 +18,43 @@ EntityId PlayerManager::makePlayer(const WeaponManager & weapons) {
 }
 
 
-void PlayerManager::updateAll(double timeDelta, const Stage & stage) {
+void PlayerManager::updateAll(double timeDelta, const Stage & stage, SpawnSystem& spawns) {
 	if (EntitySystem::Contains<PlayerLC>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-			player.update(timeDelta);
-
-			if (player.shouldRespawn()) {
-				SpawnComponent * spawnZones = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnable());
-				player.respawn(spawnZones->findSpawnPos());
-			}
+			updatePlayer(timeDelta, player, stage, spawns);
 		}
 	}
 }
 
-void PlayerManager::update(EntityId playerId, double timeDelta, const Stage& stage) {
+void PlayerManager::update(EntityId playerId, double timeDelta, const Stage& stage, SpawnSystem& spawns) {
 	if (EntitySystem::Contains<PlayerLC>()) {
 		PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
-		player->update(timeDelta);
-		if (player->shouldRespawn()) {
-			SpawnComponent* spawnZones = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnable());
-			player->respawn(spawnZones->findSpawnPos());
-		}
+		updatePlayer(timeDelta, *player, stage, spawns);
 
+	}
+}
+
+void PlayerManager::updatePlayer(double timeDelta, PlayerLC& player, const Stage& stage, SpawnSystem& spawns) {
+	player.update(timeDelta);
+
+	if (player.shouldRespawn()) {
+		RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(player.getId());
+		switch (respawn->getState())
+		{
+		case unselected:
+			respawn->loadSpawnList(spawns);
+			break;
+		case selecting:
+			respawn->searchForSpawn();
+			break;
+		case selected: {
+			SpawnComponent* spawnZone = EntitySystem::GetComp<SpawnComponent>(respawn->getCurrentSpawn());
+			player.respawn(spawnZone->findSpawnPos());
+			respawn->reset();
+		}
+			break;
+		default:
+			break;
+		}
 	}
 }

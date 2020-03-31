@@ -50,7 +50,7 @@ void Host::sendData(ENetPeer * peer, enet_uint8 channel, void * data, size_t dat
 	enet_peer_send(peer, channel, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
 }
 
-void Host::sendData(NetworkId id, enet_uint8 channel, void * data, size_t dataSize) {
+void Host::sendData(PeerId id, enet_uint8 channel, void * data, size_t dataSize) {
 	enet_peer_send(peers[id], channel, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
 }
 
@@ -58,7 +58,7 @@ void Host::bufferData(ENetPeer* peer, enet_uint8 channel, void* data, size_t dat
 	peerDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), peer, 0, channel });
 }
 
-void Host::bufferData(NetworkId id, enet_uint8 channel, void* data, size_t dataSize) {
+void Host::bufferData(PeerId id, enet_uint8 channel, void* data, size_t dataSize) {
 	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), nullptr, id, channel });
 }
 
@@ -77,39 +77,39 @@ int Host::service(ENetEvent * event, enet_uint32 timeout) {
 	return enet_host_service(host, event, timeout);
 }
 
-NetworkId Host::connect(const std::string & ip, int port, size_t channels) {
+PeerId Host::connect(const std::string & ip, int port, size_t channels) {
 	if (!freeIds.empty()) {
 		ENetAddress address;
 		enet_address_set_host(&address, ip.c_str());
 		address.port = port;
 
-		NetworkId id = freeIds.front();
+		PeerId id = freeIds.front();
 		freeIds.pop_front();
 		peers.add(id, enet_host_connect(host, &address, channels, 0));
 		return id;
 	}
 }
 
-NetworkId Host::addPeer(ENetPeer * peer) {
+PeerId Host::addPeer(ENetPeer * peer) {
 	if (!freeIds.empty()) {
-		NetworkId id = freeIds.front();
+		PeerId id = freeIds.front();
 		freeIds.pop_front();
 		peers.add(id, peer);
 		return id;
 	}
 }
 
-void Host::removePeer(NetworkId peerId) {
+void Host::removePeer(PeerId peerId) {
 	freeIds.push_back(peerId);
 	peers.free(peerId);
 }
 
-void Host::disconnect(NetworkId peerId) {
+void Host::disconnect(PeerId peerId) {
 	enet_peer_disconnect(peers[peerId], 0);
 	removePeer(peerId);
 }
 
-void Host::resetConnection(NetworkId peerId) {
+void Host::resetConnection(PeerId peerId) {
 	enet_peer_reset(peers[peerId]);
 	removePeer(peerId);
 }

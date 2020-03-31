@@ -10,6 +10,8 @@
 #include <SpawnComponent.h>
 #include <ClientPlayerComponent.h>
 #include <ControllerComponent.h>
+#include <RectDrawable.h>
+#include "CapturePointGC.h"
 
 Game::Game() :
 	physics{},
@@ -36,9 +38,12 @@ void Game::startOfflineGame(const std::string & stageName) {
 	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
-	PhysicsComponent * pos = EntitySystem::GetComp<PhysicsComponent>(playerId);
-	SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnable());
-	pos->teleport(spawn->findSpawnPos());
+	EntitySystem::GetComp<PlayerLC>(playerId)->kill();
+
+	mode.load(&spawns, 2, 1, 144000);
+
+	auto spawnables = stage.getSpawnables();
+	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
 }
 
 void Game::startOnlineGame(const std::string & address, int port, const std::string & stageName) {
@@ -59,15 +64,24 @@ void Game::startOnlineGame(const std::string & address, int port, const std::str
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
 	PhysicsComponent * pos = EntitySystem::GetComp<PhysicsComponent>(playerId);
-	SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnable());
+	SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnables().front());
 	pos->teleport(spawn->findSpawnPos());
 
+	mode.loadData(2, 1, 144000);
+
+	/*
+	auto spawnables = stage.getSpawnables();
+	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
+	*/
+
 	client.setPlayer(playerId);
-
-	client.connect(address, port);
-
 	client.setWeaponManager(weapons);
 	client.setClientPlayerSystem(&clientPlayers);
+	client.setOnlineSystem(&online);
+	client.setMode(&mode);
+	client.setSpawns(&spawns);
+
+	client.connect(address, port);
 }
 
 void Game::startStageEditor(const std::string & filePath) {
@@ -75,13 +89,12 @@ void Game::startStageEditor(const std::string & filePath) {
 		entity.isDead = true;
 	}
 
-
 	editables.isEnabled = true;
 	editables.load(filePath);
 }
 
 void Game::loadStage(const std::string& stageName) {
-	stage = Stage(stageName);
+	stage = Stage(stageName, spawns);
 	stage.loadGraphics();
 }
 

@@ -5,6 +5,8 @@
 #include "PositionComponent.h"
 #include "PlayerLC.h"
 #include "ServerPlayerComponent.h"
+#include "OnlineComponent.h"
+#include "Host.h"
 
 //user stores their connection, id, as well as the logic component
 class User {
@@ -12,7 +14,7 @@ public:
 	User(NetworkId id_, ConnectionPtr&& con);
 
 	EntityId getId() const;
-	NetworkId getNetId() const;
+	PeerId getPeerId() const;
 	Connection * getConnection();
 	PlayerLC & getPlayer();
 	ServerPlayerComponent& getServerPlayer();
@@ -20,9 +22,10 @@ public:
 	PositionComponent & getPosition();
 	PlayerStateComponent & getPlayerState();
 	CombatComponent & getCombat();
+	OnlineComponent& getOnline();
 
 private:
 	EntityId id;
-	NetworkId netId;
+	PeerId peerId;
 	ConnectionPtr con;
 };
