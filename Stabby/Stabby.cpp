@@ -60,9 +60,6 @@
 #include "CapturePointGC.h"
 #include "OnlineComponent.h"
 
-const int windowWidth = 1920;
-const int windowHeight = 1080;
-
 const int viewWidth = 640;
 const int viewHeight = 360;
 
@@ -84,6 +81,12 @@ extern "C" {
 }
 
 int main(int argc, char* argv[]) {
+
+	std::ifstream settingsFile{ "settings.json" };
+	json settings{};
+	settingsFile >> settings;
+	const int windowWidth = settings["window_width"];
+	const int windowHeight = settings["window_height"];
 
 	Game game{};
 

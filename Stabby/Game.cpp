@@ -12,6 +12,7 @@
 #include <ControllerComponent.h>
 #include <RectDrawable.h>
 #include "CapturePointGC.h"
+#include <fstream>
 
 Game::Game() :
 	physics{},
@@ -19,7 +20,8 @@ Game::Game() :
 	clientPlayers{&physics, &combat}
 {}
 
-void Game::startOfflineGame(const std::string & stageName) {
+void Game::startOfflineGame() {
+
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
@@ -29,6 +31,11 @@ void Game::startOfflineGame(const std::string & stageName) {
 	//grab the  player spawn point
 	//create the player there
 	
+	std::ifstream settingsFile{ "settings.json" };
+	json settings{};
+	settingsFile >> settings;
+	std::string stageName = settings["stage"];
+
 	loadStage(stageName);
 
 	playerId = players.makePlayer(weapons);
@@ -46,11 +53,18 @@ void Game::startOfflineGame(const std::string & stageName) {
 	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
 }
 
-void Game::startOnlineGame(const std::string & address, int port, const std::string & stageName) {
+void Game::startOnlineGame() {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
 	editables.isEnabled = false;
+
+	std::ifstream settingsFile{ "settings.json" };
+	json settings{};
+	settingsFile >> settings;
+	std::string stageName = settings["stage"];
+	std::string address = settings["ip"];
+	int port = settings["port"];
 
 	loadStage(stageName);
 

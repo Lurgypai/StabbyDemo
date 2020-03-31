@@ -18,8 +18,8 @@
 class Game {
 public:
 	Game();
-	void startOfflineGame(const std::string& stage);
-	void startOnlineGame(const std::string & address, int port, const std::string & stageName);
+	void startOfflineGame();
+	void startOnlineGame();
 	void startStageEditor(const std::string & filePath);
 	void loadStage(const std::string& stageName);
 
