@@ -15,16 +15,16 @@ PlayerLC::PlayerLC(EntityId id_) :
 	prevButton2{false},
 	prevButton3{ false },
 	isBeingHit{false},
-	rollVel{220},
+	rollVel{150},
 	storedVel{0},
-	rollFrameMax{68},
+	rollFrameMax{54},
 	deathFrame{0},
-	deathFrameMax{200},
+	deathFrameMax{1200},
 	attackFreezeFrameMax{17},
 	healFrameMax{60},
 	healDelayMax{120},
 	horizontalAccel{10.0},
-	stepDistance{50},
+	stepDistance{70},
 	climbDistance{35}
 {
 	//do not default construct
@@ -121,7 +121,7 @@ void PlayerLC::update(double timeDelta) {
 					++dir;
 				}
 
-				vel.x = (rollVel * state.moveSpeed * direction->dir) + (dir * 80 * state.moveSpeed);
+				vel.x = (rollVel * state.moveSpeed * direction->dir) + (dir * 40 * state.moveSpeed);
 			}
 			else {
 				combat->invulnerable = false;

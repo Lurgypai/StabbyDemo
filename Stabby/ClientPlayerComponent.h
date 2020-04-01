@@ -21,6 +21,4 @@ public:
 private:
 	EntityId id;
 	std::deque<PlrContState> states;
-
-	static const int MAX_STORED_STATES;
 };

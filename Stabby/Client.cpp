@@ -193,11 +193,17 @@ void Client::receive(ENetEvent & e) {
 			if (targetId != 0) {
 				ClientPlayerComponent* player = EntitySystem::GetComp<ClientPlayerComponent>(targetId);
 				if (player != nullptr) {
-					clientPlayers->repredict(playerId, targetId, p.state, CLIENT_TIME_STEP);
+					clientPlayers->repredict(playerId, p.id, p.state, CLIENT_TIME_STEP);
 				}
 				else if (EntitySystem::Contains<OnlinePlayerLC>()) {
-					auto& onlinePlayer = *(EntitySystem::GetComp<OnlinePlayerLC>(targetId));
-					onlinePlayer.interp(p.state, p.when);
+					auto onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(targetId);
+					if (onlinePlayer) {
+						onlinePlayer->interp(p.state, p.when);
+					}
+					else {
+						DebugIO::printLine("Unable to find player " + std::to_string(p.id) + ". Did they disconnect?");
+					}
+
 				}
 			}
 		}

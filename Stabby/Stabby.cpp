@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
 							if (lastSent != state) {
 								lastSent = state;
 								client.send(state);
-								DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+								//DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
 								//std::cout << "Sending update for time: " << lastSent.when << '\n';
 							}
 						}

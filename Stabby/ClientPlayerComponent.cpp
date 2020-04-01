@@ -2,8 +2,6 @@
 #include "ClientPlayerComponent.h"
 #include "DebugFIO.h"
 
-const int ClientPlayerComponent::MAX_STORED_STATES{50}
-;
 ClientPlayerComponent::ClientPlayerComponent(EntityId id_) :
 	id{id_},
 	states{}
@@ -14,10 +12,6 @@ const EntityId ClientPlayerComponent::getid() const {
 }
 
 void ClientPlayerComponent::storePlayerState(Time_t gameTime, Time_t clientTime, Controller& controller) {
-	if (states.size() > MAX_STORED_STATES)
-		states.pop_front();
-
-
 	PlayerState playerState = EntitySystem::GetComp<PlayerLC>(id)->getState();
 	playerState.gameTime = gameTime;
 	playerState.clientTime = clientTime;
@@ -30,6 +24,7 @@ void ClientPlayerComponent::storePlayerState(Time_t gameTime, Time_t clientTime,
 bool ClientPlayerComponent::pollState(PlrContState& state) {
 	if (!states.empty()) {
 		state = std::move(states.front());
+		DebugFIO::Out("c_out.txt") << "Popped state at time " << state.plrState.clientTime << ".\n";
 		states.pop_front();
 		return true;
 	}
@@ -37,6 +32,7 @@ bool ClientPlayerComponent::pollState(PlrContState& state) {
 }
 
 std::deque<PlrContState> ClientPlayerComponent::readAllStates() {
+	DebugFIO::Out("c_out.txt") << "Cleared and returned all states.\n";
 	auto retStates = std::move(states);
 	states.clear();
 	return retStates;

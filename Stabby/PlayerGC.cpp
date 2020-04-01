@@ -33,7 +33,7 @@ void PlayerGC::loadAnimations() {
 	//keep in mind graphics gale starts at frame 1, not 0
 	animSprite_.addAnimation(idle, 0, 1);
 	animSprite_.addAnimation(walking, 1, 17);
-	animSprite_.addAnimation(roll, 30, 39);
+	animSprite_.addAnimation(roll, 30, 37);
 	animSprite_.addAnimation(stun, 39, 40);
 	animSprite_.addAnimation(dead, 40, 52);
 	animSprite_.addAnimation(climb, 52, 54);

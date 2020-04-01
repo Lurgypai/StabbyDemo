@@ -38,11 +38,14 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 		PlrContState plrContState{};
 
 		std::ostream& out = std::cout;
-			
+		bool wasUpdated = false;
 		while (clientPlayer->pollState(plrContState)) {
 			auto& plrState = plrContState.plrState;
 			auto& contState = plrContState.contState;
+			DebugFIO::Out("c_out.txt") << "Checking server time " << state.clientTime << " against client " << plrState.clientTime << '\n';
 			if (plrState.clientTime == state.clientTime) {
+				wasUpdated = true;
+
 				lastTick.gameTime = state.gameTime;
 				plrState.gameTime = state.gameTime;
 
@@ -80,8 +83,8 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 					player->setState(state);
 
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-					DebugFIO::Out("c_out.txt") << "reset pos at time " << state.clientTime << " to: " << physics->getPos() << '\n';
-					DebugFIO::Out("c_out.txt") << "reset vel at time " << state.clientTime << " to: " << physics->vel << '\n';
+					//DebugFIO::Out("c_out.txt") << "reset pos at time " << state.clientTime << " to: " << physics->getPos() << '\n';
+					//DebugFIO::Out("c_out.txt") << "reset vel at time " << state.clientTime << " to: " << physics->vel << '\n';
 
 					Controller currentController = Controller{ contState };
 
@@ -92,24 +95,35 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 
 					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
 					for(auto& unprocessedState : states) {
-						DebugFIO::Out("c_out.txt") << "Processing unprocessed state at time " << unprocessedState.plrState.clientTime << '\n';
-						DebugFIO::Out("c_out.txt") << "reset pos to: " << physics->getPos() << '\n';
-						DebugFIO::Out("c_out.txt") << "reset vel to: " << physics->vel << '\n';
+						//DebugFIO::Out("c_out.txt") << "Processing unprocessed state at time " << unprocessedState.plrState.clientTime << '\n';
+						//DebugFIO::Out("c_out.txt") << "reset pos to: " << physics->getPos() << '\n';
+						//DebugFIO::Out("c_out.txt") << "reset vel to: " << physics->vel << '\n';
 						Controller cont{ unprocessedState.contState };
 						controller->getController() = cont;
 						player->update(timeDelta);
-						DebugFIO::Out("c_out.txt") << "updated pos to: " << physics->getPos() << '\n';
-						DebugFIO::Out("c_out.txt") << "updated vel to: " << physics->vel << '\n';
+						//DebugFIO::Out("c_out.txt") << "updated pos to: " << physics->getPos() << '\n';
+						//DebugFIO::Out("c_out.txt") << "updated vel to: " << physics->vel << '\n';
 						physicsSystem->runPhysics(timeDelta, id);
-						DebugFIO::Out("c_out.txt") << "physics pos to: " << physics->getPos() << '\n';
-						DebugFIO::Out("c_out.txt") << "physics vel to: " << physics->vel << '\n';
+						//DebugFIO::Out("c_out.txt") << "physics pos to: " << physics->getPos() << '\n';
+						//DebugFIO::Out("c_out.txt") << "physics vel to: " << physics->vel << '\n';
 						combatSystem->runAttackCheck(timeDelta, id);
 						clientPlayer->storePlayerState(unprocessedState.plrState.gameTime, unprocessedState.plrState.clientTime, cont);
 					}
 				}
 				lastTick.clientTime = state.clientTime;
+				DebugFIO::Out("c_out.txt") << "Up to date at time " << lastTick.clientTime << ".\n";
+				break;
+			}
+			else if (plrState.clientTime > state.clientTime) {
+				DebugFIO::Out("c_out.txt") << "The server is too far behind the stored controller states. Waiting for a packet thats up to date...\n";
 				break;
 			}
 		}
+		if (!wasUpdated) {
+			DebugFIO::Out("c_out.txt") << "Client wasn't resynced. lastTick: " << lastTick.clientTime << ", clientTime from server: " << state.clientTime << ".\n";
+		}
+	}
+	else {
+		DebugFIO::Out("c_out.txt") << "New state is too old. State time: " << state.clientTime << ", last update: " << lastTick.clientTime << ".\n";
 	}
 }
