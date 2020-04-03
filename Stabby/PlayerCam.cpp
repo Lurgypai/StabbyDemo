@@ -35,7 +35,9 @@ void PlayerCam::update(EntityId targetId) {
 			else {
 				RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(targetId);
 				SpawnComponent* targetSpawn = EntitySystem::GetComp<SpawnComponent>(respawn->getCurrentSpawn());
-				center(targetSpawn->getSpawnZone().center());
+				if (targetSpawn != nullptr) {
+					center(targetSpawn->getSpawnZone().center());
+				}
 			}
 		}
 	}

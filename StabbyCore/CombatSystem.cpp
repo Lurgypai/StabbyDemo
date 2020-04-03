@@ -12,13 +12,15 @@ void CombatSystem::runAttackCheck(double timeDelta) {
 			PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(attacker.getId());
 			DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(attacker.getId());
 
-			attacker.updateHurtboxes();
-			attacker.updateStun();
-			if(physics != nullptr && !physics->frozen)
-				attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+			if (physics != nullptr && direction != nullptr) {
+				attacker.updateHurtboxes();
+				attacker.updateStun();
+				if (physics != nullptr && !physics->frozen)
+					attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
 
-			for (CombatComponent & defender : EntitySystem::GetPool<CombatComponent>()) {
-				attackCheck(attacker, defender);
+				for (CombatComponent& defender : EntitySystem::GetPool<CombatComponent>()) {
+					attackCheck(attacker, defender);
+				}
 			}
 		}
 	}

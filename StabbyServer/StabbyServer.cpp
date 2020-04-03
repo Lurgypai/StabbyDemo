@@ -159,11 +159,7 @@ int main(int argv, char* argc[])
 				std::cout << "Connection received.\n";
 				clientPeerId = server.addPeer(event.peer);
 
-				users.emplace_back(std::make_unique<User>(User{ clientPeerId, std::make_unique<Connection>(*event.peer, clientPeerId, currentTick) }));
-				users.back()->getCombat().attack = weapons.cloneAttack("player_sword");
-				users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
-				users.back()->getCombat().health = 100;
-				users.back()->getCombat().stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+				users.emplace_back(std::make_unique<User>(User{&players, &weapons, clientPeerId, std::make_unique<Connection>(*event.peer, clientPeerId, currentTick) }));
 				users.back()->getPlayer().chooseSpawn();
 				online.addOnlineComponent(users.back()->getId());
 

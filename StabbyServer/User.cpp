@@ -3,18 +3,12 @@
 #include "PhysicsAABB.h"
 #include "PlayerStateComponent.h"
 
-User::User(NetworkId id_, ConnectionPtr && con_) :
+User::User(PlayerManager* players, WeaponManager* weapons, NetworkId id_, ConnectionPtr && con_) :
 	peerId{id_},
 	con{std::move(con_)}
 {
-	EntitySystem::GenEntities(1, &id);
-	EntitySystem::MakeComps<PlayerLC>(1, &id);
+	id = players->makePlayer(*weapons);
 	EntitySystem::MakeComps<ServerPlayerComponent>(1, &id);
-	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
-	EntitySystem::MakeComps<CombatComponent>(1, &id);
-	EntitySystem::GetComp<PhysicsComponent>(id)->setRes({ -2, -20 });
-	EntitySystem::GetComp<PhysicsComponent>(id)->setRes(Vec2f{ static_cast<float>(PlayerLC::PLAYER_WIDTH), static_cast<float>(PlayerLC::PLAYER_HEIGHT) });
-	EntitySystem::GetComp<PhysicsComponent>(id)->weight = 3;
 }
 
 EntityId User::getId() const {

@@ -25,9 +25,9 @@ PlayerLC::PlayerLC(EntityId id_) :
 	horizontalAccel{10.0},
 	stepDistance{70},
 	climbDistance{35},
-	maxStamina{100},
-	rollCost{50},
-	staminaRechargeMax{360}
+	maxStamina{500},
+	rollCost{240},
+	staminaRechargeMax{80}
 {
 	//do not default construct
 	if (id != 0) {

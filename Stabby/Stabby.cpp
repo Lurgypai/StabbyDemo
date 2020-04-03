@@ -134,7 +134,6 @@ int main(int argc, char* argv[]) {
 	titleRender->loadDrawable<Sprite>("images/tempcover.png");
 	EntitySystem::GetComp<PositionComponent>(title)->pos = {-320 , -300 };
 
-
 	GLRenderer::getCamera(game.playerCamId).pos = { -320 , -300 };
 	GLRenderer::getCamera(game.editorCamId).center({ 0, 0 });
 
@@ -441,26 +440,42 @@ int main(int argc, char* argv[]) {
 
 			//hitbox rendering
 			/*
-			if (EntitySystem::Contains<CombatComponent>()) {
-
-
-				static EntityId hitbox = 0;
-				if (hitbox == 0) {
-					EntitySystem::GenEntities(1, &hitbox);
-					EntitySystem::MakeComps<RenderComponent>(1, &hitbox);
-					EntitySystem::GetComp<RenderComponent>(hitbox)->loadDrawable<RectDrawable>();
+			static bool loadedDebugBoxes{ false };
+			EntityId debugBoxes[20];
+			if (!loadedDebugBoxes) {
+				EntitySystem::GenEntities(20, debugBoxes);
+				EntitySystem::MakeComps<RenderComponent>(20, debugBoxes);
+				for (int i = 0; i != 20; ++i) {
+					EntitySystem::GetComp<RenderComponent>(debugBoxes[i])->loadDrawable<RectDrawable>();
 				}
-
+				loadedDebugBoxes = true;
+			}
+			if (EntitySystem::Contains<CombatComponent>()) {
+				int i = 0;
 				for (auto& combat : EntitySystem::GetPool<CombatComponent>()) {
+					RenderComponent* hitboxRender = EntitySystem::GetComp<RenderComponent>(debugBoxes[i++]);
+					if (hitboxRender == nullptr) {
+						loadedDebugBoxes = false;
+						break;
+					}
 					if (combat.getActiveHitbox() != nullptr) {
 						AABB box = combat.getActiveHitbox()->hit;
+						EntityId hitbox = hitboxRender->getId();
 						PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(hitbox);
 						pos->pos = box.pos;
-						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->shape = box;
-						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->r = 1.0;
-						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->g = 0.0;
-						EntitySystem::GetComp<RenderComponent>(hitbox)->getDrawable<RectDrawable>()->b = 0.0;
+						hitboxRender->getDrawable<RectDrawable>()->shape = box;
+						hitboxRender->getDrawable<RectDrawable>()->r = 1.0;
+						hitboxRender->getDrawable<RectDrawable>()->g = 0.0;
+						hitboxRender->getDrawable<RectDrawable>()->b = 0.0;
 					}
+					RenderComponent* hurtboxRender = EntitySystem::GetComp<RenderComponent>(debugBoxes[i++]);
+					AABB hurtBox = combat.getBoundingBox();
+					PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(hurtboxRender->getId());
+					pos->pos = hurtBox.pos;
+					hurtboxRender->getDrawable<RectDrawable>()->shape = hurtBox;
+					hurtboxRender->getDrawable<RectDrawable>()->r = 0.0;
+					hurtboxRender->getDrawable<RectDrawable>()->g = 0.0;
+					hurtboxRender->getDrawable<RectDrawable>()->b = 1.0;
 				}
 			}
 			*/

@@ -9,8 +9,8 @@
             "startup": 2,
             "active": 16,
             "ending": 2,
-            "stun": 15,
-            "damage": 15
+            "stun": 20,
+            "damage": 10
         },
         {
             "width": 16,
@@ -21,7 +21,7 @@
             "active": 16,
             "ending": 2,
             "stun": 40,
-            "damage": 20
+            "damage": 40
         }
     ]
 }

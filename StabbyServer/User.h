@@ -7,11 +7,12 @@
 #include "ServerPlayerComponent.h"
 #include "OnlineComponent.h"
 #include "Host.h"
-
+#include "PlayerManager.h"
+#include "WeaponManager.h"
 //user stores their connection, id, as well as the logic component
 class User {
 public:
-	User(NetworkId id_, ConnectionPtr&& con);
+	User(PlayerManager* players, WeaponManager* weapons,  NetworkId id_, ConnectionPtr&& con);
 
 	EntityId getId() const;
 	PeerId getPeerId() const;

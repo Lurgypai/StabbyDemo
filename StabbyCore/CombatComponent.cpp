@@ -45,11 +45,10 @@ AABB CombatComponent::getBoundingBox() {
 }
 
 void CombatComponent::updateHurtboxes() {
-	DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
-	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+	PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
 	for (auto& hurtbox : hurtboxes) {
-		hurtbox.box.pos = position->pos + hurtbox.offset;
+		hurtbox.box.pos = physics->getPos() + hurtbox.offset;
 	}
 }
 
