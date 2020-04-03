@@ -38,7 +38,7 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 
 	switch (state) {
 	case idle:
-		DebugIO::printLine(std::to_string(id) + " Idle.");
+		//DebugIO::printLine(std::to_string(id) + " Idle.");
 		if (!players.empty()) {
 			if (!multipleTeams) {
 				CombatComponent* frontPlayer = EntitySystem::GetComp<CombatComponent>(players.front());
@@ -67,7 +67,7 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 		}
 		break;
 	case capturing:
-		DebugIO::printLine(std::to_string(id) + " Capturing.");
+		//DebugIO::printLine(std::to_string(id) + " Capturing.");
 		if (multipleTeams) {
 			state = contested;
 		}
@@ -82,17 +82,23 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 				targetTeamid = frontPlayer->teamId;
 				//fix this, it grows linearly.
 				remainingCaptureTime -= players.size() * captureSpeed;
+				SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(id);
 				if (remainingCaptureTime <= 0) {
-					DebugIO::printLine(std::to_string(id) + " Point capped.");
-					remainingCaptureTime = totalCaptureTime;
-					currTeamId = targetTeamid;
-					state = idle;
+					if (!spawn->isDefault()) {
+						DebugIO::printLine(std::to_string(id) + " Point capped.");
+						remainingCaptureTime = totalCaptureTime;
+						currTeamId = targetTeamid;
+						state = idle;
+					}
+					else {
+						DebugIO::printLine("Unable to cap point, its a default point and right now that means you can't okay.");
+					}
 				}
 			}
 		}
 		break;
 	case contested:
-		DebugIO::printLine(std::to_string(id) + " Contested.");
+		//DebugIO::printLine(std::to_string(id) + " Contested.");
 		if (players.empty()) {
 			state = idle;
 		}

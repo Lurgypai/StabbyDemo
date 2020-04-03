@@ -20,6 +20,8 @@ public:
 	bool shouldRespawn();
 	void shouldRespawn(bool newShouldRespawn);
 	void kill();
+	//kill and make them select a spawn point immediately
+	void chooseSpawn();
 
 	EntityId getId() const;
 
@@ -53,8 +55,10 @@ protected:
 	int attackFreezeFrameMax;
 	int healFrameMax;
 	int healDelayMax;
+	uint32_t maxStamina;
+	uint32_t staminaRechargeMax;
+	uint32_t rollCost;
 
-	int deathFrame;
 	int deathFrameMax;
 
 	std::vector<AABB> hurtboxes;

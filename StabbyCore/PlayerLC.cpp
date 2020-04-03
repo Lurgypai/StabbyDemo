@@ -18,14 +18,16 @@ PlayerLC::PlayerLC(EntityId id_) :
 	rollVel{150},
 	storedVel{0},
 	rollFrameMax{54},
-	deathFrame{0},
 	deathFrameMax{1200},
 	attackFreezeFrameMax{17},
 	healFrameMax{60},
 	healDelayMax{120},
 	horizontalAccel{10.0},
 	stepDistance{70},
-	climbDistance{35}
+	climbDistance{35},
+	maxStamina{100},
+	rollCost{50},
+	staminaRechargeMax{360}
 {
 	//do not default construct
 	if (id != 0) {
@@ -46,6 +48,8 @@ PlayerLC::PlayerLC(EntityId id_) :
 			stateComp->playerState.activeAttack = 0;
 			stateComp->playerState.moveSpeed = 1.0;
 			stateComp->playerState.attackSpeed = 1.0;
+			stateComp->playerState.stamina = maxStamina;
+			stateComp->playerState.staminaRechargeFrame = staminaRechargeMax;
 		}
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<DirectionComponent>(1, &id);
@@ -134,7 +138,7 @@ void PlayerLC::update(double timeDelta) {
 			free(controller, attackToggledDown);
 			break;
 		case State::dead:
-			++deathFrame;
+			++state.deathFrame;
 			break;
 		case State::healing:
 		{
@@ -209,6 +213,15 @@ void PlayerLC::update(double timeDelta) {
 	else if (combat->isStunned())
 		state.state = State::stunned;
 
+	if (state.staminaRechargeFrame < staminaRechargeMax) {
+		++state.staminaRechargeFrame;
+	}
+	else if(state.staminaRechargeFrame == staminaRechargeMax) {
+		if (state.stamina < maxStamina) {
+			++state.stamina;
+		}
+	}
+
 	state.pos = comp->getPos();
 	state.vel = comp->vel;
 	state.facing = direction->dir;
@@ -222,7 +235,8 @@ void PlayerLC::update(double timeDelta) {
 	prevButton2 = controller[ControllerBits::BUTTON_2];
 	prevButton3 = controller[ControllerBits::BUTTON_3];
 
-	DebugIO::setLine(6, std::to_string(state.health));
+	DebugIO::setLine(6, "Health:  " + std::to_string(state.health));
+	DebugIO::setLine(7, "Stamina: " + std::to_string(state.stamina));
 }
 
 PhysicsComponent * PlayerLC::getPhysics() {
@@ -299,7 +313,7 @@ void PlayerLC::respawn(const Vec2f & spawnPos) {
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);\
 	Attack & attack = combat->attack;
 
-	deathFrame = 0;
+	state.deathFrame = 0;
 
 	comp->teleport(spawnPos);
 	comp->vel = { 0, 0 };
@@ -308,7 +322,8 @@ void PlayerLC::respawn(const Vec2f & spawnPos) {
 }
 
 bool PlayerLC::shouldRespawn() {
-	return deathFrame >= deathFrameMax;
+	PlayerStateComponent* playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	return playerState->playerState.deathFrame >= deathFrameMax;
 }
 
 void PlayerLC::kill() {
@@ -321,7 +336,21 @@ void PlayerLC::kill() {
 
 		state.state = State::dead;
 		combat->health = 0;
-		deathFrame = 0;
+		state.deathFrame = 0;
+	}
+}
+
+void PlayerLC::chooseSpawn() {
+	PlayerStateComponent* playerState = EntitySystem::GetComp<PlayerStateComponent>(id);
+	PlayerState& state = playerState->playerState;
+
+	if (state.state != State::dead) {
+
+		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+
+		state.state = State::dead;
+		combat->health = 0;
+		state.deathFrame = deathFrameMax;
 	}
 }
 
@@ -358,10 +387,16 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		bool currButton3 = controller[ControllerBits::BUTTON_3];
 		if (prevButton3 != currButton3) {
 			if (currButton3) {
-				state.state = State::rolling;
-				combat->invulnerable = true;
-				storedVel = vel.x;
-				vel.x = direction->dir * rollVel;
+				if (state.stamina >= rollCost) {
+					state.state = State::rolling;
+					combat->invulnerable = true;
+					storedVel = vel.x;
+					vel.x = direction->dir * rollVel;
+
+					//remove stamina and restart timer to refill stamina
+					state.stamina -= rollCost;
+					state.staminaRechargeFrame = 0;
+				}
 			}
 		}
 	}

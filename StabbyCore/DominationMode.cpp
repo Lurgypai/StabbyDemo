@@ -4,12 +4,38 @@
 #include "RandomUtil.h"
 #include "PositionComponent.h"
 #include "CapturePointComponent.h"
+#include "DebugIO.h"
 
 void DominationMode::load(SpawnSystem* spawns, unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_)
 {
 	loadData(totalTeams_, pointsPerCap_, winningPoints_);
 	assignPlayers();
 	assignSpawns(spawns);
+	clearPoints();
+}
+
+void DominationMode::reset(SpawnSystem* spawns) {
+	//clear all teams
+	//reassign all teams
+
+	//delete all capture points
+	//reassign capture points
+
+	teams.clear();
+	assignPlayers();
+
+	for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
+		EntityId id = capturePoint.getId();
+		EntitySystem::FreeComps<CapturePointComponent>(1, &id);
+	}
+
+	spawns->clearTeamsAssigns();
+	assignSpawns(spawns);
+	clearPoints();
+
+	for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+		player.chooseSpawn();
+	}
 }
 
 void DominationMode::loadData(unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_) {
@@ -59,6 +85,10 @@ void DominationMode::assignSpawns(SpawnSystem* spawns) {
 			if (teamIdCpy.empty())
 				teamIdCpy = teamIds;
 		}
+		else {
+			EntityId capturePoint = spawn->getId();
+			createZone(capturePoint, spawn->getSpawnZone(), 0, 13 * 120, 13 * 120);
+		}
 	}
 }
 
@@ -78,7 +108,8 @@ void DominationMode::tickCapturePoints(SpawnSystem& spawns, double timeDelta) {
 			bool wasCapped = capturePoint.isCaptured();
 			capturePoint.tickCapturePoint(timeDelta);
 			if (capturePoint.isCaptured()) {
-				teams[capturePoint.currTeamId].points += pointsPerCap;
+				if(capturePoint.currTeamId != 0)
+					teams[capturePoint.currTeamId].points += pointsPerCap;
 				//if we weren't capped, but now we are
 				if (!wasCapped) {
 					//propogate change to spawn
@@ -90,6 +121,20 @@ void DominationMode::tickCapturePoints(SpawnSystem& spawns, double timeDelta) {
 	//tick all the points
 	//increment current team points
 	//if any changed, propogate that change to the spawn
+
+	for (auto& pair : teams) {
+		Team& team = pair.second;
+		if (team.points >= winningPoints) {
+			DebugIO::printLine("Team " + std::to_string(team.teamId) + " has won!");
+			reset(&spawns);
+			break;
+		}
+	}
+
+	for (auto& pair : teams) {
+		if(pair.second.teamId != 0)
+			DebugIO::printLine("Team " + std::to_string(pair.second.teamId) + " has " + std::to_string(pair.second.points) + " points!");
+	}
 }
 
 void DominationMode::addPlayer(EntityId id) {
@@ -115,6 +160,12 @@ void DominationMode::removePlayer(EntityId id) {
 				return;
 			}
 		}
+	}
+}
+
+void DominationMode::clearPoints() {
+	for (auto& team : teams) {
+		team.second.points = 0;
 	}
 }
 

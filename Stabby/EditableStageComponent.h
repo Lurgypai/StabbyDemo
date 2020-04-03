@@ -28,6 +28,7 @@ public:
 
 	const EntityId getId() const;
 	void update(int camId);
+	bool isDefaultSpawn();
 
 	const AABB& getCollider() const;
 	StageElement getType() const;
@@ -50,7 +51,10 @@ private:
 	EditableState state;
 	AnchorSide anchorSide;
 
+	//this way, after the first one is toggled, none of the others will be. Effecively, editing the "top" editable
 	bool prevButton1;
 	bool prevButton2;
 	bool prevButton3;
+
+	bool defaultSpawn;
 };

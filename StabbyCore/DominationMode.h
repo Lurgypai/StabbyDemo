@@ -13,6 +13,7 @@ struct Team {
 class DominationMode {
 public:
 	void load(SpawnSystem* spawns, unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_);
+	void reset(SpawnSystem* spawns);
 	void loadData(unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_);
 	void assignPlayers();
 	void assignSpawns(SpawnSystem* spawns);
@@ -20,6 +21,7 @@ public:
 	void tickCapturePoints(SpawnSystem& spawns, double timeDelta);
 	void addPlayer(EntityId id);
 	void removePlayer(EntityId id);
+	void clearPoints();
 private:
 	std::unordered_map<unsigned int, Team> teams;
 	unsigned int winningPoints;

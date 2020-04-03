@@ -21,9 +21,14 @@ Stage::Stage(const std::string& stage, SpawnSystem & spawns) :
 		return;
 	}
 
-	std::vector<AABB> spawnBoxes{};
+	struct SpawnBox {
+		AABB box;
+		bool defaultSpawn;
+	};
 
-	constexpr int blockSize = sizeof(AABB) + sizeof(StageElement);
+	std::vector<SpawnBox> spawnBoxes{};
+
+	constexpr int blockSize = sizeof(AABB) + sizeof(StageElement) + sizeof(bool);
 	std::streamsize fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
 	std::vector<char> buffer(fileSize);
@@ -32,9 +37,11 @@ Stage::Stage(const std::string& stage, SpawnSystem & spawns) :
 		for (auto pos = 0; pos < fileSize; pos += blockSize) {
 			AABB collider;
 			StageElement type;
+			bool defaultSpawn;
 			std::memcpy(&collider, buffer.data() + pos, sizeof(AABB));
 			std::memcpy(&type, buffer.data() + pos + sizeof(AABB), sizeof(StageElement));
-
+			std::memcpy(&defaultSpawn, buffer.data() + pos + sizeof(AABB) + sizeof(StageElement), sizeof(bool));
+			
 			switch (type)
 			{
 			case StageElement::collideable:
@@ -57,13 +64,13 @@ Stage::Stage(const std::string& stage, SpawnSystem & spawns) :
 				climbables.push_back(ladder);
 				break;
 			case StageElement::spawnable:
-				spawnBoxes.push_back(collider);
+				spawnBoxes.emplace_back(SpawnBox{ collider, defaultSpawn });
 			default:
 				break;
 			}
 		}
 		for (auto& box : spawnBoxes) {
-			spawnZones.push_back(spawns.addSpawnZone(box, true, 0));
+			spawnZones.push_back(spawns.addSpawnZone(box.box, box.defaultSpawn, 0));
 		}
 	}
 	else {

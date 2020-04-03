@@ -164,6 +164,7 @@ int main(int argv, char* argc[])
 				users.back()->getCombat().hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 				users.back()->getCombat().health = 100;
 				users.back()->getCombat().stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+				users.back()->getPlayer().chooseSpawn();
 				online.addOnlineComponent(users.back()->getId());
 
 				NetworkId clientNetId = users.back()->getOnline().getNetId();

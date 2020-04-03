@@ -14,9 +14,7 @@ EditableStageComponent::EditableStageComponent(EntityId id_) :
 	collider{ {0, 0}, {0, 0} },
 	anchorSide{0},
 	state{EditableState::idle},
-	prevButton1{false},
-	prevButton2{ false },
-	prevButton3{ false }
+	defaultSpawn{true}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
@@ -102,8 +100,8 @@ void EditableStageComponent::update(int camId) {
 		break;
 	case EditableState::idle: {
 		int outlineWidth{ 4 };
-		AABB inside{ {collider.pos.x + (outlineWidth / 4), collider.pos.y + (outlineWidth / 4)}, {collider.res.x - (outlineWidth / 2), collider.res.y - (outlineWidth / 2)} };
-		AABB outside{ {collider.pos.x - (outlineWidth / 4), collider.pos.y - (outlineWidth / 4)}, {collider.res.x + (outlineWidth / 2), collider.res.y + (outlineWidth / 2)} };
+		AABB inside{ {collider.pos.x + (outlineWidth / 2), collider.pos.y + (outlineWidth / 2)}, {collider.res.x - outlineWidth, collider.res.y - outlineWidth} };
+		AABB outside{ {collider.pos.x - (outlineWidth / 2), collider.pos.y - (outlineWidth / 2)}, {collider.res.x + outlineWidth, collider.res.y + outlineWidth} };
 
 		if (currButton1 != prevButton1 && currButton1) {
 			if (!inside.contains(mousePos) && outside.contains(mousePos)) {
@@ -171,9 +169,13 @@ void EditableStageComponent::update(int camId) {
 				}
 				else if (type == StageElement::climbable) {
 					type = StageElement::spawnable;
+					defaultSpawn = true;
 				}
-				else if (type == StageElement::spawnable) {
+				else if (type == StageElement::spawnable && defaultSpawn) {
+					defaultSpawn = false;
+				} else if(type== StageElement::spawnable && !defaultSpawn) {
 					type = StageElement::collideable;
+				
 				}
 			}
 			else if (currButton3 != prevButton3 && currButton3) {
@@ -198,6 +200,10 @@ void EditableStageComponent::update(int camId) {
 	collider.res = Vec2f{ std::roundf(collider.res.x), std::roundf(collider.res.y) };
 
 	EntitySystem::GetComp<PositionComponent>(id)->pos = collider.pos;
+}
+
+bool EditableStageComponent::isDefaultSpawn() {
+	return defaultSpawn;
 }
 
 const AABB& EditableStageComponent::getCollider() const {

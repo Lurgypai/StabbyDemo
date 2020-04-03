@@ -77,6 +77,10 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 						out << "vel: " << plrState.vel << ", " << state.vel << '\n';
 					if (state.frozen != plrState.frozen)
 						out << "frozen: " << plrState.frozen << ", " << state.frozen << '\n';
+					if (state.stamina != plrState.stamina)
+						out << "stamina: " << plrState.stamina << ", " << state.stamina << '\n';
+					if (state.staminaRechargeFrame != plrState.staminaRechargeFrame)
+						out << "staminaRechargeFrame: " << plrState.staminaRechargeFrame << ", " << state.staminaRechargeFrame << '\n';
 
 					auto id = lastTick.player;
 					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);

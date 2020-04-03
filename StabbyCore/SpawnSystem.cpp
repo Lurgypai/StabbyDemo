@@ -36,3 +36,11 @@ void SpawnSystem::assignTeam(EntityId spawnZone, unsigned int teamId) {
 	teamSpawns[oldTeam].erase(teamSpawns[oldTeam].find(spawnZone));
 	teamSpawns[teamId].insert(spawnZone);
 }
+
+void SpawnSystem::clearTeamsAssigns() {
+	teamSpawns.clear();
+	for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
+		spawn.owningTeam = 0;
+		teamSpawns[0].insert(spawn.getId());
+	}
+}

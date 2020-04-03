@@ -20,7 +20,8 @@ struct PlayerState {
 			rollFrame == other.rollFrame && activeAttack == other.activeAttack && attackFrame == other.attackFrame &&
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
-			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay && teamId == other.teamId;
+			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay && teamId == other.teamId &&
+			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame;
 	}
 
 
@@ -43,6 +44,9 @@ struct PlayerState {
 	Vec2f spawnPoint;
 	int32_t attackFreezeFrame;
 	uint32_t teamId;
+	uint32_t stamina;
+	uint32_t staminaRechargeFrame;
+	uint32_t deathFrame;
 	double attackSpeed;
 	double moveSpeed;
 

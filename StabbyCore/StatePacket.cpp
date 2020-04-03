@@ -15,6 +15,9 @@ void StatePacket::serialize() {
 	state.attackFreezeFrame = htonl(state.attackFreezeFrame);
 	state.healFrame = htonl(state.healFrame);
 	state.healDelay = htonl(state.healDelay);
+	state.stamina = htonl(state.stamina);
+	state.staminaRechargeFrame = htonl(state.staminaRechargeFrame);
+	state.deathFrame = htonl(state.deathFrame);
 
 	pos.x = htonf(state.pos.x);
 	pos.y = htonf(state.pos.y);
@@ -41,6 +44,9 @@ void StatePacket::unserialize() {
 	state.attackFreezeFrame = ntohl(state.attackFreezeFrame);
 	state.healFrame = ntohl(state.healFrame);
 	state.healDelay = ntohl(state.healDelay);
+	state.stamina = ntohl(state.stamina);
+	state.staminaRechargeFrame = ntohl(state.staminaRechargeFrame);
+	state.deathFrame = ntohl(state.deathFrame);
 
 	state.pos.x = ntohf(pos.x);
 	state.pos.y = ntohf(pos.y);

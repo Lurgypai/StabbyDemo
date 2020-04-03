@@ -45,9 +45,9 @@ void Game::startOfflineGame() {
 	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
-	EntitySystem::GetComp<PlayerLC>(playerId)->kill();
+	EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
 
-	mode.load(&spawns, 2, 1, 144000);
+	mode.load(&spawns, 2, 1, 6000);
 
 	auto spawnables = stage.getSpawnables();
 	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
@@ -77,9 +77,7 @@ void Game::startOnlineGame() {
 	EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 	EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons.cloneAnimation("player_sword");
 
-	PhysicsComponent * pos = EntitySystem::GetComp<PhysicsComponent>(playerId);
-	SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(stage.getSpawnables().front());
-	pos->teleport(spawn->findSpawnPos());
+	//EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
 
 	mode.loadData(2, 1, 144000);
 

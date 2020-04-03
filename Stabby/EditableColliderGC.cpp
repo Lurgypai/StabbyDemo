@@ -36,9 +36,16 @@ void EditableColliderGC::update() {
 		rect->b = 0.0;
 		break;
 	case StageElement::spawnable:
-		rect->r = 0.0;
-		rect->g = 1.0;
-		rect->b = 0.0;
+		if (editable->isDefaultSpawn()) {
+			rect->r = 0.0;
+			rect->g = 1.0;
+			rect->b = 0.0;
+		}
+		else {
+			rect->r = 0.5;
+			rect->g = 0.8;
+			rect->b = 0.5;
+		}
 		break;
 	default:
 		rect->r = 0.5;

@@ -41,7 +41,7 @@ void EditableSystem::updateLogic(int camId) {
 	bool ctrl = state[SDL_SCANCODE_LSHIFT];
 
 	if (ctrl && currButton1 != prevButton1 && currButton1) {
-		EntityId editableId = makeEditable(mousePos, { 0, 0 }, StageElement::collideable);
+		EntityId editableId = makeEditable(mousePos, { 0, 0 }, StageElement::collideable, false);
 		auto editable = EntitySystem::GetComp<EditableStageComponent>(editableId);
 		editable->anchorPoint = mousePos;
 		editable->state = EditableState::resizing;
@@ -50,7 +50,7 @@ void EditableSystem::updateLogic(int camId) {
 		editable->anchorSide = AnchorSide::topright;
 	}
 	if (ctrl && currButton2 != prevButton2 && currButton2) {
-		EntityId editableId = makeEditable(mousePos, { 0, 0 }, StageElement::climbable);
+		EntityId editableId = makeEditable(mousePos, { 0, 0 }, StageElement::climbable, false);
 		auto editable = EntitySystem::GetComp<EditableStageComponent>(editableId);
 		editable->anchorPoint = mousePos;
 		editable->state = EditableState::resizing;
@@ -90,11 +90,12 @@ void EditableSystem::save(const std::string& stage_) {
 		return;
 	}
 
-	constexpr int size = sizeof(AABB) + sizeof(StageElement);
+	constexpr int size = sizeof(AABB) + sizeof(StageElement) + sizeof(bool);
 	char data[size];
 	for (auto& editable : EntitySystem::GetPool<EditableStageComponent>()) {
 		std::memcpy(data, &editable.collider, sizeof(AABB));
 		std::memcpy(data + sizeof(AABB), &editable.type, sizeof(StageElement));
+		std::memcpy(data + sizeof(AABB) + sizeof(StageElement), &editable.defaultSpawn, sizeof(bool));
 
 		file.write(data, size);
 	}
@@ -112,7 +113,7 @@ void EditableSystem::load(const std::string& stage_) {
 		return;
 	}
 
-	constexpr int blockSize = sizeof(AABB) + sizeof(StageElement);
+	constexpr int blockSize = sizeof(AABB) + sizeof(StageElement) + sizeof(bool);
 	std::streamsize fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
 	std::vector<char> buffer(fileSize);
@@ -120,9 +121,11 @@ void EditableSystem::load(const std::string& stage_) {
 		for (auto pos = 0; pos < fileSize; pos += blockSize) {
 			AABB collider;
 			StageElement type;
+			bool defaultSpawn;
 			std::memcpy(&collider, buffer.data() + pos, sizeof(AABB));
 			std::memcpy(&type, buffer.data() + pos + sizeof(AABB), sizeof(StageElement));
-			makeEditable(collider.pos, collider.res, type);
+			std::memcpy(&defaultSpawn, buffer.data() + pos + sizeof(AABB) + sizeof(StageElement), sizeof(bool));
+			makeEditable(collider.pos, collider.res, type, defaultSpawn);
 		}
 	}
 	else {
@@ -130,7 +133,7 @@ void EditableSystem::load(const std::string& stage_) {
 	}
 }
 
-EntityId EditableSystem::makeEditable(Vec2f pos, Vec2f res, StageElement type) {
+EntityId EditableSystem::makeEditable(Vec2f pos, Vec2f res, StageElement type, bool defaultSpawn_) {
 	EntityId id;
 	EntitySystem::GenEntities(1, &id);
 	EntitySystem::MakeComps<EditableStageComponent>(1, &id);
@@ -138,6 +141,7 @@ EntityId EditableSystem::makeEditable(Vec2f pos, Vec2f res, StageElement type) {
 	editable->collider.pos = { pos.x, pos.y };
 	editable->collider.res = res;
 	editable->type = type;
+	editable->defaultSpawn = defaultSpawn_;
 
 	EntitySystem::MakeComps<EditableColliderGC>(1, &id);
 
