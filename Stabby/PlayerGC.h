@@ -14,7 +14,8 @@ public:
 		stun,
 		dead,
 		climb,
-		heal
+		heal,
+		crouch
 	};
 
 	PlayerGC(EntityId id_ = 0);

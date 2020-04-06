@@ -25,9 +25,7 @@ PlayerLC::PlayerLC(EntityId id_) :
 	horizontalAccel{10.0},
 	stepDistance{70},
 	climbDistance{35},
-	maxStamina{500},
-	rollCost{240},
-	staminaRechargeMax{80}
+	rollCost{240}
 {
 	//do not default construct
 	if (id != 0) {
@@ -48,8 +46,6 @@ PlayerLC::PlayerLC(EntityId id_) :
 			stateComp->playerState.activeAttack = 0;
 			stateComp->playerState.moveSpeed = 1.0;
 			stateComp->playerState.attackSpeed = 1.0;
-			stateComp->playerState.stamina = maxStamina;
-			stateComp->playerState.staminaRechargeFrame = staminaRechargeMax;
 		}
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<DirectionComponent>(1, &id);
@@ -87,9 +83,8 @@ void PlayerLC::update(double timeDelta) {
 	if (prevButton2 != currButton2) {
 		if (currButton2) {
 			attackToggledDown = true;
-			if (state.state == State::attacking && !attack.getNextIsBuffered()) {
-				attack.bufferNext();
-				attackChange = true;
+			if (state.state == State::attacking) {
+				combat->bufferNextAttack();
 			}
 		}
 	}
@@ -138,26 +133,41 @@ void PlayerLC::update(double timeDelta) {
 			free(controller, attackToggledDown);
 			break;
 		case State::dead:
+			vel.x = 0;
 			++state.deathFrame;
 			break;
-		case State::healing:
+		case State::crouching:
 		{
 			vel.x = 0;
 			if (state.healDelay == healDelayMax) {
 				state.healFrame++;
 				if (state.healFrame == healFrameMax) {
 					state.healFrame = 0;
-					combat->heal(2);
-				}
-
-				bool currButton1 = controller[ControllerBits::BUTTON_1];
-				if (currButton1 != prevButton1 && currButton1) {
-					state.state = State::free;
+					combat->heal(combat->stats.regeneration);
 				}
 			}
 			else {
 				++state.healDelay;
 			}
+			if (!controller[ControllerBits::DOWN])
+				state.state = State::free;
+
+			bool currButton3 = controller[ControllerBits::BUTTON_3];
+			if (prevButton3 != currButton3) {
+				if (currButton3) {
+					if (combat->stamina >= rollCost) {
+						state.state = State::rolling;
+						combat->invulnerable = true;
+						storedVel = vel.x;
+						vel.x = direction->dir * rollVel;
+
+						//remove stamina and restart timer to refill stamina
+						combat->useStamina(rollCost);
+						state.staminaRechargeFrame = 0;
+					}
+				}
+			}
+
 			break;
 		}
 		case State::climbing:
@@ -213,19 +223,13 @@ void PlayerLC::update(double timeDelta) {
 	else if (combat->isStunned())
 		state.state = State::stunned;
 
-	if (state.staminaRechargeFrame < staminaRechargeMax) {
-		++state.staminaRechargeFrame;
-	}
-	else if(state.staminaRechargeFrame == staminaRechargeMax) {
-		if (state.stamina < maxStamina) {
-			++state.stamina;
-		}
-	}
+
 
 	state.pos = comp->getPos();
 	state.vel = comp->vel;
 	state.facing = direction->dir;
 	state.health = combat->health;
+	state.stamina = combat->stamina;
 	state.stunFrame = combat->stunFrame;
 
 	state.activeAttack = attack.getActiveId();
@@ -267,6 +271,8 @@ void PlayerLC::setState(const PlayerState& newState) {
 	combat->health = newState.health;
 	combat->stunFrame = newState.stunFrame;
 	combat->teamId = newState.teamId;
+	combat->stamina = newState.stamina;
+	combat->staminaRechargeFrame = newState.staminaRechargeFrame;
 
 	dir->dir = newState.facing;
 	
@@ -287,6 +293,8 @@ PlayerState PlayerLC::getState() {
 	playerState->playerState.health = combat->health;
 	playerState->playerState.stunFrame = combat->stunFrame;
 	playerState->playerState.teamId = combat->teamId;
+	playerState->playerState.stamina = combat->stamina;
+	playerState->playerState.staminaRechargeFrame = combat->staminaRechargeFrame;
 
 	playerState->playerState.facing = dir->dir;
 
@@ -371,15 +379,8 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	Attack & attack = combat->attack;
 
 	if (attackToggledDown_) {
-		if (attack.canStartAttacking()) {
+		if(combat->startAttacking())
 			state.state = State::attacking;
-			if (attack.getActiveId() == 0) {
-				attack.startAttacking();
-				attackChange = true;
-				state.activeAttack = attack.getActiveId();
-				state.attackFrame = attack.getCurrFrame();
-			}
-		}
 	}
 
 	//try to start rolling
@@ -387,14 +388,14 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		bool currButton3 = controller[ControllerBits::BUTTON_3];
 		if (prevButton3 != currButton3) {
 			if (currButton3) {
-				if (state.stamina >= rollCost) {
+				if (combat->stamina >= rollCost) {
 					state.state = State::rolling;
 					combat->invulnerable = true;
 					storedVel = vel.x;
 					vel.x = direction->dir * rollVel;
 
 					//remove stamina and restart timer to refill stamina
-					state.stamina -= rollCost;
+					combat->useStamina(rollCost);
 					state.staminaRechargeFrame = 0;
 				}
 			}
@@ -410,9 +411,9 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		}
 	}
 
-	bool currButton1 = controller[ControllerBits::BUTTON_1];
-	if (currButton1 != prevButton1 && currButton1) {
-		state.state = State::healing;
+	if (comp->grounded && controller[ControllerBits::DOWN]) {
+
+		state.state = State::crouching;
 		state.healDelay = 0;
 		state.healFrame = 0;
 	}

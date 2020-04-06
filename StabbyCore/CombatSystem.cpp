@@ -15,11 +15,24 @@ void CombatSystem::runAttackCheck(double timeDelta) {
 			if (physics != nullptr && direction != nullptr) {
 				attacker.updateHurtboxes();
 				attacker.updateStun();
+				attacker.updateStamina();
+
 				if (physics != nullptr && !physics->frozen)
 					attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
 
+
+				bool attackChanged = attacker.attack.pollAttackChange();
+				if (attackChanged) {
+					attacker.clearHitEntities();
+					uint32_t staminaCost = attacker.getStaminaCost();
+					if (staminaCost < attacker.stamina)
+						attacker.useStamina(staminaCost);
+					else
+						attacker.useStamina(attacker.stamina);
+				}
+
 				for (CombatComponent& defender : EntitySystem::GetPool<CombatComponent>()) {
-					attackCheck(attacker, defender);
+					attackCheck(attacker, defender, attackChanged);
 				}
 			}
 		}
@@ -37,31 +50,50 @@ void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
 			if (attacker.getId() == id) {
 				attacker.updateHurtboxes();
 				attacker.updateStun();
+				attacker.updateStamina();
+			
 				if (physics != nullptr && !physics->frozen)
 					attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+				
+				bool attackChanged = attacker.attack.pollAttackChange();
+				if (attackChanged) {
+					attacker.clearHitEntities();
+					uint32_t staminaCost = attacker.getStaminaCost();
+					if (staminaCost < attacker.stamina)
+						attacker.useStamina(staminaCost);
+					else
+						attacker.useStamina(attacker.stamina);
+				}
 
 				for (CombatComponent& defender : EntitySystem::GetPool<CombatComponent>()) {
-					attackCheck(attacker, defender);
+					attackCheck(attacker, defender, attackChanged);
 				}
 			}
 			else {
 				//if we aren't the attacker, only update our defense
 				CombatComponent& defender = *EntitySystem::GetComp<CombatComponent>(id);
-				attackCheck(attacker, defender);
+
+				bool attackChanged = defender.attack.pollAttackChange();
+				if (attackChanged) {
+					defender.clearHitEntities();
+					uint32_t staminaCost = defender.getStaminaCost();
+					if (staminaCost < defender.stamina)
+						defender.useStamina(staminaCost);
+					else
+						defender.useStamina(defender.stamina);
+				}
+
+				attackCheck(attacker, defender, attackChanged);
 			}
 		}
 	}
 }
 
-void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defender) {
+void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defender, bool attackChanged) {
 	EntityId attackerId = attacker.getId();
 	EntityId defenderId = defender.getId();
 	if (attackerId != defenderId) {
 		if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
-
-			bool attackChanged = attacker.attack.pollAttackChange();
-			if (attackChanged)
-				attacker.clearHitEntities();
 
 			if (attackChanged || !attacker.hasHitEntity(defenderId)) {
 				auto* activeHitbox = attacker.getActiveHitbox();

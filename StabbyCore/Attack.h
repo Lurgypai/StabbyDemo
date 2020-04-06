@@ -2,6 +2,17 @@
 #include "AABB.h"
 #include <array>
 
+struct AttackStats {
+	float damage;
+	unsigned int stun;
+	unsigned int staminaCost;
+
+	float critChance;
+	float critMultiplier;
+	float vampirismChance;
+	float vampirismMultiplier;
+};
+
 //begin and end framess
 struct Hitbox {
 	AABB hit;
@@ -9,8 +20,8 @@ struct Hitbox {
 	unsigned int startup;
 	unsigned int active;
 	unsigned int ending;
-	unsigned int stun;
-	float damage;
+
+	AttackStats stats;
 };
 
 class Attack {
@@ -24,10 +35,12 @@ public:
 	bool getNextIsBuffered() const;
 	void startAttacking();
 	const Hitbox* getActive() const;
+	const Hitbox* getHitbox(int pos) const;
+	const size_t getHitboxCount() const;
 	unsigned int getActiveId();
 	unsigned int getCurrFrame();
 	unsigned int getCurrentTotalFrames();
-	unsigned int getDamage() const;
+	AttackStats getStats() const;
 	double getSpeed();
 	void bufferNext();
 	void update(double timeDelta, Vec2f pos, int facing);

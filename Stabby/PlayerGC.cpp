@@ -38,6 +38,7 @@ void PlayerGC::loadAnimations() {
 	animSprite_.addAnimation(dead, 40, 52);
 	animSprite_.addAnimation(climb, 52, 54);
 	animSprite_.addAnimation(heal, 54, 64);
+	animSprite_.addAnimation(crouch, 54, 57);
 
 	//ClientPlayerLC* playerLogic = EntitySystem::GetComp<ClientPlayerLC>(id);
 	//Vec2f res = playerLogic->getRes();
@@ -128,8 +129,8 @@ void PlayerGC::updateState(double timeDelta) {
 					case State::climbing:
 						sprite.setAnimation(climb);
 						break;
-					case State::healing:
-						sprite.setAnimation(heal);
+					case State::crouching:
+						sprite.setAnimation(crouch);
 						break;
 					}
 				}

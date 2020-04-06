@@ -12,7 +12,11 @@ CombatComponent::CombatComponent(EntityId id_) :
 	invulnerable{false},
 	stats{},
 	stunFrame{0},
-	teamId{0}
+	teamId{0},
+	stamina{0},
+	staminaMax{500},
+	staminaRechargeFrame{0},
+	staminaRechargeMax{80}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
@@ -52,6 +56,17 @@ void CombatComponent::updateHurtboxes() {
 	}
 }
 
+void CombatComponent::updateStamina() {
+	if (staminaRechargeFrame < staminaRechargeMax) {
+		++staminaRechargeFrame;
+	}
+	else if (staminaRechargeFrame == staminaRechargeMax) {
+		if(stamina < staminaMax) {
+			++stamina;
+		}
+	}
+}
+
 void CombatComponent::onAttackLand()
 {
 }
@@ -81,7 +96,12 @@ const Hitbox * CombatComponent::getActiveHitbox() const {
 
 unsigned int CombatComponent::getStun() {
 	auto activeAttack = attack.getActive();
-	return activeAttack == nullptr ? 0 : activeAttack->stun;
+	return activeAttack == nullptr ? 0 : activeAttack->stats.stun;
+}
+
+unsigned int CombatComponent::getStaminaCost() {
+	auto activeAttack = attack.getActive();
+	return activeAttack == nullptr ? 0 : activeAttack->stats.staminaCost;
 }
 
 bool CombatComponent::isStunned() {
@@ -107,6 +127,8 @@ void CombatComponent::damage(unsigned int i) {
 
 void CombatComponent::heal(unsigned int i) {
 	health += i;
+	if (health > stats.maxHealth)
+		health = stats.maxHealth;
 	onHeal(i);
 }
 
@@ -116,8 +138,39 @@ void CombatComponent::stun(unsigned int i) {
 	onStun(i);
 }
 
+bool CombatComponent::startAttacking() {
+	if (attack.canStartAttacking()) {
+		if (stamina > 0) {
+			attack.startAttacking();
+			useStamina(attack.getHitbox(1)->stats.staminaCost);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CombatComponent::bufferNextAttack() {
+	if (!attack.getNextIsBuffered()) {
+		int currAttack = attack.getActiveId();
+		auto nextHitbox = attack.getHitbox(currAttack + 1);
+		if (nextHitbox) {
+			if (stamina > 0) {
+				attack.bufferNext();
+				useStamina(nextHitbox->stats.staminaCost);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool CombatComponent::hasHitEntity(const EntityId& target) {
 	return hitEntities.size() > target && hitEntities[target];
+}
+
+void CombatComponent::useStamina(uint32_t amount) {
+	stamina -= amount < stamina ? amount : stamina;
+	staminaRechargeFrame = 0;
 }
 
 void CombatComponent::addHitEntity(EntityId hit) {
@@ -135,19 +188,25 @@ int CombatComponent::rollDamage() {
 	const Hitbox* active = attack.getActive();
 
 	if (active != nullptr) {
+		AttackStats attackStats = attack.getStats();
 
-		int activeId = attack.getActiveId();
+		float critChance = stats.critChance + attackStats.critChance;
+		float critMultiplier = stats.critMultiplier + attackStats.critMultiplier;
+		float damage = stats.baseDamage * attackStats.damage;
 
 		float doCrit = randFloat(0.0f, 1.0f);
 		int guaranteedCrits = static_cast<int>(stats.critChance);
-		float critChance = stats.critChance - guaranteedCrits;
+		float remainingCritChance = stats.critChance - guaranteedCrits;
 
 		//calculate the guaranteed crits, if the leftover chance happens do it, otherwise return the base damage.
-		int totalDamage = (active->damage * stats.baseDamage * stats.critMultiplier) * guaranteedCrits + (doCrit < critChance ? active->damage * stats.baseDamage * stats.critMultiplier : active->damage * stats.baseDamage);
+		int totalDamage = (damage * critMultiplier) * guaranteedCrits + (doCrit < remainingCritChance ? damage * critMultiplier : damage);
+
+		float vampirismChance = stats.vampirismChance + attackStats.vampirismChance;
+		float vampirismMultiplier = stats.vampirismMultiplier + attackStats.vampirismMultiplier;
 
 		float doVampire = randFloat(0.0f, 1.0f);
-		if (doVampire < stats.vampirismChance) {
-			heal(totalDamage * stats.vampirismMultiplier);
+		if (doVampire < vampirismChance) {
+			heal(totalDamage * vampirismMultiplier);
 		}
 
 		return totalDamage;

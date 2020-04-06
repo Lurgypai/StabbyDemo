@@ -46,7 +46,6 @@ protected:
 	bool prevButton1;
 	bool prevButton2;
 	bool prevButton3;
-	bool attackChange;
 
 	float rollVel;
 	float storedVel;
@@ -55,8 +54,6 @@ protected:
 	int attackFreezeFrameMax;
 	int healFrameMax;
 	int healDelayMax;
-	uint32_t maxStamina;
-	uint32_t staminaRechargeMax;
 	uint32_t rollCost;
 
 	int deathFrameMax;

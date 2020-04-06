@@ -59,6 +59,7 @@
 #include "RectDrawable.h"
 #include "CapturePointGC.h"
 #include "OnlineComponent.h"
+#include "HealthCommand.h"
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
 	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game.players, &game.weapons });
 	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{&game.client});
-	DebugIO::getCommandManager().registerCommand<PaletteCommand>(PaletteCommand{ &game.palettes });
+	DebugIO::getCommandManager().registerCommand<HealthCommand>();
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
 
@@ -549,10 +550,15 @@ int main(int argc, char* argv[]) {
 }
 
 /*
-//debug needs to display properly, add new display modes.
+finished
+capped health
+restarting the game
 
-change visibilty of player state
-change to only a render system using exclusively render components, modulated by the other components
-change death to a boolean value in the "Entity" struct which is just the id and living state.
+tomorrow
+attack costs stamina
+
+make crouch, after delay seconds start healing.
+add more hurtbox stuff (multiple different, can be swapped)
+heal uses regen stat
 */
 

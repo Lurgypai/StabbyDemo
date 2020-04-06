@@ -12,7 +12,7 @@ EntityId PlayerManager::makePlayer(const WeaponManager & weapons) {
 	EntitySystem::GetComp<CombatComponent>(playerId)->attack = weapons.cloneAttack("player_sword");
 	EntitySystem::GetComp<CombatComponent>(playerId)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 	EntitySystem::GetComp<CombatComponent>(playerId)->health = 100;
-	EntitySystem::GetComp<CombatComponent>(playerId)->stats = CombatStats{ 100, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	EntitySystem::GetComp<CombatComponent>(playerId)->stats = CombatStats{ 100, 2, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	return playerId;
 }

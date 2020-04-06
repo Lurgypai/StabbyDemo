@@ -14,6 +14,7 @@ class DominationMode {
 public:
 	void load(SpawnSystem* spawns, unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_);
 	void reset(SpawnSystem* spawns);
+	void loadTeams();
 	void loadData(unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_);
 	void assignPlayers();
 	void assignSpawns(SpawnSystem* spawns);

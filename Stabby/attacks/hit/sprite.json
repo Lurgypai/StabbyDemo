@@ -9,8 +9,16 @@
             "startup": 4,
             "active": 32,
             "ending": 4,
-            "stun": 40,
-            "damage": 500
+            "stats":
+            {
+                "staminaCost": 1000,
+                "damage": 1000,
+                "stun": 40,
+                "critChance": 1.0,
+                "critMultiplier": 50.0,
+                "vampirismChance": 1.0,
+                "vampirismMultiplier": 50.0
+            }
         }
     ]
 }

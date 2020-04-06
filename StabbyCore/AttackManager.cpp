@@ -32,10 +32,22 @@ void AttackManager::loadAttacks(const std::string & attackDir) {
 						unsigned int startup = hitbox["startup"];
 						unsigned int active = hitbox["active"];
 						unsigned int ending = hitbox["ending"];
-						unsigned int stun = hitbox["stun"];
-						float damage = hitbox["damage"];
+						
+						auto hitboxStats = hitbox["stats"];
+						AttackStats stats{};
 
-						attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stun, damage });
+						stats.staminaCost = hitboxStats["staminaCost"];
+
+						stats.damage = hitboxStats["damage"];
+						stats.stun = hitboxStats["stun"];
+
+						stats.critChance = hitboxStats["critChance"];
+						stats.critMultiplier = hitboxStats["critMultiplier"];
+
+						stats.vampirismChance = hitboxStats["vampirismChance"];
+						stats.vampirismMultiplier = hitboxStats["vampirismMultiplier"];
+
+						attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stats});
 					}
 
 					attacks.insert(std::pair{ file.path().stem().string(), attack });

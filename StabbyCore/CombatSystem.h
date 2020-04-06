@@ -16,6 +16,6 @@ public:
 	void runAttackCheck(double timeDelta, EntityId id);
 private:
 
-	void attackCheck(CombatComponent& attacker, CombatComponent& defender);
+	void attackCheck(CombatComponent& attacker, CombatComponent& defender, bool attackChange);
 	int prevAttackId;
 };

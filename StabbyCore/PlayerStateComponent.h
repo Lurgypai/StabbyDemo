@@ -11,7 +11,8 @@ enum class State : uint8_t {
 	stunned,
 	dead,
 	climbing,
-	healing
+	healing,
+	crouching
 };
 
 struct PlayerState {

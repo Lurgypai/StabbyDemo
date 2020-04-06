@@ -177,6 +177,7 @@
     <ClInclude Include="FrameByFrameCommand.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="HeadCommand.h" />
+    <ClInclude Include="HealthCommand.h" />
     <ClInclude Include="PaletteManager.h" />
     <ClInclude Include="PaletteCommand.h" />
     <ClInclude Include="SpawnPlayerCommand.h" />
@@ -212,6 +213,7 @@
     <ClCompile Include="FrameByFrameCommand.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HeadCommand.cpp" />
+    <ClCompile Include="HealthCommand.cpp" />
     <ClCompile Include="PaletteCommand.cpp" />
     <ClCompile Include="PaletteManager.cpp" />
     <ClCompile Include="SpawnPlayerCommand.cpp" />

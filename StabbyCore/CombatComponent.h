@@ -35,13 +35,17 @@ public:
 	AABB getBoundingBox();
 	const Hitbox * getActiveHitbox() const;
 	unsigned int getStun();
+	unsigned int getStaminaCost();
 	bool isStunned();
 	bool isAlive();
 
 	void damage(unsigned int i);
 	void heal(unsigned int i);
 	void stun(unsigned int i);
+	bool startAttacking();
+	bool bufferNextAttack();
 	bool hasHitEntity(const EntityId & target);
+	void useStamina(uint32_t amount);
 
 	//runs damage calculations and returns the result
 	int rollDamage();
@@ -50,6 +54,8 @@ public:
 	Attack attack;
 	CombatStats stats;
 	int health;
+	uint32_t stamina;
+	uint32_t staminaRechargeFrame;
 	unsigned int teamId;
 	unsigned int stunFrame;
 	bool invulnerable;
@@ -57,6 +63,7 @@ public:
 private:
 	void updateStun();
 	void updateHurtboxes();
+	void updateStamina();
 	void addHitEntity(EntityId hit);
 	void clearHitEntities();
 
@@ -68,9 +75,11 @@ private:
 	void onDamage(unsigned int amount);
 	void onStun(unsigned int amount);
 
-	bool attackChanged;
 	EntityId id;
 	EntityId lastAttacker;
 	//Index is the EntityId, bool is wether they've been hit
 	DynamicBitset hitEntities;
+
+	uint32_t staminaMax;
+	uint32_t staminaRechargeMax;
 };

@@ -47,7 +47,7 @@ void Attack::setSpeed(double newSpeed) {
 }
 
 bool Attack::canStartAttacking() {
-	return restartDelay == restartDelayMax;
+	return restartDelay == restartDelayMax && active == 0;
 }
 
 bool Attack::getNextIsBuffered() const {
@@ -71,6 +71,18 @@ const Hitbox * Attack::getActive() const {
 	return nullptr;
 }
 
+const Hitbox* Attack::getHitbox(int pos) const {
+	if (pos != 0 && pos <= hitboxes.size()) {
+		const Hitbox* hitbox = &hitboxes[pos - 1];
+		return hitbox;
+	}
+	return nullptr;
+}
+
+const size_t Attack::getHitboxCount() const {
+	return hitboxes.size();
+}
+
 unsigned int Attack::getActiveId(){
 	return active;
 }
@@ -83,8 +95,8 @@ unsigned int Attack::getCurrentTotalFrames() {
 	return hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending;
 }
 
-unsigned int Attack::getDamage() const {
-	return hitboxes[active - 1].damage;
+AttackStats Attack::getStats() const {
+	return hitboxes[active - 1].stats;
 }
 
 double Attack::getSpeed() {

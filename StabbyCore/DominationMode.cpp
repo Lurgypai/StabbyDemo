@@ -9,6 +9,7 @@
 void DominationMode::load(SpawnSystem* spawns, unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_)
 {
 	loadData(totalTeams_, pointsPerCap_, winningPoints_);
+	loadTeams();
 	assignPlayers();
 	assignSpawns(spawns);
 	clearPoints();
@@ -22,6 +23,8 @@ void DominationMode::reset(SpawnSystem* spawns) {
 	//reassign capture points
 
 	teams.clear();
+	loadTeams();
+
 	assignPlayers();
 
 	for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
@@ -35,6 +38,12 @@ void DominationMode::reset(SpawnSystem* spawns) {
 
 	for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
 		player.chooseSpawn();
+	}
+}
+
+void DominationMode::loadTeams() {
+	for (int i = 1; i <= totalTeams; ++i) {
+		teams[i].teamId = i;
 	}
 }
 
@@ -65,8 +74,6 @@ void DominationMode::assignPlayers() {
 void DominationMode::assignSpawns(SpawnSystem* spawns) {
 	std::vector<unsigned int> teamIds(totalTeams, 0);
 	for (unsigned int i = 1; i != totalTeams + 1; teamIds[i - 1] = i, ++i);
-	for (auto& id : teamIds)
-		teams[id].teamId = id;
 	auto teamIdCpy = teamIds;
 
 	//get all spawn points unassigned, assign them

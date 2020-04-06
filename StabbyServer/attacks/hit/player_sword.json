@@ -9,8 +9,16 @@
             "startup": 8,
             "active": 12,
             "ending": 16,
-            "stun": 40,
-            "damage": 20
+            "stats":
+            {
+                "staminaCost": 5,
+                "damage": 20,
+                "stun": 40,
+                "critChance": 0.0,
+                "critMultiplier": 0.0,
+                "vampirismChance": 0.0,
+                "vampirismMultiplier": 0.0
+            }
         },
         {
             "width": 20,
@@ -20,8 +28,16 @@
             "startup": 8,
             "active": 20,
             "ending": 16,
-            "stun": 40,
-            "damage": 20
+            "stats":
+            {
+                "staminaCost": 7,
+                "damage": 20,
+                "stun": 40,
+                "critChance": 0.0,
+                "critMultiplier": 0.0,
+                "vampirismChance": 0.0,
+                "vampirismMultiplier": 0.0
+            }
         },
         {
             "width": 30,
@@ -31,8 +47,16 @@
             "startup": 8,
             "active": 32,
             "ending": 8,
-            "stun": 40,
-            "damage": 40
+            "stats":
+            {
+                "staminaCost": 10,
+                "damage": 40,
+                "stun": 40,
+                "critChance": 0.0,
+                "critMultiplier": 0.0,
+                "vampirismChance": 0.0,
+                "vampirismMultiplier": 0.0
+            }
         }
     ]
 }
